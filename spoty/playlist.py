@@ -185,14 +185,14 @@ def add_tracks_to_playlist(playlist_id, track_ids, allow_duplicates=False):
     playlist_id = parse_playlist_id(playlist_id)
 
     for i in range(len(track_ids)):
-        track_ids[i] = parse_playlist_id(track_ids[i])
+        track_ids[i] = parse_track_id(track_ids[i])
 
     log.info(f'Adding {len(track_ids)} tracks to playlist {playlist_id}')
 
     if not allow_duplicates:
         tracks = get_tracks_of_playlist(playlist_id)
         existing_ids = get_track_ids(tracks)
-        new_ids = filter_track_duplicates(existing_ids, track_ids)
+        new_ids = filter_duplicates(existing_ids, track_ids)
         if len(track_ids) != len(new_ids):
             log.debug(f'{len(track_ids) - len(new_ids)}/{len(track_ids)} tracks already exist and will be skipped.')
             track_ids = new_ids
@@ -210,7 +210,7 @@ def add_tracks_to_playlist(playlist_id, track_ids, allow_duplicates=False):
             next_tracks = []
         i += 1
 
-    log.success(f'Adding tracks complete (added tracks {len(next_tracks)}')
+    log.success(f'Adding tracks complete (tracks added: {len(next_tracks)}')
 
     return tracks_added
 
@@ -247,7 +247,7 @@ def export_playlist_to_file(playlist_id, path, overwrite=False, avoid_filenames=
                 isrc = track['external_ids']['isrc']
             except:
                 pass
-            album=""
+            album = ""
             try:
                 album = track['album']['name']
             except:
@@ -327,5 +327,3 @@ def import_playlist_from_file(file_name, append_if_exist=False, allow_duplicates
     log.success(f'Playlist imported (new tracks: "{len(tracks_added)}")')
 
     return playlist_id, tracks_added, tracks_in_file
-
-

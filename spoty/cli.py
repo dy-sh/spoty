@@ -44,7 +44,7 @@ def playlist_copy(playlist_ids):
     it could be your playlists or created by another user.
     The exact same playlists will be created in your library.
 
-    PLAYLIST_IDS - list of playlist ids or urls. You can specify one ID or many IDs separated by a space.
+    PLAYLIST_IDS - list of playlist IDs or URIs. You can specify one ID or many IDs separated by a space.
 
 
 
@@ -70,9 +70,9 @@ def playlist_add_tracks(playlist_id, track_ids):
     r"""
     Add tracks to playlist.
 
-    PLAYLIST_ID - playlist id or url.
+    PLAYLIST_ID - playlist ID or URI.
 
-    TRACK_IDS - list of track ids or urls. You can specify one ID or many IDs separated by a space.
+    TRACK_IDS - list of track IDs or URIs. You can specify one ID or many IDs separated by a space.
 
     Examples:
 
@@ -94,7 +94,7 @@ def playlist_read(playlist_ids):
     Read playlists and print track ids.
     it could be your playlists or created by another user.
 
-    PLAYLIST_IDS - list of playlist ids or urls. You can specify one ID or many IDs separated by a space.
+    PLAYLIST_IDS - list of playlist IDs or URIs. You can specify one ID or many IDs separated by a space.
 
     Examples:
 
@@ -123,7 +123,7 @@ def playlist_export(path, playlist_ids, overwrite):
     r"""Export playlists to csv files on disk.
     it could be your playlists or created by another user.
 
-    PLAYLIST_IDS - list of playlist ids or urls. You can specify one ID or many IDs separated by a space.
+    PLAYLIST_IDS - list of playlist IDs or URIs. You can specify one ID or many IDs separated by a space.
 
     Examples:
 

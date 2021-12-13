@@ -1,7 +1,6 @@
 import os.path
 
 
-
 def get_track_artist_and_title(track):
     artists = list(map(lambda artist: artist['name'], track['artists']))
     artists_str = ', '.join(artists)
@@ -35,14 +34,14 @@ def get_liked_tracks(tracks, likes):
 
 def parse_playlist_id(id_or_url):
     if (id_or_url.startswith("https://open.spotify.com/playlist/")):
-        id_or_url = id_or_url.replace("https://open.spotify.com/playlist/", "")
+        id_or_url = id_or_url.split('/playlist/')[1]
         id_or_url = id_or_url.split('?')[0]
     return id_or_url
 
 
 def parse_track_id(id_or_url):
     if (id_or_url.startswith("https://open.spotify.com/track/")):
-        id_or_url = id_or_url.replace("https://open.spotify.com/playlist/", "")
+        id_or_url = id_or_url.split('/track/')[1]
         id_or_url = id_or_url.split('?')[0]
     return id_or_url
 
@@ -70,5 +69,17 @@ def get_playlist_file_name(playlist_name, playlist_id, path, avoid_filenames):
 
     return full_file_name
 
-def filter_track_duplicates(original_track_ids, new_tracks_ids):
-    return list(filter(lambda id: id not in original_track_ids, new_tracks_ids))
+
+def filter_duplicates(original_arr, new_arr):
+    return list(filter(lambda id: id not in original_arr, new_arr))
+
+
+def remove_duplicates(arr):
+    good = []
+    dup = []
+    for item in enumerate(arr):
+        if item in good:
+            dup.append(item)
+        else:
+            good.append(item)
+    return good, dup
