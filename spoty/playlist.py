@@ -146,6 +146,8 @@ def copy_playlist(playlist_id):
 
     log.success(f"Playlist copy completed ({len(tracks_added)} tracks added).")
 
+    return new_playlist_id, tracks_added
+
 
 def get_tracks_of_playlist(playlist_id):
     playlist_id = parse_playlist_id(playlist_id)
@@ -183,6 +185,8 @@ def get_tracks_of_playlist(playlist_id):
 
 def add_tracks_to_playlist(playlist_id, track_ids, allow_duplicates=False):
     playlist_id = parse_playlist_id(playlist_id)
+
+    track_ids = list(track_ids)
 
     for i in range(len(track_ids)):
         track_ids[i] = parse_track_id(track_ids[i])

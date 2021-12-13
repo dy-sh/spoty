@@ -6,6 +6,7 @@ import time
 import os
 from datetime import datetime
 from spoty.core import settings
+from spoty.utils import *
 
 default_library_path = settings.DEFAULT_LIBRARY_PATH
 
@@ -22,6 +23,40 @@ def playlist():
     pass
 
 
+@playlist.command("list")
+@click.option('--filter-names', type=str, default=None,
+              help='List only playlists whose names matches this regex filter')
+@click.option('--user-id', type=str, default=None, help='Get playlists of this user')
+def playlist_list(filter_names,user_id):
+    r"""
+    List of all playlists.
+
+    Examples:
+
+        spoty playlist list
+
+        spoty playlist list --user-id 4717400682
+    """
+    if user_id == None:
+        playlists = spoty.playlist.get_list_of_playlists()
+    else:
+        playlists = spoty.playlist.get_list_of_user_playlists(user_id)
+
+    if len(playlists) == 0:
+        exit()
+
+    if filter_names is not None:
+        playlists = list(filter(lambda pl: re.findall(filter_names, pl['name']), playlists))
+        click.echo(f'{len(playlists)} playlists matches the filter')
+
+    if len(playlists) == 0:
+        exit()
+
+    for playlist in playlists:
+        click.echo(f'{playlist["id"]}: "{playlist["name"]}"')
+
+    click.echo(f'Total playlists: {len(playlists)}')
+
 @playlist.command("create")
 @click.argument("name", type=str)
 def playlist_create(name):
@@ -34,6 +69,9 @@ def playlist_create(name):
     """
     id = spoty.playlist.create_playlist(name)
     click.echo(f'New playlist created (id: {id}, name: "{name}")')
+
+
+
 
 
 @playlist.command("copy")
@@ -57,16 +95,23 @@ def playlist_copy(playlist_ids):
         spoty playlist copy https://open.spotify.com/playlist/37i9dQZF1DX8z1UW9HQvSq
 
     """
-
+    playlists=[]
+    tracks=[]
     with click.progressbar(playlist_ids, label='Copying playlists') as bar:
         for playlist_id in bar:
-            spoty.playlist.copy_playlist(playlist_id)
+            new_playlist_id, tracks_added= spoty.playlist.copy_playlist(playlist_id)
+            playlists.extend(new_playlist_id)
+            tracks.extend(tracks_added)
+
+    click.echo(f'{len(playlists)} playlists with {len(tracks)} tracks copied.')
 
 
 @playlist.command("insert")
 @click.argument("playlist_id", type=str)
 @click.argument("track_ids", type=str, nargs=-1)
-def playlist_add_tracks(playlist_id, track_ids):
+@click.option('--allow-duplicates', '-d', type=bool, is_flag=True, default=False,
+              help='Add tracks that are already in the playlist.')
+def playlist_add_tracks(playlist_id, track_ids, allow_duplicates):
     r"""
     Add tracks to playlist.
 
@@ -83,8 +128,8 @@ def playlist_add_tracks(playlist_id, track_ids):
         spoty playlist insert https://open.spotify.com/playlist/37i9dQZF1DX8z1UW9HQvSq https://open.spotify.com/track/00i9VF7sjSaTqblAuKFBDO
 
     """
-    tracks_added = spoty.playlist.add_tracks_to_playlist(playlist_id, track_ids)
-    click.echo(f'{tracks_added} tracks added to playlist {len(playlist_id)}')
+    tracks_added = spoty.playlist.add_tracks_to_playlist(playlist_id, track_ids, allow_duplicates)
+    click.echo(f'{len(tracks_added)} tracks added to playlist {playlist_id}')
 
 
 @playlist.command("read")
@@ -109,7 +154,10 @@ def playlist_read(playlist_ids):
         click.echo(f'Tracks in playlist {playlist_id}:')
         tracks = spoty.playlist.get_tracks_of_playlist(playlist_id)
         for track in tracks:
-            click.echo(track['track']['id'])
+            title = get_track_artist_and_title(track["track"])
+            click.echo(f'{track["track"]["id"]}: {title}')
+
+    click.echo(f'Total tracks: {len(tracks)}')
 
 
 @playlist.command("export")
@@ -142,7 +190,7 @@ def playlist_export(path, playlist_ids, overwrite):
 @click.option('--path', type=str, default=default_library_path, help='Path to create files')
 @click.option('--filter-names', type=str, default=None,
               help='Export only playlists whose names matches this regex filter')
-@click.option('--user_id', type=str, default=None, help='Get playlists of this user')
+@click.option('--user-id', type=str, default=None, help='Get playlists of this user')
 @click.option('--overwrite', '-o', type=bool, is_flag=True, default=False,
               help='Overwrite existing files without asking')
 @click.option('--confirm', '-c', type=bool, is_flag=True, default=False,
@@ -171,14 +219,13 @@ def playlist_export_all(path, filter_names, user_id, overwrite, confirm, timesta
         click.echo(f'User has {len(playlists)} playlists')
 
     if len(playlists) == 0:
-        click.echo(f'No any playlists found')
         exit()
 
     if filter_names is not None:
         playlists = list(filter(lambda pl: re.findall(filter_names, pl['name']), playlists))
+        click.echo(f'{len(playlists)} playlists matches the filter')
 
     if len(playlists) == 0:
-        click.echo(f'No any playlists found that matches the filter')
         exit()
 
     click.echo(f'The following playlists will be exported:')
@@ -206,7 +253,7 @@ def playlist_export_all(path, filter_names, user_id, overwrite, confirm, timesta
 @click.argument('file_names', type=str, nargs=-1)
 @click.option('--append', '-a', type=bool, is_flag=True, default=False,
               help='Add tracks to an existing playlist, if there is one with the same name. If the parameter is not specified, a new playlist will always be created.')
-@click.option('--allow-duplicates', '-n', type=bool, is_flag=True, default=False,
+@click.option('--allow-duplicates', '-d', type=bool, is_flag=True, default=False,
               help='Add tracks that are already in the playlist.')
 def playlist_import(file_names, append, allow_duplicates):
     r"""Import playlists to yor library from csv files on disk.
@@ -252,7 +299,7 @@ def playlist_import(file_names, append, allow_duplicates):
 @click.argument('path', type=str, default=default_library_path)
 @click.option('--append', '-a', type=bool, is_flag=True, default=False,
               help='Add tracks to an existing playlist, if there is one with the same name. If the parameter is not specified, a new playlist will always be created.')
-@click.option('--allow-duplicates', '-n', type=bool, is_flag=True, default=False,
+@click.option('--allow-duplicates', '-d', type=bool, is_flag=True, default=False,
               help='Add tracks that are already in the playlist.')
 @click.option('--filter-names', type=str, default=None,
               help='Export only playlists whose names matches this regex filter')
