@@ -1,0 +1,2 @@
+REDIRECT_URI = "http://localhost:8888/callback"
+DEFAULT_LIBRARY_PATH = "./MUSIC LIBRARY"

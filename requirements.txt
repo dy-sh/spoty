@@ -1,0 +1,4 @@
+click
+dynaconf
+loguru
+spotipy

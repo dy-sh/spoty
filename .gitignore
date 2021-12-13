@@ -1,0 +1,9 @@
+﻿.idea
+.cache
+__pycache__
+temp.py
+.secrets.*
+logs
+MUSIC LIBRARY
+build
+spoty.egg-info
