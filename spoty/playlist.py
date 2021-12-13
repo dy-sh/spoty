@@ -286,13 +286,13 @@ def import_playlist_from_file(file_name, append_if_exist=False, allow_duplicates
     if playlist_id is None:
         playlist_id = create_playlist(playlist_name)
 
-    with open(file_name, newline='') as file:
+    with open(file_name, newline='', encoding='utf-8') as file:
         reader = csv.reader(file)
         if sum(1 for row in reader) == 0:
             log.warning(f'Cant import file "{file_name}". File is empty.')
             raise CSVFileEmpty()
 
-    with open(file_name, newline='') as file:
+    with open(file_name, newline='', encoding='utf-8') as file:
         header = []
         reader = csv.reader(file)
 
