@@ -1,6 +1,5 @@
 spoty
-- export and import likes
-- remove tracks with likes
+- remove tracks with likes 
 - remove duplicates in playlists by isrc
 - like all track in playlist
 - like all track in local playlists by isrc 

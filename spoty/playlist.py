@@ -1,6 +1,7 @@
 from spoty import sp
 from spoty import log
 import spoty.utils
+import spoty.like
 import os.path
 import click
 import time
@@ -248,7 +249,7 @@ def import_playlist_from_file(file_name, append_if_exist=False, allow_duplicates
     if playlist_id is None:
         playlist_id = create_playlist(playlist_name)
 
-    tracks_in_file = spoty.utils.read_playlist_from_file(file_name)
+    tracks_in_file = spoty.utils.read_tracks_from_csv_file(file_name)
 
     if len(tracks_in_file) > 0:
         tracks_added = add_tracks_to_playlist(playlist_id, tracks_in_file, allow_duplicates)
@@ -256,3 +257,27 @@ def import_playlist_from_file(file_name, append_if_exist=False, allow_duplicates
     log.success(f'Playlist imported (new tracks: "{len(tracks_added)}")')
 
     return playlist_id, tracks_added, tracks_in_file
+
+
+def remove_tracks(playlist_id, track_ids):
+    i = 0
+    next_tracks = []
+    while i < len(track_ids):
+        next_tracks.append(track_ids[i])
+        if len(next_tracks) == 100 or i == len(track_ids) - 1:
+            snapshot = sp.playlist_remove_all_occurrences_of_items(playlist_id, next_tracks)
+            next_tracks = []
+        i += 1
+
+
+def remove_liked_tracks(playlist_id):
+    log.info(f'Removing liked tracks from playlist {playlist_id}')
+
+    tracks = spoty.playlist.get_tracks_of_playlist(playlist_id)
+    ids = spoty.utils.get_track_ids(tracks)
+    liked_track_ids = spoty.like.get_liked_track_ids(ids)
+    remove_tracks(playlist_id, liked_track_ids)
+
+    return liked_track_ids
+
+

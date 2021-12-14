@@ -31,22 +31,6 @@ def get_track_ids(tracks):
         return [item['track']['id'] for item in tracks]
 
 
-def get_not_liked_tracks(tracks, likes):
-    result = []
-    for i in range(len(tracks)):
-        if not likes[i]:
-            result.append(tracks[i])
-    return result
-
-
-def get_liked_tracks(tracks, likes):
-    result = []
-    for i in range(len(tracks)):
-        if likes[i]:
-            result.append(tracks[i])
-    return result
-
-
 def parse_playlist_id(id_or_url):
     if (id_or_url.startswith("https://open.spotify.com/playlist/")):
         id_or_url = id_or_url.split('/playlist/')[1]
@@ -125,7 +109,7 @@ def write_tracks_to_csv_file(tracks, file_name):
             writer.writerow([isrc, track["id"], track_title, album, duration])
 
 
-def read_playlist_from_file(file_name):
+def read_tracks_from_csv_file(file_name):
     tracks_in_file = []
 
     with open(file_name, newline='', encoding='utf-8-sig') as file:

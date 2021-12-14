@@ -1,6 +1,7 @@
 from spoty import settings
 from spoty import log
 import spoty.playlist
+import spoty.like
 import click
 import re
 import spoty.utils
@@ -48,6 +49,7 @@ def playlist_list(filter_names, user_id):
         click.echo(f'{playlist["id"]} "{playlist["name"]}"')
 
     click.echo(f'Total playlists: {len(playlists)}')
+
 
 @playlist.command("list")
 @click.option('--filter-names', type=str, default=None,
@@ -130,7 +132,7 @@ def playlist_copy(playlist_ids):
     click.echo(f'{len(playlists)} playlists with {len(tracks)} tracks copied.')
 
 
-@playlist.command("insert")
+@playlist.command("add-tracks")
 @click.argument("playlist_id", type=str)
 @click.argument("track_ids", type=str, nargs=-1)
 @click.option('--allow-duplicates', '-d', type=bool, is_flag=True, default=False,
@@ -145,15 +147,66 @@ def playlist_add_tracks(playlist_id, track_ids, allow_duplicates):
 
     Examples:
 
-        spoty playlist insert 37i9dQZF1DX8z1UW9HQvSq 00i9VF7sjSaTqblAuKFBDO
+        spoty playlist add-tracks 37i9dQZF1DX8z1UW9HQvSq 00i9VF7sjSaTqblAuKFBDO
 
-        spoty playlist insert 37i9dQZF1DX8z1UW9HQvSq 00i9VF7sjSaTqblAuKFBDO 7cjlfruK9Oqw7k5wAZGO72
+        spoty playlist add-tracks 37i9dQZF1DX8z1UW9HQvSq 00i9VF7sjSaTqblAuKFBDO 7cjlfruK9Oqw7k5wAZGO72
 
-        spoty playlist insert https://open.spotify.com/playlist/37i9dQZF1DX8z1UW9HQvSq https://open.spotify.com/track/00i9VF7sjSaTqblAuKFBDO
+        spoty playlist add-tracks https://open.spotify.com/playlist/37i9dQZF1DX8z1UW9HQvSq https://open.spotify.com/track/00i9VF7sjSaTqblAuKFBDO
 
     """
     tracks_added = spoty.playlist.add_tracks_to_playlist(playlist_id, track_ids, allow_duplicates)
     click.echo(f'{len(tracks_added)} tracks added to playlist {playlist_id}')
+
+
+@playlist.command("remove-tracks")
+@click.argument("playlist_id", type=str)
+@click.argument("track_ids", type=str, nargs=-1)
+def playlist_remove_tracks(playlist_id, track_ids):
+    r"""
+    Remove tracks from playlist.
+
+    PLAYLIST_ID - playlist ID or URI.
+
+    TRACK_IDS - list of track IDs or URIs. You can specify one ID or many IDs separated by a space.
+
+    Examples:
+
+        spoty playlist remove-tracks 37i9dQZF1DX8z1UW9HQvSq 00i9VF7sjSaTqblAuKFBDO
+
+        spoty playlist remove-tracks 37i9dQZF1DX8z1UW9HQvSq 00i9VF7sjSaTqblAuKFBDO 7cjlfruK9Oqw7k5wAZGO72
+
+        spoty playlist remove-tracks https://open.spotify.com/playlist/37i9dQZF1DX8z1UW9HQvSq https://open.spotify.com/track/00i9VF7sjSaTqblAuKFBDO
+
+    """
+    spoty.playlist.remove_tracks(playlist_id, track_ids)
+    click.echo(f'Tracks removed from playlist {playlist_id}')
+
+
+@playlist.command("remove-liked-tracks")
+@click.argument("playlist_ids", type=str, nargs=-1)
+def playlist_remove_liked_tracks(playlist_ids):
+    r"""
+    Read playlists and remove all liked tracks found from these playlists.
+
+    PLAYLIST_IDS - list of playlist IDs or URIs. You can specify one ID or many IDs separated by a space.
+
+    Examples:
+
+        spoty playlist remove-liked-tracks 37i9dQZF1DX8z1UW9HQvSq
+
+        spoty playlist remove-liked-tracks 37i9dQZF1DX8z1UW9HQvSq 37i9dQZF1DX7jNFrjYQurt
+
+        spoty playlist remove-liked-tracks https://open.spotify.com/playlist/37i9dQZF1DX8z1UW9HQvSq
+
+    """
+
+    all_removed_tracks = []
+    with click.progressbar(playlist_ids, label='Remove liked tracks from playlists') as bar:
+        for playlist_id in bar:
+            removed_tracks = spoty.playlist.remove_liked_tracks(playlist_id)
+            all_removed_tracks.extend(removed_tracks)
+
+    click.echo(f'{len(all_removed_tracks)} liked tracks removed from {len(playlist_ids)} playlists.')
 
 
 @playlist.command("read")
@@ -206,10 +259,10 @@ def playlist_export(path, playlist_ids, overwrite):
 
     path = os.path.abspath(path)
 
-    file_names=[]
+    file_names = []
     with click.progressbar(playlist_ids, label='Exporting playlists') as bar:
         for playlist_id in bar:
-            file_name=spoty.playlist.export_playlist_to_file(playlist_id, path, overwrite)
+            file_name = spoty.playlist.export_playlist_to_file(playlist_id, path, overwrite)
             if file_name is not None:
                 file_names.append(file_name)
 
@@ -393,3 +446,5 @@ def playlist_import_all(ctx, path, append, allow_duplicates, filter_names, confi
         click.confirm('Do you want to continue?', abort=True)
 
     ctx.invoke(playlist_import, file_names=full_file_names, append=append, allow_duplicates=allow_duplicates)
+
+
