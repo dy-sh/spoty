@@ -154,6 +154,7 @@ def playlist_add_tracks(playlist_id, track_ids, allow_duplicates):
         spoty playlist add-tracks https://open.spotify.com/playlist/37i9dQZF1DX8z1UW9HQvSq https://open.spotify.com/track/00i9VF7sjSaTqblAuKFBDO
 
     """
+    track_ids = list(track_ids)
     tracks_added = spoty.playlist.add_tracks_to_playlist(playlist_id, track_ids, allow_duplicates)
     click.echo(f'{len(tracks_added)} tracks added to playlist {playlist_id}')
 
@@ -178,7 +179,8 @@ def playlist_remove_tracks(playlist_id, track_ids):
         spoty playlist remove-tracks https://open.spotify.com/playlist/37i9dQZF1DX8z1UW9HQvSq https://open.spotify.com/track/00i9VF7sjSaTqblAuKFBDO
 
     """
-    spoty.playlist.remove_tracks(playlist_id, track_ids)
+    track_ids = list(track_ids)
+    spoty.playlist.remove_tracks_from_paylist(playlist_id, track_ids)
     click.echo(f'Tracks removed from playlist {playlist_id}')
 
 
@@ -203,7 +205,7 @@ def playlist_remove_liked_tracks(playlist_ids):
     all_removed_tracks = []
     with click.progressbar(playlist_ids, label='Removing liked tracks from playlists') as bar:
         for playlist_id in bar:
-            removed_tracks = spoty.playlist.remove_liked_tracks(playlist_id)
+            removed_tracks = spoty.playlist.remove_liked_tracks_in_playlist(playlist_id)
             all_removed_tracks.extend(removed_tracks)
 
     click.echo(f'{len(all_removed_tracks)} liked tracks removed from {len(playlist_ids)} playlists.')

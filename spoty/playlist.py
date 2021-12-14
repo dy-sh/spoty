@@ -43,6 +43,14 @@ def get_playlist(playlist_id):
 
     return playlist
 
+def delete_playlist(playlist_id):
+    playlist_id = spoty.utils.parse_playlist_id(playlist_id)
+
+    log.info(f'Requesting playlist {playlist_id}')
+
+    playlist = sp.playlist(playlist_id)
+
+    return playlist
 
 def get_list_of_playlists(only_owned_by_user=True):
     user_id = sp.me()['id']
@@ -120,6 +128,8 @@ def create_playlist(name):
 
 
 def copy_playlist(playlist_id):
+    playlist_id = spoty.utils.parse_playlist_id(playlist_id)
+
     log.info(f'Creating a copy of playlist {playlist_id}')
 
     playlist = get_playlist_with_full_list_of_tracks(playlist_id)
@@ -171,8 +181,6 @@ def get_tracks_of_playlist(playlist_id):
 def add_tracks_to_playlist(playlist_id, track_ids, allow_duplicates=False):
     playlist_id = spoty.utils.parse_playlist_id(playlist_id)
 
-    track_ids = list(track_ids)
-
     for i in range(len(track_ids)):
         track_ids[i] = spoty.utils.parse_track_id(track_ids[i])
 
@@ -202,6 +210,41 @@ def add_tracks_to_playlist(playlist_id, track_ids, allow_duplicates=False):
     log.success(f'Adding tracks to playlist {playlist_id} complete (tracks added: {len(next_tracks)}')
 
     return tracks_added
+
+
+
+def remove_tracks_from_paylist(playlist_id, track_ids):
+    playlist_id = spoty.utils.parse_playlist_id(playlist_id)
+
+    log.info(f'Removing {len(track_ids)} tracks from playlist {playlist_id}')
+
+    i = 0
+    next_tracks = []
+    while i < len(track_ids):
+        track_ids[i] = spoty.utils.parse_track_id(track_ids[i])
+        next_tracks.append(track_ids[i])
+        if len(next_tracks) == 100 or i == len(track_ids) - 1:
+            snapshot = sp.playlist_remove_all_occurrences_of_items(playlist_id, next_tracks)
+            next_tracks = []
+        i += 1
+
+    log.success(f'Tracks removed from playlist {playlist_id}')
+
+
+def remove_liked_tracks_in_playlist(playlist_id):
+    playlist_id = spoty.utils.parse_playlist_id(playlist_id)
+
+    log.info(f'Removing liked tracks from playlist {playlist_id}')
+
+    tracks = spoty.playlist.get_tracks_of_playlist(playlist_id)
+    ids = spoty.utils.get_track_ids(tracks)
+    liked_track_ids = spoty.like.get_liked_track_ids(ids)
+    remove_tracks_from_paylist(playlist_id, liked_track_ids)
+
+    log.success(f'{len(liked_track_ids)} liked tracks removed from playlist {playlist_id}.')
+
+    return liked_track_ids
+
 
 
 def export_playlist_to_file(playlist_id, path, overwrite=False, avoid_filenames=[]):
@@ -259,34 +302,9 @@ def import_playlist_from_file(file_name, append_if_exist=False, allow_duplicates
     return playlist_id, tracks_added, tracks_in_file
 
 
-def remove_tracks(playlist_id, track_ids):
-    log.info(f'Removing {len(track_ids)} tracks from playlist {playlist_id}')
-
-    i = 0
-    next_tracks = []
-    while i < len(track_ids):
-        next_tracks.append(track_ids[i])
-        if len(next_tracks) == 100 or i == len(track_ids) - 1:
-            snapshot = sp.playlist_remove_all_occurrences_of_items(playlist_id, next_tracks)
-            next_tracks = []
-        i += 1
-
-    log.success(f'Tracks removed from playlist {playlist_id}')
-
-
-def remove_liked_tracks(playlist_id):
-    log.info(f'Removing liked tracks from playlist {playlist_id}')
-
-    tracks = spoty.playlist.get_tracks_of_playlist(playlist_id)
-    ids = spoty.utils.get_track_ids(tracks)
-    liked_track_ids = spoty.like.get_liked_track_ids(ids)
-    remove_tracks(playlist_id, liked_track_ids)
-
-    log.success(f'{len(liked_track_ids)} liked tracks removed from playlist {playlist_id}.')
-
-    return liked_track_ids
-
 def like_all_tracks_in_playlist(playlist_id):
+    playlist_id = spoty.utils.parse_playlist_id(playlist_id)
+
     log.info(f'Adding likes to all tracks in playlist {playlist_id}')
 
     tracks = spoty.playlist.get_tracks_of_playlist(playlist_id)

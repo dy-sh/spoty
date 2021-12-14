@@ -37,8 +37,6 @@ def get_liked_tracks():
 
 
 def add_tracks_to_liked(track_ids):
-    track_ids = list(track_ids)
-
     for i in range(len(track_ids)):
         track_ids[i] = spoty.utils.parse_track_id(track_ids[i])
 

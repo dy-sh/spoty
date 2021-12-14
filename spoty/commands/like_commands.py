@@ -44,6 +44,7 @@ def like_add(track_ids):
         spoty like add https://open.spotify.com/track/00i9VF7sjSaTqblAuKFBDO
     """
 
+    track_ids = list(track_ids)
     spoty.like.add_tracks_to_liked(track_ids)
     click.echo(f'{len(track_ids)} tracks added to liked')
 
