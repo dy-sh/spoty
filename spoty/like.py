@@ -2,6 +2,7 @@ from spoty import sp
 from spoty import log
 import spoty.utils
 import click
+import os
 
 
 def get_liked_tracks_count():
@@ -35,7 +36,7 @@ def get_liked_tracks():
     return tracks
 
 
-def add_tracks(track_ids):
+def add_tracks_to_liked(track_ids):
     track_ids = list(track_ids)
 
     for i in range(len(track_ids)):
@@ -54,4 +55,23 @@ def add_tracks(track_ids):
         i += 1
 
 
+def export_liked_tracks_to_file(file_name):
+    log.info(f'Exporting liked tracks from file "{file_name}"')
 
+    liked_tracks = spoty.like.get_liked_tracks()
+    spoty.utils.write_tracks_to_csv_file(liked_tracks, file_name)
+
+    log.success(f'{len(liked_tracks)} liked tracks exported to file: "{file_name}"')
+
+    return liked_tracks
+
+
+def import_likes_from_file(file_name):
+    log.info(f'Importing liked tracks from file "{file_name}"')
+    tracks_in_file = spoty.utils.read_playlist_from_file(file_name)
+    if len(tracks_in_file) > 0:
+        add_tracks_to_liked(tracks_in_file)
+
+    log.success(f'{len(tracks_in_file)} liked tracks imported from file: "{file_name}"')
+
+    return tracks_in_file
