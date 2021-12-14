@@ -16,8 +16,8 @@ def get_playlist_with_full_list_of_tracks(playlist_id):
     total_tracks = playlist["tracks"]["total"]
     tracks = playlist["tracks"]["items"]
 
-    log.debug(f'Playlist have {total_tracks} tracks (playlist name: "{playlist["name"]}")')
-    log.debug(f'Collected {len(tracks)}/{total_tracks} tracks')
+    log.debug(f'Playlist {playlist_id} have {total_tracks} tracks (playlist name: "{playlist["name"]}")')
+    log.debug(f'Collected {len(tracks)}/{total_tracks} tracks in playlist {playlist_id}')
 
     # if playlist is larger than 100 songs, continue loading it until end
     result = playlist
@@ -27,7 +27,7 @@ def get_playlist_with_full_list_of_tracks(playlist_id):
         else:
             result = sp.next(result["tracks"])
         tracks.extend(result['items'])
-        log.debug(f'Collected {len(tracks)}/{total_tracks} tracks')
+        log.debug(f'Collected {len(tracks)}/{total_tracks} tracks in playlist {playlist_id}')
 
     playlist["tracks"]["items"] = tracks
 
@@ -48,7 +48,7 @@ def get_list_of_playlists(only_owned_by_user=True):
     user_id = sp.me()['id']
     playlists = []
 
-    log.info(f'Collecting playlists for current user ({user_id})')
+    log.info(f'Collecting playlists for current user')
 
     with click.progressbar(length=100, label='Collecting playlists') as bar:
 
@@ -57,7 +57,7 @@ def get_list_of_playlists(only_owned_by_user=True):
         playlists.extend(result['items'])
         total_playlists = result['total']
 
-        log.debug(f'Collected {len(playlists)}/{total_playlists}')
+        log.debug(f'Collected {len(playlists)}/{total_playlists} for current user')
 
         bar.length = total_playlists
         bar.update(len(playlists))
@@ -68,7 +68,7 @@ def get_list_of_playlists(only_owned_by_user=True):
             playlists.extend(result['items'])
             bar.update(len(playlists))
 
-            log.debug(f'Collected {len(playlists)}/{total_playlists}')
+            log.debug(f'Collected {len(playlists)}/{total_playlists} for current user')
 
     if (only_owned_by_user):
         playlists = list(filter(lambda pl: pl['owner']['id'] == user_id, playlists))
@@ -91,7 +91,7 @@ def get_list_of_user_playlists(user_id: str):
         playlists.extend(result['items'])
         total_playlists = result['total']
 
-        log.debug(f'Collected {len(playlists)}/{total_playlists} playlists')
+        log.debug(f'Collected {len(playlists)}/{total_playlists} playlists for user {user_id}')
 
         bar.length = total_playlists
         bar.update(len(playlists))
@@ -102,7 +102,7 @@ def get_list_of_user_playlists(user_id: str):
             playlists.extend(result['items'])
             bar.update(len(playlists))
 
-            log.debug(f'Collected {len(playlists)}/{total_playlists} playlists')
+            log.debug(f'Collected {len(playlists)}/{total_playlists} playlists for user {user_id}')
 
         return playlists
 
@@ -129,7 +129,7 @@ def copy_playlist(playlist_id):
     new_playlist_id = create_playlist(playlist['name'])
     tracks_added = add_tracks_to_playlist(new_playlist_id, ids, True)
 
-    log.success(f"Playlist copy completed ({len(tracks_added)} tracks added).")
+    log.success(f"Playlist {playlist_id} copy completed ({len(tracks_added)} tracks added).")
 
     return new_playlist_id, tracks_added
 
@@ -199,7 +199,7 @@ def add_tracks_to_playlist(playlist_id, track_ids, allow_duplicates=False):
             next_tracks = []
         i += 1
 
-    log.success(f'Adding tracks complete (tracks added: {len(next_tracks)}')
+    log.success(f'Adding tracks to playlist {playlist_id} complete (tracks added: {len(next_tracks)}')
 
     return tracks_added
 
@@ -223,7 +223,7 @@ def export_playlist_to_file(playlist_id, path, overwrite=False, avoid_filenames=
 
     spoty.utils.write_tracks_to_csv_file(tracks, file_name)
 
-    log.success(f'Playlist exported (file: "{file_name}")')
+    log.success(f'Playlist {playlist_id} exported (file: "{file_name}")')
 
     return file_name
 
@@ -254,12 +254,14 @@ def import_playlist_from_file(file_name, append_if_exist=False, allow_duplicates
     if len(tracks_in_file) > 0:
         tracks_added = add_tracks_to_playlist(playlist_id, tracks_in_file, allow_duplicates)
 
-    log.success(f'Playlist imported (new tracks: "{len(tracks_added)}")')
+    log.success(f'Playlist imported (new tracks: "{len(tracks_added)}") from file "{file_name}"')
 
     return playlist_id, tracks_added, tracks_in_file
 
 
 def remove_tracks(playlist_id, track_ids):
+    log.info(f'Removing {len(track_ids)} tracks from playlist {playlist_id}')
+
     i = 0
     next_tracks = []
     while i < len(track_ids):
@@ -269,6 +271,8 @@ def remove_tracks(playlist_id, track_ids):
             next_tracks = []
         i += 1
 
+    log.success(f'Tracks removed from playlist {playlist_id}')
+
 
 def remove_liked_tracks(playlist_id):
     log.info(f'Removing liked tracks from playlist {playlist_id}')
@@ -277,6 +281,8 @@ def remove_liked_tracks(playlist_id):
     ids = spoty.utils.get_track_ids(tracks)
     liked_track_ids = spoty.like.get_liked_track_ids(ids)
     remove_tracks(playlist_id, liked_track_ids)
+
+    log.success(f'{len(liked_track_ids)} liked tracks removed from playlist {playlist_id}.')
 
     return liked_track_ids
 

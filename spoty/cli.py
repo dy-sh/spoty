@@ -30,3 +30,4 @@ if __name__ == '__main__':
     # cli(['playlist', 'add-tracks', '0yRgrCdkntJG83mFbFvrBP', '3MH8ie02My2CNzSCH5Pme5', '3L8GYpi8HyhjeixHIlOyM9'])
     # cli(['playlist', 'remove-tracks', '0yRgrCdkntJG83mFbFvrBP', '3MH8ie02My2CNzSCH5Pme5', '3L8GYpi8HyhjeixHIlOyM9'])
     cli(['playlist', 'remove-liked-tracks', '0yRgrCdkntJG83mFbFvrBP'])
+#

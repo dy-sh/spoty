@@ -201,7 +201,7 @@ def playlist_remove_liked_tracks(playlist_ids):
     """
 
     all_removed_tracks = []
-    with click.progressbar(playlist_ids, label='Remove liked tracks from playlists') as bar:
+    with click.progressbar(playlist_ids, label='Removing liked tracks from playlists') as bar:
         for playlist_id in bar:
             removed_tracks = spoty.playlist.remove_liked_tracks(playlist_id)
             all_removed_tracks.extend(removed_tracks)
