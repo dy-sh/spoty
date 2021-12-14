@@ -237,7 +237,7 @@ def export_playlist_to_file(playlist_id, path, overwrite=False, avoid_filenames=
     tracks = playlist["tracks"]["items"]
 
     os.makedirs(os.path.dirname(file_name), exist_ok=True)
-    with open(file_name, 'w', encoding='utf-8', newline='') as file:
+    with open(file_name, 'w', encoding='utf-8-sig', newline='') as file:
         header = ['isrc', 'spotify_track_id', 'title', 'album', 'duration']
         writer = csv.writer(file)
         writer.writerow(header)
@@ -286,13 +286,13 @@ def import_playlist_from_file(file_name, append_if_exist=False, allow_duplicates
     if playlist_id is None:
         playlist_id = create_playlist(playlist_name)
 
-    with open(file_name, newline='', encoding='utf-8') as file:
+    with open(file_name, newline='', encoding='utf-8-sig') as file:
         reader = csv.reader(file)
         if sum(1 for row in reader) == 0:
             log.warning(f'Cant import file "{file_name}". File is empty.')
             raise CSVFileEmpty()
 
-    with open(file_name, newline='', encoding='utf-8') as file:
+    with open(file_name, newline='', encoding='utf-8-sig') as file:
         header = []
         reader = csv.reader(file)
 
