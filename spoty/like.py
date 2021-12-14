@@ -104,7 +104,7 @@ def get_liked_track_ids(track_ids):
     return liked_tracks
 
 
-def get_not_liked_track_ods(track_ids):
+def get_not_liked_track_ids(track_ids):
     not_liked_tracks = []
 
     likes = get_likes_for_tracks(track_ids)

@@ -286,4 +286,15 @@ def remove_liked_tracks(playlist_id):
 
     return liked_track_ids
 
+def like_all_tracks_in_playlist(playlist_id):
+    log.info(f'Adding likes to all tracks in playlist {playlist_id}')
+
+    tracks = spoty.playlist.get_tracks_of_playlist(playlist_id)
+    ids = spoty.utils.get_track_ids(tracks)
+    not_liked_track_ids = spoty.like.get_not_liked_track_ids(ids)
+    spoty.like.add_tracks_to_liked(not_liked_track_ids)
+
+    log.success(f'{len(not_liked_track_ids)} tracks added to liked tracks in playlist {playlist_id}.')
+
+    return not_liked_track_ids
 

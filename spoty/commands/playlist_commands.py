@@ -209,6 +209,33 @@ def playlist_remove_liked_tracks(playlist_ids):
     click.echo(f'{len(all_removed_tracks)} liked tracks removed from {len(playlist_ids)} playlists.')
 
 
+@playlist.command("like-all-tracks")
+@click.argument("playlist_ids", type=str, nargs=-1)
+def playlist_like_all_tracks(playlist_ids):
+    r"""
+    Read playlists and like all tracks in these playlists.
+
+    PLAYLIST_IDS - list of playlist IDs or URIs. You can specify one ID or many IDs separated by a space.
+
+    Examples:
+
+        spoty playlist like-all-tracks 37i9dQZF1DX8z1UW9HQvSq
+
+        spoty playlist like-all-tracks 37i9dQZF1DX8z1UW9HQvSq 37i9dQZF1DX7jNFrjYQurt
+
+        spoty playlist like-all-tracks https://open.spotify.com/playlist/37i9dQZF1DX8z1UW9HQvSq
+
+    """
+
+    all_liked_tracks = []
+    with click.progressbar(playlist_ids, label='Liking all tracks in playlists') as bar:
+        for playlist_id in bar:
+            liked_tracks = spoty.playlist.like_all_tracks_in_playlist(playlist_id)
+            all_liked_tracks.extend(liked_tracks)
+
+    click.echo(f'{len(all_liked_tracks)} tracks added to liked tracks in {len(playlist_ids)} playlists.')
+
+
 @playlist.command("read")
 @click.argument("playlist_ids", type=str, nargs=-1)
 def playlist_read(playlist_ids):
@@ -446,5 +473,3 @@ def playlist_import_all(ctx, path, append, allow_duplicates, filter_names, confi
         click.confirm('Do you want to continue?', abort=True)
 
     ctx.invoke(playlist_import, file_names=full_file_names, append=append, allow_duplicates=allow_duplicates)
-
-
