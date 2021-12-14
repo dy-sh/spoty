@@ -1,21 +1,25 @@
+from spoty import settings
+from spoty import log
 import spoty.playlist
 import click
 import re
-from spoty.utils import *
-from spoty.core import settings
+import spoty.utils
 import time
+import os
 from datetime import datetime
+
 
 @click.group()
 def playlist():
     r"""Playlists management."""
     pass
 
+
 @playlist.command("list")
 @click.option('--filter-names', type=str, default=None,
               help='List only playlists whose names matches this regex filter')
 @click.option('--user-id', type=str, default=None, help='Get playlists of this user')
-def playlist_list(filter_names,user_id):
+def playlist_list(filter_names, user_id):
     r"""
     List of all playlists.
 
@@ -45,6 +49,41 @@ def playlist_list(filter_names,user_id):
 
     click.echo(f'Total playlists: {len(playlists)}')
 
+@playlist.command("list")
+@click.option('--filter-names', type=str, default=None,
+              help='List only playlists whose names matches this regex filter')
+@click.option('--user-id', type=str, default=None, help='Get playlists of this user')
+def playlist_list(filter_names, user_id):
+    r"""
+    List of all playlists.
+
+    Examples:
+
+        spoty playlist list
+
+        spoty playlist list --user-id 4717400682
+    """
+    if user_id == None:
+        playlists = spoty.playlist.get_list_of_playlists()
+    else:
+        playlists = spoty.playlist.get_list_of_user_playlists(user_id)
+
+    if len(playlists) == 0:
+        exit()
+
+    if filter_names is not None:
+        playlists = list(filter(lambda pl: re.findall(filter_names, pl['name']), playlists))
+        click.echo(f'{len(playlists)} playlists matches the filter')
+
+    if len(playlists) == 0:
+        exit()
+
+    for playlist in playlists:
+        click.echo(f'{playlist["id"]} "{playlist["name"]}"')
+
+    click.echo(f'Total playlists: {len(playlists)}')
+
+
 @playlist.command("create")
 @click.argument("name", type=str)
 def playlist_create(name):
@@ -57,9 +96,6 @@ def playlist_create(name):
     """
     id = spoty.playlist.create_playlist(name)
     click.echo(f'New playlist created (id: {id}, name: "{name}")')
-
-
-
 
 
 @playlist.command("copy")
@@ -83,11 +119,11 @@ def playlist_copy(playlist_ids):
         spoty playlist copy https://open.spotify.com/playlist/37i9dQZF1DX8z1UW9HQvSq
 
     """
-    playlists=[]
-    tracks=[]
+    playlists = []
+    tracks = []
     with click.progressbar(playlist_ids, label='Copying playlists') as bar:
         for playlist_id in bar:
-            new_playlist_id, tracks_added= spoty.playlist.copy_playlist(playlist_id)
+            new_playlist_id, tracks_added = spoty.playlist.copy_playlist(playlist_id)
             playlists.extend(new_playlist_id)
             tracks.extend(tracks_added)
 
@@ -142,7 +178,7 @@ def playlist_read(playlist_ids):
         click.echo(f'Tracks in playlist {playlist_id}:')
         tracks = spoty.playlist.get_tracks_of_playlist(playlist_id)
         for track in tracks:
-            title = get_track_artist_and_title(track["track"])
+            title = spoty.utils.get_track_artist_and_title(track["track"])
             click.echo(f'{track["track"]["id"]}: {title}')
 
     click.echo(f'Total tracks: {len(tracks)}')
@@ -154,8 +190,6 @@ def playlist_read(playlist_ids):
               help='Overwrite existing files without asking')
 @click.argument("playlist_ids", type=str, nargs=-1)
 def playlist_export(path, playlist_ids, overwrite):
-    path = os.path.abspath(path)
-
     r"""Export playlists to csv files on disk.
     it could be your playlists or created by another user.
 
@@ -169,9 +203,18 @@ def playlist_export(path, playlist_ids, overwrite):
 
         spoty playlist export https://open.spotify.com/playlist/37i9dQZF1DX8z1UW9HQvSq
     """
+
+    path = os.path.abspath(path)
+
+    file_names=[]
     with click.progressbar(playlist_ids, label='Exporting playlists') as bar:
         for playlist_id in bar:
-            spoty.playlist.export_playlist_to_file(playlist_id, path, overwrite)
+            file_name=spoty.playlist.export_playlist_to_file(playlist_id, path, overwrite)
+            if file_name is not None:
+                file_names.append(file_name)
+
+    log.success(f'{len(file_names)} playlists exported to path: "{path}"')
+    click.echo(f'{len(file_names)} playlists exported to path: "{path}"')
 
 
 @playlist.command("export-all")
@@ -198,6 +241,8 @@ def playlist_export_all(path, filter_names, user_id, overwrite, confirm, timesta
 
             spoty playlist export-all --filter-names "^awesome"
     """
+
+    path = os.path.abspath(path)
 
     if user_id == None:
         playlists = spoty.playlist.get_list_of_playlists()
@@ -234,7 +279,11 @@ def playlist_export_all(path, filter_names, user_id, overwrite, confirm, timesta
     with click.progressbar(playlists, label='Exporting playlists') as bar:
         for playlist in bar:
             file_name = spoty.playlist.export_playlist_to_file(playlist['id'], path, overwrite, file_names)
-            file_names.append(file_name)
+            if file_name is not None:
+                file_names.append(file_name)
+
+    log.success(f'{len(file_names)} playlists exported to path: "{path}"')
+    click.echo(f'{len(file_names)} playlists exported to path: "{path}"')
 
 
 @playlist.command("import")
@@ -270,9 +319,13 @@ def playlist_import(file_names, append, allow_duplicates):
                 time.sleep(0.2)  # waiting progressbar updating
                 click.echo(f'\nFile does not exist: "{file_name}"')
             except spoty.playlist.CSVFileEmpty as e:
+                log.warning(f'Cant import file "{file_name}". File is empty.')
                 time.sleep(0.2)  # waiting progressbar updating
                 click.echo(f'\nCant import file "{file_name}". File is empty.')
             except spoty.playlist.CSVFileInvalidHeader as e:
+                log.error(
+                    f'Cant import file "{file_name}". The header of csv table does not contain any of the required ' \
+                    f'fields (isrc, spotify_track_id, title).')
                 time.sleep(0.2)  # waiting progressbar updating
                 click.echo(
                     f'\nCant import file "{file_name}". The header of csv table does not contain any of the required ' \
@@ -295,8 +348,6 @@ def playlist_import(file_names, append, allow_duplicates):
               help='Do not ask for export confirmation')
 @click.pass_context
 def playlist_import_all(ctx, path, append, allow_duplicates, filter_names, confirm):
-    path = os.path.abspath(path)
-
     r"""Import all playlists to your library from csv files on disk.
 
     PATH - Path to files for import
@@ -309,6 +360,8 @@ def playlist_import_all(ctx, path, append, allow_duplicates, filter_names, confi
 
             spoty playlist import-all --filter-names "^awesome" "C:\Users\User\Downloads\export"
     """
+
+    path = os.path.abspath(path)
 
     file_names = []
     full_file_names = []
@@ -340,4 +393,3 @@ def playlist_import_all(ctx, path, append, allow_duplicates, filter_names, confi
         click.confirm('Do you want to continue?', abort=True)
 
     ctx.invoke(playlist_import, file_names=full_file_names, append=append, allow_duplicates=allow_duplicates)
-

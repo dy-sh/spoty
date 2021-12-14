@@ -1,29 +1,13 @@
-from spoty.core import sp
-from spoty.utils import *
+from spoty import sp
+from spoty import log
+import spoty.utils
 import os.path
-import csv
 import click
 import time
-from spoty.logs import log
-
-
-class CSVImportException(Exception):
-    """Base class for exceptions when importing CSV file."""
-    pass
-
-
-class CSVFileEmpty(CSVImportException):
-    """File is empty."""
-    pass
-
-
-class CSVFileInvalidHeader(CSVImportException):
-    """The header of csv table does not contain any of the required fields."""
-    pass
 
 
 def get_playlist_with_full_list_of_tracks(playlist_id):
-    playlist_id = parse_playlist_id(playlist_id)
+    playlist_id = spoty.utils.parse_playlist_id(playlist_id)
 
     log.info(f'Collecting playlist {playlist_id}')
 
@@ -50,7 +34,7 @@ def get_playlist_with_full_list_of_tracks(playlist_id):
 
 
 def get_playlist(playlist_id):
-    playlist_id = parse_playlist_id(playlist_id)
+    playlist_id = spoty.utils.parse_playlist_id(playlist_id)
 
     log.info(f'Requesting playlist {playlist_id}')
 
@@ -140,7 +124,7 @@ def copy_playlist(playlist_id):
     playlist = get_playlist_with_full_list_of_tracks(playlist_id)
     tracks = playlist["tracks"]["items"]
 
-    ids = get_track_ids(tracks)
+    ids = spoty.utils.get_track_ids(tracks)
     new_playlist_id = create_playlist(playlist['name'])
     tracks_added = add_tracks_to_playlist(new_playlist_id, ids, True)
 
@@ -150,7 +134,7 @@ def copy_playlist(playlist_id):
 
 
 def get_tracks_of_playlist(playlist_id):
-    playlist_id = parse_playlist_id(playlist_id)
+    playlist_id = spoty.utils.parse_playlist_id(playlist_id)
 
     log.info(f'Collecting tracks from playlist {playlist_id}')
 
@@ -184,19 +168,19 @@ def get_tracks_of_playlist(playlist_id):
 
 
 def add_tracks_to_playlist(playlist_id, track_ids, allow_duplicates=False):
-    playlist_id = parse_playlist_id(playlist_id)
+    playlist_id = spoty.utils.parse_playlist_id(playlist_id)
 
     track_ids = list(track_ids)
 
     for i in range(len(track_ids)):
-        track_ids[i] = parse_track_id(track_ids[i])
+        track_ids[i] = spoty.utils.parse_track_id(track_ids[i])
 
     log.info(f'Adding {len(track_ids)} tracks to playlist {playlist_id}')
 
     if not allow_duplicates:
         tracks = get_tracks_of_playlist(playlist_id)
-        existing_ids = get_track_ids(tracks)
-        new_ids = filter_duplicates(existing_ids, track_ids)
+        existing_ids = spoty.utils.get_track_ids(tracks)
+        new_ids = spoty.utils.filter_duplicates(existing_ids, track_ids)
         if len(track_ids) != len(new_ids):
             log.debug(f'{len(track_ids) - len(new_ids)}/{len(track_ids)} tracks already exist and will be skipped.')
             track_ids = new_ids
@@ -220,44 +204,23 @@ def add_tracks_to_playlist(playlist_id, track_ids, allow_duplicates=False):
 
 
 def export_playlist_to_file(playlist_id, path, overwrite=False, avoid_filenames=[]):
-    playlist_id = parse_playlist_id(playlist_id)
+    playlist_id = spoty.utils.parse_playlist_id(playlist_id)
 
     log.info(f'Exporting playlist {playlist_id}')
 
     playlist = get_playlist_with_full_list_of_tracks(playlist_id)
 
-    file_name = get_playlist_file_name(playlist["name"], playlist_id, path, avoid_filenames)
+    file_name = spoty.utils.get_playlist_file_name(playlist["name"], playlist_id, path, avoid_filenames)
 
     if os.path.isfile(file_name) and not overwrite:
         time.sleep(0.2)  # waiting progressbar updating
         if not click.confirm(f'\nFile "{file_name}" already exist. Overwrite?'):
             log.info(f'Canceled by user (file already exist)')
-            return
+            return None
 
     tracks = playlist["tracks"]["items"]
 
-    os.makedirs(os.path.dirname(file_name), exist_ok=True)
-    with open(file_name, 'w', encoding='utf-8-sig', newline='') as file:
-        header = ['isrc', 'spotify_track_id', 'title', 'album', 'duration']
-        writer = csv.writer(file)
-        writer.writerow(header)
-
-        for i, track in enumerate(tracks):
-            track = track['track']
-            track_title = get_track_artist_and_title(track)
-            duration = track['duration_ms']
-            isrc = ""
-            try:
-                isrc = track['external_ids']['isrc']
-            except:
-                pass
-            album = ""
-            try:
-                album = track['album']['name']
-            except:
-                pass
-
-            writer.writerow([isrc, track["id"], track_title, album, duration])
+    spoty.utils.write_tracks_to_csv_file(tracks, file_name)
 
     log.success(f'Playlist exported (file: "{file_name}")')
 
@@ -267,7 +230,6 @@ def export_playlist_to_file(playlist_id, path, overwrite=False, avoid_filenames=
 def import_playlist_from_file(file_name, append_if_exist=False, allow_duplicates=False):
     log.info(f'Importing playlist from file "{file_name}"')
     tracks_added = []
-    tracks_in_file = []
 
     playlist_id = None
     base = os.path.basename(file_name)
@@ -286,47 +248,10 @@ def import_playlist_from_file(file_name, append_if_exist=False, allow_duplicates
     if playlist_id is None:
         playlist_id = create_playlist(playlist_name)
 
-    with open(file_name, newline='', encoding='utf-8-sig') as file:
-        reader = csv.reader(file)
-        if sum(1 for row in reader) == 0:
-            log.warning(f'Cant import file "{file_name}". File is empty.')
-            raise CSVFileEmpty()
+    tracks_in_file = spoty.utils.read_playlist_from_file(file_name)
 
-    with open(file_name, newline='', encoding='utf-8-sig') as file:
-        header = []
-        reader = csv.reader(file)
-
-        for i, row in enumerate(reader):
-            # read header
-            if (i == 0):
-                header = row
-                if "isrc" not in header and "spotify_track_id" not in header and "title" not in header:
-                    log.error = f'Cant import file "{file_name}". The header of csv table does not contain any of the required ' \
-                                f'fields (isrc, spotify_track_id, title).'
-                    raise CSVFileInvalidHeader()
-                continue
-
-            # read track
-            if len(row) == 0:
-                continue
-
-            if "spotify_track_id" in header:
-                id = row[header.index("spotify_track_id")]
-                log.debug(f'Importing track with spotify_track_id: {id}')
-                tracks_in_file.append(id)
-            elif "isrc" in header:
-                isrc = row[header.index("isrc")]
-                log.debug(f'Importing track with isrc: {isrc}')
-                # todo search by isrc
-                pass
-            elif "title" in header:
-                title = row[header.index("title")]
-                log.debug(f'Importing track with title: {title}')
-                # todo search by isrc
-                pass
-
-        if len(tracks_in_file) > 0:
-            tracks_added = add_tracks_to_playlist(playlist_id, tracks_in_file, allow_duplicates)
+    if len(tracks_in_file) > 0:
+        tracks_added = add_tracks_to_playlist(playlist_id, tracks_in_file, allow_duplicates)
 
     log.success(f'Playlist imported (new tracks: "{len(tracks_added)}")')
 

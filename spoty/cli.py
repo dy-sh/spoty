@@ -1,6 +1,6 @@
 import click
-from .commands import playlist_commands
-from .commands import like_commands
+from spoty.commands import playlist_commands
+from spoty.commands import like_commands
 
 
 @click.group()
@@ -16,7 +16,9 @@ cli.add_command(like_commands.like)
 
 
 if __name__ == '__main__':
-    cli()
+    # cli()
+    # cli(['like', 'count'])
+    cli(['like', 'add','3MH8ie02My2CNzSCH5Pme5', '3L8GYpi8HyhjeixHIlOyM9'])
     # cli(['playlist', 'import-all'])
     # cli(['playlist', 'import-all', r'C:\Users\Derwish\Documents\Develop\spotyfy-automation\! MY MUSIC LIBRARY'])
     # cli(['playlist', 'import', '--append', r'C:\Users\Derwish\Documents\Develop\spotyfy-automation\export\Test playlist.csv'])
