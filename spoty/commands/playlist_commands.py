@@ -211,6 +211,40 @@ def playlist_remove_liked_tracks(playlist_ids):
     click.echo(f'{len(all_removed_tracks)} liked tracks removed from {len(playlist_ids)} playlists.')
 
 
+@playlist.command("list-invalid-tracks")
+@click.argument("playlist_ids", type=str, nargs=-1)
+def playlist_list_invalid_tracks(playlist_ids):
+    r"""
+    Read playlists and list all invalid tracks found from these playlists.
+    Tracks that have no ID are considered invalid.
+    If a track is not available in the given region it is not considered invalid. You can still pull information on it. Tracks that are not available for the region will not be deleted.
+    Invalid tracks are those for which there is no information at all in the database (have been deleted from the spotify database).
+
+    PLAYLIST_IDS - list of playlist IDs or URIs. You can specify one ID or many IDs separated by a space.
+
+    Examples:
+
+        spoty playlist list-invalid-tracks 37i9dQZF1DX8z1UW9HQvSq
+
+        spoty playlist list-invalid-tracks 37i9dQZF1DX8z1UW9HQvSq 37i9dQZF1DX7jNFrjYQurt
+
+        spoty playlist list-invalid-tracks https://open.spotify.com/playlist/37i9dQZF1DX8z1UW9HQvSq
+
+    """
+
+    all_invalid_tracks = []
+    with click.progressbar(playlist_ids, label='Collecting invalid tracks from playlists') as bar:
+        for playlist_id in bar:
+            removed_tracks = spoty.playlist.get_invalid_tracks_in_playlist(playlist_id)
+            all_invalid_tracks.extend(removed_tracks)
+
+    click.echo(f'{len(all_invalid_tracks)} invalid tracks in {len(playlist_ids)} playlists.')
+
+    if len(all_invalid_tracks) > 0:
+        for track in all_invalid_tracks:
+            click.echo(str(track))
+
+
 @playlist.command("like-all-tracks")
 @click.argument("playlist_ids", type=str, nargs=-1)
 def playlist_like_all_tracks(playlist_ids):

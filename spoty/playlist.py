@@ -43,6 +43,7 @@ def get_playlist(playlist_id):
 
     return playlist
 
+
 def delete_playlist(playlist_id):
     playlist_id = spoty.utils.parse_playlist_id(playlist_id)
 
@@ -51,6 +52,7 @@ def delete_playlist(playlist_id):
     playlist = sp.playlist(playlist_id)
 
     return playlist
+
 
 def get_list_of_playlists(only_owned_by_user=True):
     user_id = sp.me()['id']
@@ -212,7 +214,6 @@ def add_tracks_to_playlist(playlist_id, track_ids, allow_duplicates=False):
     return tracks_added
 
 
-
 def remove_tracks_from_paylist(playlist_id, track_ids):
     playlist_id = spoty.utils.parse_playlist_id(playlist_id)
 
@@ -245,6 +246,23 @@ def remove_liked_tracks_in_playlist(playlist_id):
 
     return liked_track_ids
 
+
+def get_invalid_tracks_in_playlist(playlist_id):
+    playlist_id = spoty.utils.parse_playlist_id(playlist_id)
+
+    log.info(f'Listing invalid tracks in playlist {playlist_id}')
+
+    invalid_tracks = []
+
+    tracks = spoty.playlist.get_tracks_of_playlist(playlist_id)
+    for track in tracks:
+        try:
+            id = track['track']['id']
+            assert id is not None, "Track id is None"
+        except:
+            invalid_tracks.append(track)
+
+    return invalid_tracks
 
 
 def export_playlist_to_file(playlist_id, path, overwrite=False, avoid_filenames=[]):
@@ -315,4 +333,3 @@ def like_all_tracks_in_playlist(playlist_id):
     log.success(f'{len(not_liked_track_ids)} tracks added to liked tracks in playlist {playlist_id}.')
 
     return not_liked_track_ids
-
