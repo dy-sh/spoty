@@ -2,4 +2,4 @@ click
 dynaconf
 loguru
 spotipy
-music-tag
+mutagen

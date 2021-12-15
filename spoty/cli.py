@@ -33,5 +33,6 @@ if __name__ == '__main__':
     # cli(['playlist', 'remove-tracks', '0yRgrCdkntJG83mFbFvrBP', '3MH8ie02My2CNzSCH5Pme5', '3L8GYpi8HyhjeixHIlOyM9'])
     # cli(['playlist', 'remove-liked-tracks', '0yRgrCdkntJG83mFbFvrBP'])
     # cli(['playlist', 'like-all-tracks', '0yRgrCdkntJG83mFbFvrBP'])
-    cli(['local', 'count', r'C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS'])
-#
+    # cli(['local', 'list', '--have-isrc', '-r',r'C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS'])
+    # cli(['local', 'export-all', "-o", r'C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS', r"C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS\EXPORT"])
+    cli(['local', 'export-all', "-o", r'C:\Users\Derwish\Music\MusicBee\Music', r"C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS\EXPORT"])

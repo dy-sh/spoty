@@ -343,7 +343,7 @@ def playlist_export(path, playlist_ids, overwrite):
 @click.option('--confirm', '-c', type=bool, is_flag=True, default=False,
               help='Do not ask for export confirmation')
 @click.option('--timestamp', '-t', type=bool, is_flag=True, default=False,
-              help='Create a subfolder with the current date and time (it can be convenient for creating backups')
+              help='Create a subfolder with the current date and time (it can be convenient for creating backups)')
 def playlist_export_all(path, filter_names, user_id, overwrite, confirm, timestamp):
     r"""Export all playlists from your library to csv files on disk.
 
