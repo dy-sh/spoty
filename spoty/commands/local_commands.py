@@ -89,14 +89,18 @@ def local_list(path, recursive, filter_names, have_isrc, have_no_isrc):
               help='Do not ask for export confirmation')
 @click.option('--timestamp', '-t', type=bool, is_flag=True, default=False,
               help='Create a subfolder with the current date and time (it can be convenient for creating backups)')
-def local_export_all(tracks_path, export_path, filter_names, overwrite, confirm, timestamp):
+@click.option('--naming-pattern', type=str, default=None,
+              help='')
+def local_export_all(tracks_path, export_path, filter_names, overwrite, confirm, timestamp, naming_pattern):
     r"""Export all playlists from your local library to csv files on disk.
-
-    Playlist names will be generated from the name of the subfolder where the files are located.
 
     TRACKS_PATH - path where local music files located
 
     EXPORT_PATH - path where to create playlists files
+
+    If "--naming-pattern" flag is not set, then playlist names will be generated from the name of the subfolder where the files are located.
+    if "--naming-pattern" flag is set, then the playlists will be named according to the pattern. Any tags from the tracks can be used in the template.
+
 
     Examples:
 
@@ -104,7 +108,15 @@ def local_export_all(tracks_path, export_path, filter_names, overwrite, confirm,
 
         Export only playlists whose names starts with "awesome":
 
-            spoty playlist export-all --filter-names "^awesome" "C:\Users\User\Downloads\music" "C:\Users\User\Downloads\export"
+            spoty local export-all --filter-names "^awesome" "C:\Users\User\Downloads\music" "C:\Users\User\Downloads\export"
+
+        Export playlists by genres:
+
+            spoty local export-all --naming-pattern "%genre%" "C:\Users\User\Downloads\music" "C:\Users\User\Downloads\export"
+
+        Export playlists by genre and mood:
+
+            spoty local export-all --naming-pattern "%genre% - %mood%" "C:\Users\User\Downloads\music" "C:\Users\User\Downloads\export"
     """
 
     path = os.path.abspath(tracks_path)
@@ -114,6 +126,7 @@ def local_export_all(tracks_path, export_path, filter_names, overwrite, confirm,
         directories.append(dirpath)
 
     all_track_file_names = []
+    all_track_tags = []
     playlist_names = []
     playlist_file_names = []
 
@@ -122,21 +135,50 @@ def local_export_all(tracks_path, export_path, filter_names, overwrite, confirm,
         date_time_str = now.strftime("%Y_%m_%d-%H_%M_%S")
         export_path = os.path.join(export_path, date_time_str)
 
-    with click.progressbar(directories, label='Exporting playlists') as bar:
-        for dir in bar:
-            tracks_file_names = spoty.local.get_local_tracks_file_names(dir, False, filter_names)
+    if naming_pattern is None:
+        with click.progressbar(directories, label='Exporting playlists') as bar:
+            for dir in bar:
+                tracks_file_names = spoty.local.get_local_tracks_file_names(dir, False, filter_names)
 
-            if len(tracks_file_names) == 0:
-                continue
+                if len(tracks_file_names) == 0:
+                    continue
 
-            playlist_name = os.path.basename(os.path.normpath(dir))
+                playlist_name = os.path.basename(os.path.normpath(dir))
+                playlist_file_name = os.path.join(export_path, playlist_name + '.csv')
+
+                spoty.local.export_playlist_to_file(playlist_file_name, tracks_file_names, overwrite)
+
+                all_track_file_names.extend(tracks_file_names)
+                playlist_names.append(playlist_name)
+                playlist_file_names.append(playlist_file_name)
+    else:
+        with click.progressbar(directories, label='Collecting tracks') as bar:
+            for dir in bar:
+                tracks_file_names = spoty.local.get_local_tracks_file_names(dir, False, filter_names)
+
+                if len(tracks_file_names) == 0:
+                    continue
+
+                all_track_file_names.extend(tracks_file_names)
+                tags = spoty.local.read_tracks_tags(tracks_file_names)
+                all_track_tags.extend(tags)
+
+        grouped_tracks = spoty.local.group_tracks_by_pattern(naming_pattern, all_track_tags)
+        for key, value in grouped_tracks.items():
+            playlist_name = key
+            playlist_name = spoty.utils.slugify_file_pah(playlist_name)
             playlist_file_name = os.path.join(export_path, playlist_name + '.csv')
 
-            spoty.local.export_playlist_to_file(playlist_file_name, tracks_file_names,overwrite)
+            if os.path.isfile(playlist_file_name) and not overwrite:
+                time.sleep(0.2)  # waiting progressbar updating
+                if not click.confirm(f'\nFile "{playlist_file_name}" already exist. Overwrite?'):
+                    continue
 
-            all_track_file_names.extend(tracks_file_names)
+            spoty.local.write_tracks_to_csv_file(value, playlist_file_name)
+
             playlist_names.append(playlist_name)
             playlist_file_names.append(playlist_file_name)
+
 
     mess = f'{len(all_track_file_names)} tracks exported to {len(playlist_names)} playlists in path: "{export_path}"'
     log.success(mess)

@@ -35,4 +35,5 @@ if __name__ == '__main__':
     # cli(['playlist', 'like-all-tracks', '0yRgrCdkntJG83mFbFvrBP'])
     # cli(['local', 'list', '--have-isrc', '-r',r'C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS'])
     # cli(['local', 'export-all', "-o", r'C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS', r"C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS\EXPORT"])
-    cli(['local', 'export-all', "-o", r'C:\Users\Derwish\Music\MusicBee\Music', r"C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS\EXPORT"])
+    # cli(['local', 'export-all', "-o", r'C:\Users\Derwish\Music\MusicBee\Music', r"C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS\EXPORT"])
+    cli(['local', 'export-all', "-o", '--naming-pattern', '%genre% - %mood%', r'C:\Users\Derwish\Music\MusicBee\Music', r"C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS\EXPORT"])

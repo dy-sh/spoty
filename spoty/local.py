@@ -160,7 +160,7 @@ def export_playlist_to_file(playlist_file_name, track_file_names, overwrite=Fals
 
 def write_tracks_to_csv_file(tracks, file_name):
     # collect all keys
-    keys=[]
+    keys = []
     for track in tracks:
         for key, value in track.items():
             if not key in keys:
@@ -179,14 +179,13 @@ def write_tracks_to_csv_file(tracks, file_name):
         writer = csv.writer(file)
         writer.writerow(keys)
 
-
         for track in tracks:
-            values = [track[key]for key in keys]
+            values = [track[key] for key in keys]
             writer.writerow(values)
 
 
 def reorder_tag_keys(keys):
-    res=[]
+    res = []
 
     # reorder main tags first
     for key in main_tags:
@@ -199,3 +198,32 @@ def reorder_tag_keys(keys):
             res.append(key)
 
     return res
+
+
+def group_tracks_by_pattern(pattern, tracks):
+    groups = {}
+
+    for track in tracks:
+        group_name = ""
+        tag_name = ""
+        building_tag = False
+        for c in pattern:
+            if c == "%":
+                building_tag = not building_tag
+                if not building_tag:
+                    tag = track[tag_name] if tag_name in track else "Unknown"
+                    group_name += tag
+                    tag_name = ""
+            else:
+                if building_tag:
+                    tag_name += c
+                    tag_name = tag_name.upper()
+                else:
+                    group_name += c
+
+        if not group_name in groups:
+            groups[group_name] = []
+
+        groups[group_name].append(track)
+
+    return groups
