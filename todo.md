@@ -5,7 +5,6 @@ spoty
 - export playlists for tracks that not exist in local playlists
 
 deezer
-- download
 - mutithread download
 - download only if not exsit in local playlists
 - fix logs for russian titles (utf8)
