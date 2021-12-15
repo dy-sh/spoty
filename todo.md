@@ -8,6 +8,7 @@ deezer
 - mutithread download
 - download only if not exsit in local playlists
 - fix logs for russian titles (utf8)
+- fix continue downloading, delete last file
 
 local
 - create playlists from local files library
