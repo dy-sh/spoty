@@ -10,6 +10,7 @@ from datetime import datetime
 import re
 
 
+
 @click.group()
 def local():
     r"""Local files management."""
@@ -20,7 +21,11 @@ def local():
 @click.argument('path', type=str)
 @click.option('--filter-names', type=str, default=None,
               help='Count only files whose names matches this regex filter')
-def local_count(path, filter_names):
+@click.option('--have-isrc', type=bool, is_flag=True, default=False,
+              help='Count only files that have ISRC tag.')
+@click.option('--have-no-isrc', type=bool, is_flag=True, default=False,
+              help='Count only files that have no ISRC tag.')
+def local_count(path, filter_names, have_isrc, have_no_isrc):
     r"""
     Displays the number of local tracks.
 
@@ -30,23 +35,20 @@ def local_count(path, filter_names):
 
         spoty local count --filter-names "^awesome" "C:\Users\User\Downloads\music"
     """
-    full_file_names = spoty.local.get_local_tracks(path)
+    full_file_names = spoty.local.get_local_tracks(path, filter_names, have_isrc, have_no_isrc)
 
-    file_names = [os.path.basename(filenames) for filenames in full_file_names]
-
-    if filter_names is not None:
-        file_names = list(filter(lambda file: re.findall(filter_names, file), file_names))
-
-    click.echo(f'Local tracks: {len(file_names)}')
+    click.echo(f'Local tracks: {len(full_file_names)}')
 
 
 @local.command("list")
 @click.argument('path', type=str)
 @click.option('--filter-names', type=str, default=None,
               help='List only files whose names matches this regex filter')
-@click.option('--have-isrc', '-d', type=bool, is_flag=True, default=False,
+@click.option('--have-isrc', type=bool, is_flag=True, default=False,
               help='List only files that have ISRC tag.')
-def local_list(path, filter_names):
+@click.option('--have-no-isrc', type=bool, is_flag=True, default=False,
+              help='List only files that have no ISRC tag.')
+def local_list(path, filter_names, have_isrc, have_no_isrc):
     r"""
     Displays the number of local tracks.
 
@@ -56,12 +58,7 @@ def local_list(path, filter_names):
 
         spoty local list --filter-names "^awesome" "C:\Users\User\Downloads\music"
     """
-    full_file_names = spoty.local.get_local_tracks(path)
-
-    if filter_names is not None:
-        full_file_names = list(filter(lambda full_file_name:
-                                      re.findall(filter_names, os.path.basename(full_file_name)),
-                                      full_file_names))
+    full_file_names = spoty.local.get_local_tracks(path, filter_names, have_isrc, have_no_isrc)
 
     click.echo(f'Local tracks:')
     for full_file in full_file_names:
