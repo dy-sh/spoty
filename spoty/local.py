@@ -12,60 +12,6 @@ from mutagen.mp3 import MP3
 from mutagen.id3 import ID3
 import csv
 
-
-def is_flac(file_name):
-    return file_name.upper().endswith('.FLAC')
-
-
-def is_mp3(file_name):
-    return file_name.upper().endswith('.MP3')
-
-
-def get_local_tracks_file_names(path,
-                                recursive=True,
-                                filter_names=None,
-                                filter_have_isrc=False,
-                                filter_have_no_isrc=False,
-                                ):
-    full_file_names = []
-    if recursive:
-        full_file_names = [os.path.join(dp, f) for dp, dn, filenames in os.walk(path) for f in filenames if
-                           os.path.splitext(f)[1] == '.flac' or os.path.splitext(f)[1] == '.mp3']
-    else:
-        full_file_names = [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
-        full_file_names = list(filter(lambda f: f.endswith('.flac') or f.endswith('.mp3'), full_file_names))
-
-    if filter_names is not None:
-        full_file_names = list(filter(lambda f:
-                                      re.findall(filter_names, os.path.basename(f)),
-                                      full_file_names))
-    if filter_have_isrc:
-        filtered = []
-        for file_name in full_file_names:
-            tags = read_track_tags(file_name)
-            if len(tags['ISRC']) > 0:
-                filtered.append(file_name)
-            full_file_names = filtered
-
-    if filter_have_no_isrc:
-        filtered = []
-        for file_name in full_file_names:
-            tags = read_track_tags(file_name)
-            if len(tags['ISRC']) == 0:
-                filtered.append(file_name)
-            full_file_names = filtered
-
-    return full_file_names
-
-
-def read_tracks_tags(track_file_names):
-    tracks = []
-    for file_name in track_file_names:
-        track = read_track_tags(file_name)
-        tracks.append(track)
-    return tracks
-
-
 main_tags = \
     [
         'ISRC',
@@ -122,12 +68,112 @@ additional_tags = \
     ]
 
 
+class CSVImportException(Exception):
+    """Base class for exceptions when importing CSV file."""
+    pass
+
+
+class CSVFileEmpty(CSVImportException):
+    """File is empty."""
+    pass
+
+
+class CSVFileInvalidHeader(CSVImportException):
+    """The header of csv table does not contain any of the required fields."""
+    pass
+
+
+def is_flac(file_name):
+    return file_name.upper().endswith('.FLAC')
+
+
+def is_mp3(file_name):
+    return file_name.upper().endswith('.MP3')
+
+
+def is_csv(file_name):
+    return file_name.upper().endswith('.CSV')
+
+
+def get_local_tracks_file_names(path,
+                                recursive=True,
+                                filter_names=None,
+                                filter_have_isrc=False,
+                                filter_have_no_isrc=False,
+                                ):
+    full_file_names = []
+    if recursive:
+        full_file_names = [os.path.join(dp, f) for dp, dn, filenames in os.walk(path) for f in filenames if
+                           is_flac(os.path.splitext(f)[1]) or is_mp3(os.path.splitext(f)[1])]
+    else:
+        full_file_names = [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+        full_file_names = list(
+            filter(lambda f: is_flac(f) or is_mp3(f), full_file_names))
+
+    if filter_names is not None:
+        full_file_names = list(filter(lambda f:
+                                      re.findall(filter_names, os.path.basename(f)),
+                                      full_file_names))
+    if filter_have_isrc:
+        filtered = []
+        for file_name in full_file_names:
+            tags = read_track_tags(file_name)
+            if len(tags['ISRC']) > 0:
+                filtered.append(file_name)
+            full_file_names = filtered
+
+    if filter_have_no_isrc:
+        filtered = []
+        for file_name in full_file_names:
+            tags = read_track_tags(file_name)
+            if len(tags['ISRC']) == 0:
+                filtered.append(file_name)
+            full_file_names = filtered
+
+    return full_file_names
+
+
+def get_all_playlists_in_path(path,
+                              recursive=True,
+                              filter_names=None
+                              ):
+    full_file_names = []
+    if recursive:
+        full_file_names = [os.path.join(dp, f) for dp, dn, filenames in os.walk(path) for f in filenames if
+                           is_csv(os.path.splitext(f)[1])]
+    else:
+        full_file_names = [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+        full_file_names = list(filter(lambda f: is_csv(f), full_file_names))
+
+    if filter_names is not None:
+        full_file_names = list(filter(lambda f:
+                                      re.findall(filter_names, os.path.basename(f)),
+                                      full_file_names))
+
+    return full_file_names
+
+
+def read_tracks_tags(track_file_names):
+    tracks = []
+    for file_name in track_file_names:
+        track = read_track_tags(file_name)
+        tracks.append(track)
+    return tracks
+
+
 def read_track_tags(file_name):
     track = {}
 
     if is_flac(file_name):
         f = FLAC(file_name)
         for tag in f.tags:
+            if len(tag[1]) > 131072 or \
+                    (tag[0] in track and len(track[tag[0]]) + len(tag[1]) > 131072):
+                time.sleep(0.2)
+                mess = f'Tag "{tag[0]}" has value larger than csv field limit (131072) and will be skipped in file "{file_name}"'
+                click.echo('\n' + mess)
+                log.warning(mess)
+                continue
             if tag[0] in track:
                 track[tag[0]] += ';' + tag[1]
             else:
@@ -140,7 +186,7 @@ def read_track_tags(file_name):
     return track
 
 
-def export_playlist_to_file(playlist_file_name, track_file_names, overwrite=False):
+def collect_playlist_from_files(playlist_file_name, track_file_names, overwrite=False):
     log.info(f'Exporting playlist (tracks:{len(track_file_names)}, file name: {playlist_file_name})')
 
     if os.path.isfile(playlist_file_name) and not overwrite:
@@ -156,32 +202,6 @@ def export_playlist_to_file(playlist_file_name, track_file_names, overwrite=Fals
     # log.success(f'Playlist {playlist_id} exported (file: "{file_name}")')
     #
     return tracks
-
-
-def write_tracks_to_csv_file(tracks, file_name):
-    # collect all keys
-    keys = []
-    for track in tracks:
-        for key, value in track.items():
-            if not key in keys:
-                keys.append(key)
-
-    keys = reorder_tag_keys(keys)
-
-    # write missing keys to all tracks
-    for track in tracks:
-        for key in keys:
-            if not key in track:
-                track[key] = ""
-
-    os.makedirs(os.path.dirname(file_name), exist_ok=True)
-    with open(file_name, 'w', encoding='utf-8-sig', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(keys)
-
-        for track in tracks:
-            values = [track[key] for key in keys]
-            writer.writerow(values)
 
 
 def reorder_tag_keys(keys):
@@ -200,7 +220,7 @@ def reorder_tag_keys(keys):
     return res
 
 
-def group_tracks_by_pattern(pattern, tracks):
+def group_tracks_by_pattern(pattern, tracks, not_found_tag_name="Unknown"):
     groups = {}
 
     for track in tracks:
@@ -211,7 +231,7 @@ def group_tracks_by_pattern(pattern, tracks):
             if c == "%":
                 building_tag = not building_tag
                 if not building_tag:
-                    tag = track[tag_name] if tag_name in track else "Unknown"
+                    tag = track[tag_name] if tag_name in track else not_found_tag_name
                     group_name += tag
                     tag_name = ""
             else:
@@ -227,3 +247,63 @@ def group_tracks_by_pattern(pattern, tracks):
         groups[group_name].append(track)
 
     return groups
+
+
+def write_tracks_to_csv_file(tracks, playlist_file_name):
+    # collect all keys
+    keys = []
+    for track in tracks:
+        for key, value in track.items():
+            if not key in keys:
+                keys.append(key)
+
+    keys = reorder_tag_keys(keys)
+
+    # write missing keys to all tracks
+    for track in tracks:
+        for key in keys:
+            if not key in track:
+                track[key] = ""
+
+    os.makedirs(os.path.dirname(playlist_file_name), exist_ok=True)
+    with open(playlist_file_name, 'w', encoding='utf-8-sig', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(keys)
+
+        for track in tracks:
+            values = [track[key] for key in keys]
+            writer.writerow(values)
+
+
+def read_tracks_from_csv_file(playlist_file_name):
+    tracks = []
+
+    with open(playlist_file_name, newline='', encoding='utf-8-sig') as file:
+        reader = csv.reader(file)
+        if sum(1 for row in reader) == 0:
+            raise CSVFileEmpty()
+
+    with open(playlist_file_name, newline='', encoding='utf-8-sig') as file:
+        header = []
+        reader = csv.reader(file)
+
+        for i, row in enumerate(reader):
+            # read header
+            if (i == 0):
+                header = row
+                if len(header) == 0:
+                    raise CSVFileInvalidHeader()
+                continue
+
+            # read track
+            if len(row) == 0:
+                continue
+
+            track = {}
+            for h, key in enumerate(header):
+                if len(row[h]) > 0:
+                    track[key] = row[h]
+
+            tracks.append(track)
+
+    return tracks
