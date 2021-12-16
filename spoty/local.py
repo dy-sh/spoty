@@ -29,8 +29,8 @@ main_tags = \
         'FILEOWNER'  # public
         'LENGTH',
         'QUALITY',
-        'SPOTIFY_RELEASE_ID',  # spotify specific
         'SPOTIFY_TRACK_ID'  # spotify specific
+        'SPOTIFY_RELEASE_ID',  # spotify specific
         'SOURCE',  # deezer specific
         'SOURCEID',  # deezer specific
         'TEMPO',
@@ -46,6 +46,7 @@ additional_tags = \
         'COPYRIGHT',
         'DISC',
         'ENCODER',
+        'EXPLICIT'
         'INITIAL KEY',
         'INITIALKEY'
         'ENGINEER',

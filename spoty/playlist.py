@@ -320,6 +320,9 @@ def import_playlist_from_file(file_name, append_if_exist=False, allow_duplicates
     return playlist_id, tracks_added, tracks_in_file
 
 
+def import_playlist_from_tags(tag_tracks, append_if_exist=False, allow_duplicates=False):
+    
+
 def like_all_tracks_in_playlist(playlist_id):
     playlist_id = spoty.utils.parse_playlist_id(playlist_id)
 

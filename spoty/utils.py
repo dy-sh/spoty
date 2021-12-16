@@ -1,7 +1,6 @@
 import os.path
 import csv
 
-
 class CSVImportException(Exception):
     """Base class for exceptions when importing CSV file."""
     pass
@@ -15,6 +14,7 @@ class CSVFileEmpty(CSVImportException):
 class CSVFileInvalidHeader(CSVImportException):
     """The header of csv table does not contain any of the required fields."""
     pass
+
 
 def get_track_artist_and_title(track):
     artists = list(map(lambda artist: artist['name'], track['artists']))
@@ -87,29 +87,69 @@ def remove_duplicates(arr):
 def write_tracks_to_csv_file(tracks, file_name):
     os.makedirs(os.path.dirname(file_name), exist_ok=True)
     with open(file_name, 'w', encoding='utf-8-sig', newline='') as file:
-        header = ['isrc', 'spotify_track_id', 'title', 'album', 'duration']
+        header = ['ISRC', 'ARTIST', 'TITLE', 'ALBUM', 'LENGTH', 'SPOTIFY_TRACK_ID', 'SPOTIFY_RELEASE_ID', 'YEAR',
+                  'WWWAUDIOFILE',
+                  'EXPLICIT', 'TRACK','SOURCE', "SOURCEID"]
         writer = csv.writer(file)
         writer.writerow(header)
 
         for i, track in enumerate(tracks):
             track = track['track']
-            track_title = get_track_artist_and_title(track)
-            duration = track['duration_ms']
-            isrc = ""
+
+            ISRC = ""
             try:
-                isrc = track['external_ids']['isrc']
-            except:
-                pass
-            album = ""
-            try:
-                album = track['album']['name']
+                ISRC = track['external_ids']['isrc']
             except:
                 pass
 
-            writer.writerow([isrc, track["id"], track_title, album, duration])
+            ARTIST = ""
+            try:
+                artists = list(map(lambda artist: artist['name'], track['artists']))
+                ARTIST = ';'.join(artists)
+            except:
+                pass
+
+            TITLE = track['name']
+
+            ALBUM = ""
+            try:
+                ALBUM = track['album']['name']
+            except:
+                pass
+
+            LENGTH = track['duration_ms']
+
+            SPOTIFY_RELEASE_ID = ""
+            try:
+                SPOTIFY_RELEASE_ID = track['album']['id']
+            except:
+                pass
+
+            WWWAUDIOFILE = track['external_urls']['spotify']
+
+            SPOTIFY_TRACK_ID = track["id"]
+
+            EXPLICIT = track['explicit']
+
+            TRACK = track['track_number']
+
+            YEAR = ""
+            try:
+                YEAR = track['album']['release_date']
+            except:
+                pass
+
+            # PREVIEW_URL=track['preview_url']
+            SOURCE = "Spotify"
+            SOURCEID = SPOTIFY_TRACK_ID
 
 
-def read_tracks_from_csv_file(file_name):
+            writer.writerow(
+                [ISRC, ARTIST, TITLE, ALBUM, LENGTH, SPOTIFY_TRACK_ID, SPOTIFY_RELEASE_ID, YEAR, WWWAUDIOFILE, EXPLICIT,
+                 TRACK,SOURCE, SOURCEID ])
+
+
+def read_track_tags_from_csv_file(file_name):
     tracks_in_file = []
 
     with open(file_name, newline='', encoding='utf-8-sig') as file:
@@ -125,29 +165,29 @@ def read_tracks_from_csv_file(file_name):
             # read header
             if (i == 0):
                 header = row
-                if "isrc" not in header and "spotify_track_id" not in header and "title" not in header:
-                    raise CSVFileInvalidHeader()
                 continue
 
             # read track
             if len(row) == 0:
                 continue
 
-            if "spotify_track_id" in header:
-                id = row[header.index("spotify_track_id")]
-                # log.debug(f'Importing track with spotify_track_id: {id}')
+            if "SPOTIFY_TRACK_ID" in header:
+                id = row[header.index("SPOTIFY_TRACK_ID")]
                 tracks_in_file.append(id)
-            elif "isrc" in header:
-                isrc = row[header.index("isrc")]
-                # log.debug(f'Importing track with isrc: {isrc}')
+                continue
+
+            if "ISRC" in header:
+                isrc = row[header.index("ISRC")]
                 # todo search by isrc
-                pass
-            elif "title" in header:
-                title = row[header.index("title")]
-                # log.debug(f'Importing track with title: {title}')
-                # todo search by isrc
-                pass
+                continue
+
+            if "TITLE" in header and "ARTIST" in header:
+                title = row[header.index("TITLE")]
+                artist = row[header.index("ARTIST")]
+                # todo search by title
+                continue
+
+            raise CSVFileInvalidHeader()
 
     return tracks_in_file
-
 
