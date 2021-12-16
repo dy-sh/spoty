@@ -10,12 +10,9 @@ def cli():
     pass
 
 
-
-
 cli.add_command(playlist_commands.playlist)
 cli.add_command(like_commands.like)
 cli.add_command(local_commands.local)
-
 
 if __name__ == '__main__':
     # cli()
@@ -35,6 +32,8 @@ if __name__ == '__main__':
     # cli(['playlist', 'like-all-tracks', '0yRgrCdkntJG83mFbFvrBP'])
     # cli(['local', 'list-tracks', '--have-isrc', '-r',r'C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS'])
     # cli(['local', 'collect-playlist', "-o", r'C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS', r"C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS\EXPORT"])
-    # cli(['local', 'collect-playlist', "-o", r'C:\Users\Derwish\Music\MusicBee\Music', r"C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS\EXPORT"])
+    # cli(['local', 'collect-playlist', '--have-tag', 'isrc', "-o", r'C:\Users\Derwish\Music\MusicBee\Music', r"C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS\EXPORT"])
     # cli(['local', 'collect-playlist', "-o", '--naming-pattern', '%genre% - %mood%', r'C:\Users\Derwish\Music\MusicBee\Music', r"C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS\EXPORT"])
-    cli(['local', 'count-in-playlists', r"C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS\EXPORT"])
+    # cli(['local', 'count-in-playlists', r"C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS\EXPORT"])
+    cli(['local', 'count-in-playlists','--have-no-tag', 'title', r"C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS\EXPORT"])
+    # cli(['local', 'list-tracks', '--have-no-tag', 'title,isrc', r"C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS"])

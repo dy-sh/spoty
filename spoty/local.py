@@ -95,11 +95,36 @@ def is_csv(file_name):
     return file_name.upper().endswith('.CSV')
 
 
+def check_track_have_all_tags(track, tags):
+    for tag in tags:
+        if not tag in track:
+            return False
+    return True
+
+
+def filter_tracks_which_have_all_tags(file_names, tags):
+    filtered = []
+    for file_name in file_names:
+        track = read_track_tags(file_name)
+        if check_track_have_all_tags(track, tags):
+            filtered.append(file_name)
+    return filtered
+
+
+def filter_tracks_which_not_have_any_of_tags(file_names, tags):
+    filtered = []
+    for file_name in file_names:
+        track = read_track_tags(file_name)
+        if not check_track_have_all_tags(track, tags):
+            filtered.append(file_name)
+    return filtered
+
+
 def get_local_tracks_file_names(path,
                                 recursive=True,
                                 filter_names=None,
-                                filter_have_isrc=False,
-                                filter_have_no_isrc=False,
+                                filter_have_tags=[],
+                                filter_have_no_tags=[],
                                 ):
     full_file_names = []
     if recursive:
@@ -114,21 +139,11 @@ def get_local_tracks_file_names(path,
         full_file_names = list(filter(lambda f:
                                       re.findall(filter_names, os.path.basename(f)),
                                       full_file_names))
-    if filter_have_isrc:
-        filtered = []
-        for file_name in full_file_names:
-            tags = read_track_tags(file_name)
-            if len(tags['ISRC']) > 0:
-                filtered.append(file_name)
-            full_file_names = filtered
+    if len(filter_have_tags)>0:
+        full_file_names = filter_tracks_which_have_all_tags(full_file_names, filter_have_tags)
 
-    if filter_have_no_isrc:
-        filtered = []
-        for file_name in full_file_names:
-            tags = read_track_tags(file_name)
-            if len(tags['ISRC']) == 0:
-                filtered.append(file_name)
-            full_file_names = filtered
+    if len(filter_have_no_tags)>0:
+        full_file_names = filter_tracks_which_not_have_any_of_tags(full_file_names, filter_have_no_tags)
 
     return full_file_names
 
