@@ -1,5 +1,6 @@
 from spoty import sp
 from spoty import log
+import spoty.local
 import spoty.utils
 import click
 import os
@@ -57,7 +58,8 @@ def export_liked_tracks_to_file(file_name):
     log.info(f'Exporting liked tracks from file "{file_name}"')
 
     liked_tracks = spoty.like.get_liked_tracks()
-    spoty.utils.write_tracks_to_csv_file(liked_tracks, file_name)
+    tag_tracks = spoty.utils.read_tags_from_spotify_tracks(liked_tracks)
+    spoty.local.write_tracks_to_csv_file(tag_tracks, file_name)
 
     log.success(f'{len(liked_tracks)} liked tracks exported to file: "{file_name}"')
 

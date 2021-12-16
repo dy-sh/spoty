@@ -1,5 +1,6 @@
 import os.path
 import csv
+import spoty.local
 
 class CSVImportException(Exception):
     """Base class for exceptions when importing CSV file."""
@@ -84,110 +85,58 @@ def remove_duplicates(arr):
     return good, dup
 
 
-def write_tracks_to_csv_file(tracks, file_name):
-    os.makedirs(os.path.dirname(file_name), exist_ok=True)
-    with open(file_name, 'w', encoding='utf-8-sig', newline='') as file:
-        header = ['ISRC', 'ARTIST', 'TITLE', 'ALBUM', 'LENGTH', 'SPOTIFY_TRACK_ID', 'SPOTIFY_RELEASE_ID', 'YEAR',
-                  'WWWAUDIOFILE',
-                  'EXPLICIT', 'TRACK','SOURCE', "SOURCEID"]
-        writer = csv.writer(file)
-        writer.writerow(header)
+def read_tags_from_spotify_tracks(tracks):
+    tag_tracks=[]
 
-        for i, track in enumerate(tracks):
-            track = track['track']
+    for i, track in enumerate(tracks):
+        track = track['track']
 
-            ISRC = ""
-            try:
-                ISRC = track['external_ids']['isrc']
-            except:
-                pass
+        tags={}
 
-            ARTIST = ""
-            try:
-                artists = list(map(lambda artist: artist['name'], track['artists']))
-                ARTIST = ';'.join(artists)
-            except:
-                pass
+        try:
+            tags['ISRC'] = track['external_ids']['isrc']
+        except:
+            pass
 
-            TITLE = track['name']
+        try:
+            artists = list(map(lambda artist: artist['name'], track['artists']))
+            tags['ARTIST'] = ';'.join(artists)
+        except:
+            pass
 
-            ALBUM = ""
-            try:
-                ALBUM = track['album']['name']
-            except:
-                pass
+        tags['TITLE'] = track['name']
 
-            LENGTH = track['duration_ms']
+        try:
+            tags['ALBUM'] = track['album']['name']
+        except:
+            pass
 
-            SPOTIFY_RELEASE_ID = ""
-            try:
-                SPOTIFY_RELEASE_ID = track['album']['id']
-            except:
-                pass
+        tags['LENGTH'] = track['duration_ms']
 
-            WWWAUDIOFILE = track['external_urls']['spotify']
+        try:
+            tags['SPOTIFY_RELEASE_ID'] = track['album']['id']
+        except:
+            pass
 
-            SPOTIFY_TRACK_ID = track["id"]
+        tags['WWWAUDIOFILE'] = track['external_urls']['spotify']
 
-            EXPLICIT = track['explicit']
+        tags['SPOTIFY_TRACK_ID'] = track["id"]
 
-            TRACK = track['track_number']
+        tags['EXPLICIT'] = track['explicit']
 
-            YEAR = ""
-            try:
-                YEAR = track['album']['release_date']
-            except:
-                pass
+        tags['TRACK'] = track['track_number']
 
-            # PREVIEW_URL=track['preview_url']
-            SOURCE = "Spotify"
-            SOURCEID = SPOTIFY_TRACK_ID
+        try:
+            tags['YEAR']  = track['album']['release_date']
+        except:
+            pass
 
+        # PREVIEW_URL=track['preview_url']
+        tags['SOURCE']  = "Spotify"
+        tags['SOURCEID']  = tags['SPOTIFY_TRACK_ID']
 
-            writer.writerow(
-                [ISRC, ARTIST, TITLE, ALBUM, LENGTH, SPOTIFY_TRACK_ID, SPOTIFY_RELEASE_ID, YEAR, WWWAUDIOFILE, EXPLICIT,
-                 TRACK,SOURCE, SOURCEID ])
+        tag_tracks.append(tags)
 
+    return tag_tracks
 
-def read_track_tags_from_csv_file(file_name):
-    tracks_in_file = []
-
-    with open(file_name, newline='', encoding='utf-8-sig') as file:
-        reader = csv.reader(file)
-        if sum(1 for row in reader) == 0:
-            raise CSVFileEmpty()
-
-    with open(file_name, newline='', encoding='utf-8-sig') as file:
-        header = []
-        reader = csv.reader(file)
-
-        for i, row in enumerate(reader):
-            # read header
-            if (i == 0):
-                header = row
-                continue
-
-            # read track
-            if len(row) == 0:
-                continue
-
-            if "SPOTIFY_TRACK_ID" in header:
-                id = row[header.index("SPOTIFY_TRACK_ID")]
-                tracks_in_file.append(id)
-                continue
-
-            if "ISRC" in header:
-                isrc = row[header.index("ISRC")]
-                # todo search by isrc
-                continue
-
-            if "TITLE" in header and "ARTIST" in header:
-                title = row[header.index("TITLE")]
-                artist = row[header.index("ARTIST")]
-                # todo search by title
-                continue
-
-            raise CSVFileInvalidHeader()
-
-    return tracks_in_file
 

@@ -2,6 +2,7 @@ from spoty import settings
 from spoty import log
 import spoty.playlist
 import spoty.like
+import spoty.local
 import click
 import re
 import spoty.utils
@@ -340,7 +341,7 @@ def playlist_export(path, playlist_ids, overwrite):
 @click.option('--user-id', type=str, default=None, help='Get playlists of this user')
 @click.option('--overwrite', '-o', type=bool, is_flag=True, default=False,
               help='Overwrite existing files without asking')
-@click.option('--confirm', '-c', type=bool, is_flag=True, default=False,
+@click.option('--confirm', '-y', type=bool, is_flag=True, default=False,
               help='Do not ask for export confirmation')
 @click.option('--timestamp', '-t', type=bool, is_flag=True, default=False,
               help='Create a subfolder with the current date and time (it can be convenient for creating backups)')
@@ -434,11 +435,11 @@ def playlist_import(file_names, append, allow_duplicates):
             except FileNotFoundError:
                 time.sleep(0.2)  # waiting progressbar updating
                 click.echo(f'\nFile does not exist: "{file_name}"')
-            except spoty.playlist.CSVFileEmpty as e:
+            except spoty.local.CSVFileEmpty as e:
                 log.warning(f'Cant import file "{file_name}". File is empty.')
                 time.sleep(0.2)  # waiting progressbar updating
                 click.echo(f'\nCant import file "{file_name}". File is empty.')
-            except spoty.playlist.CSVFileInvalidHeader as e:
+            except spoty.local.CSVFileInvalidHeader as e:
                 log.error(
                     f'Cant import file "{file_name}". The header of csv table does not contain any of the required ' \
                     f'fields (isrc, spotify_track_id, title).')
@@ -460,7 +461,7 @@ def playlist_import(file_names, append, allow_duplicates):
               help='Add tracks that are already in the playlist.')
 @click.option('--filter-names', type=str, default=None,
               help='Export only playlists whose names matches this regex filter')
-@click.option('--confirm', '-c', type=bool, is_flag=True, default=False,
+@click.option('--confirm', '-y', type=bool, is_flag=True, default=False,
               help='Do not ask for export confirmation')
 @click.pass_context
 def playlist_import_all(ctx, path, append, allow_duplicates, filter_names, confirm):

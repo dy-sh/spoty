@@ -1,5 +1,6 @@
 from spoty import sp
 from spoty import log
+import spoty.local
 import spoty.utils
 import spoty.like
 import os.path
@@ -282,7 +283,8 @@ def export_playlist_to_file(playlist_id, path, overwrite=False, avoid_filenames=
 
     tracks = playlist["tracks"]["items"]
 
-    spoty.utils.write_tracks_to_csv_file(tracks, file_name)
+    tag_tracks = spoty.utils.read_tags_from_spotify_tracks(tracks)
+    spoty.local.write_tracks_to_csv_file(tag_tracks, file_name)
 
     log.success(f'Playlist {playlist_id} exported (file: "{file_name}")')
 
@@ -310,7 +312,8 @@ def import_playlist_from_file(file_name, append_if_exist=False, allow_duplicates
     if playlist_id is None:
         playlist_id = create_playlist(playlist_name)
 
-    tracks_in_file = spoty.utils.read_tracks_from_csv_file(file_name)
+    tag_tracks = spoty.local.read_tracks_from_csv_file(file_name)
+    tracks_in_file = find_tracks_from_tags(tag_tracks)
 
     if len(tracks_in_file) > 0:
         tracks_added = add_tracks_to_playlist(playlist_id, tracks_in_file, allow_duplicates)
@@ -320,8 +323,26 @@ def import_playlist_from_file(file_name, append_if_exist=False, allow_duplicates
     return playlist_id, tracks_added, tracks_in_file
 
 
-def import_playlist_from_tags(tag_tracks, append_if_exist=False, allow_duplicates=False):
-    
+def find_tracks_from_tags(tag_tracks):
+    found_ids = []
+    not_found_tracks = []
+    for tag_track in tag_tracks:
+        if "SPOTIFY_TRACK_ID" in tag_track:
+            found_ids.append(tag_track['SPOTIFY_TRACK_ID'])
+            continue
+
+        if "ISRC" in tag_track:
+            # todo search by isrc
+            continue
+
+        if "TITLE" in tag_track and "ARTIST" in tag_track:
+            # todo search by title
+            continue
+
+        not_found_tracks += tag_track
+
+    return found_ids
+
 
 def like_all_tracks_in_playlist(playlist_id):
     playlist_id = spoty.utils.parse_playlist_id(playlist_id)
