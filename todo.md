@@ -1,7 +1,6 @@
 spoty
 - remove duplicates in playlists by isrc
 - search duplicates in all playlists by isrc
-- import playlists by isrc or title (import tracks from deezer and local files)
 - export playlists for tracks that not exist in local playlists
 
 deezer

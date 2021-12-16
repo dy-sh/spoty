@@ -425,13 +425,13 @@ def playlist_import(file_names, append, allow_duplicates):
     """
     with click.progressbar(file_names, label='Importing playlists') as bar:
         all_tracks_added = []
-        all_tracks_in_file = []
+        all_readed_tags = []
         for file_name in bar:
             try:
-                playlist_id, tracks_added, tracks_in_file = spoty.playlist.import_playlist_from_file(file_name, append,
+                playlist_id, tracks_added, readed_tags = spoty.playlist.import_playlist_from_file(file_name, append,
                                                                                                      allow_duplicates)
                 all_tracks_added += tracks_added
-                all_tracks_in_file += tracks_in_file
+                all_readed_tags += readed_tags
             except FileNotFoundError:
                 time.sleep(0.2)  # waiting progressbar updating
                 click.echo(f'\nFile does not exist: "{file_name}"')
@@ -450,7 +450,7 @@ def playlist_import(file_names, append, allow_duplicates):
 
             time.sleep(0.2)
     click.echo(
-        f'Imported {len(all_tracks_added)} new tracks from {len(file_names)} playlists (total tracks in files: {len(all_tracks_in_file)})')
+        f'Imported {len(all_tracks_added)} new tracks from {len(file_names)} playlists (total tracks in files: {len(all_readed_tags)})')
 
 
 @playlist.command("import-all")

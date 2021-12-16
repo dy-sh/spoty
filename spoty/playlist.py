@@ -313,15 +313,39 @@ def import_playlist_from_file(file_name, append_if_exist=False, allow_duplicates
         playlist_id = create_playlist(playlist_name)
 
     tag_tracks = spoty.local.read_tracks_from_csv_file(file_name)
-    tracks_in_file = find_tracks_from_tags(tag_tracks)
+    found_ids = find_tracks_from_tags(tag_tracks)
 
-    if len(tracks_in_file) > 0:
-        tracks_added = add_tracks_to_playlist(playlist_id, tracks_in_file, allow_duplicates)
+    if len(found_ids) > 0:
+        tracks_added = add_tracks_to_playlist(playlist_id, found_ids, allow_duplicates)
 
     log.success(f'Playlist imported (new tracks: "{len(tracks_added)}") from file "{file_name}"')
 
-    return playlist_id, tracks_added, tracks_in_file
+    return playlist_id, tracks_added, tag_tracks
 
+
+def find_track_id_by_isrc(isrc):
+    res=sp.search(f'isrc:{isrc}')
+
+    try:
+        #todo: find for the best matching by album, length and other tags
+        id = res['tracks']['items'][0]['id']
+        return id
+    except:
+        pass
+
+    return None
+
+def find_track_id_by_artist_and_title(title, artist):
+    res=sp.search(f'track:{title} artist:{artist}')
+
+    try:
+        #todo: find for the best matching by album, length and other tags
+        id = res['tracks']['items'][0]['id']
+        return id
+    except:
+        pass
+
+    return None
 
 def find_tracks_from_tags(tag_tracks):
     found_ids = []
@@ -332,11 +356,15 @@ def find_tracks_from_tags(tag_tracks):
             continue
 
         if "ISRC" in tag_track:
-            # todo search by isrc
+            id = find_track_id_by_isrc(tag_track['ISRC'])
+            if id is not None:
+                found_ids.append(id)
             continue
 
         if "TITLE" in tag_track and "ARTIST" in tag_track:
-            # todo search by title
+            id = find_track_id_by_artist_and_title(tag_track['TITLE'], tag_track['ARTIST'])
+            if id is not None:
+                found_ids.append(id)
             continue
 
         not_found_tracks += tag_track
