@@ -133,8 +133,8 @@ def read_tags_from_spotify_tracks(tracks):
             pass
 
         # PREVIEW_URL=track['preview_url']
-        tags['SOURCE'] = "Spotify"
-        tags['SOURCEID'] = tags['SPOTIFY_TRACK_ID']
+        # tags['SOURCE'] = "Spotify"
+        # tags['SOURCEID'] = tags['SPOTIFY_TRACK_ID']
 
         tag_tracks.append(tags)
 

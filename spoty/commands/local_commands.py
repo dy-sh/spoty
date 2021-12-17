@@ -450,7 +450,7 @@ def local_collect_duplicates_in_tracks(tags, import_path, export_file_name, filt
         f'{len(duplicates_dic)} duplicates found in {len(all_tracks)} tracks ({len(skipped_tracks)} have no "{tags}" tags and skipped) exported to "{export_file_name}"')
 
 
-@local.command("add-tags-from-spotify-library")
+@local.command("add-missing-tags-from-spotify-library")
 # @click.argument('compare-by-tags', type=str)
 # @click.argument('missing-tags', type=str)
 @click.argument('export-path', type=str)
@@ -488,12 +488,14 @@ def local_add_tags_from_spotify_library(export_path, recursive, compare_tags, fi
 
     import_tracks_tags = spoty.playlist.get_tags_from_spotify_library(filter_names, user_id)
     export_tracks_tags = spoty.local.get_tags_from_tracks(export_path, recursive, have_tags_arr, have_no_tags_arr)
-    edited_files, all_files = spoty.local.write_missing_tags_from_tracks(import_tracks_tags, export_tracks_tags, compare_tags_arr)
+    missing_tags = spoty.local.get_missing_tags_from_tracks(import_tracks_tags, export_tracks_tags, compare_tags_arr)
+    for file_name, tags in missing_tags.items():
+        spoty.local.write_tags(file_name, tags)
 
-    click.echo(f'Edited tracks: {len(edited_files)}/{len(all_files)}')
+    click.echo(f'Edited tracks: {len(missing_tags)}/{len(export_tracks_tags)}')
 
 
-@local.command("add-tags-from-tracks")
+@local.command("add-missing-tags-from-tracks")
 @click.argument('import-path', type=str)
 @click.argument('export-path', type=str)
 @click.option('--compare-tags', type=str, default='ARTIST,TITLE',
@@ -513,11 +515,11 @@ def local_add_tags_from_tracks(import_path, export_path, recursive, compare_tags
 
     Examples:
 
-        spoty local add-tags-from-tracks -r "C:\Users\User\Downloads\import" "C:\Users\User\Downloads\export"
+        spoty local add-missing-tags-from-tracks -r "C:\Users\User\Downloads\import" "C:\Users\User\Downloads\export"
 
-        spoty local add-tags-from-tracks -r "C:\Users\User\Downloads\import" "C:\Users\User\Downloads\export" --compare-tags "artist,title,album"
+        spoty local add-missing-tags-from-tracks -r "C:\Users\User\Downloads\import" "C:\Users\User\Downloads\export" --compare-tags "artist,title,album"
 
-        spoty local add-tags-from-tracks -r "C:\Users\User\Downloads\import" "C:\Users\User\Downloads\export" --filter-names "^awesome"
+        spoty local add-missing-tags-from-tracks -r "C:\Users\User\Downloads\import" "C:\Users\User\Downloads\export" --filter-names "^awesome"
     """
 
     import_path = os.path.abspath(import_path)
@@ -529,12 +531,14 @@ def local_add_tags_from_tracks(import_path, export_path, recursive, compare_tags
 
     import_tracks_tags = spoty.local.get_tags_from_tracks(import_path, recursive, have_tags_arr, have_no_tags_arr)
     export_tracks_tags = spoty.local.get_tags_from_tracks(export_path, recursive, have_tags_arr, have_no_tags_arr)
-    edited_files, all_files = spoty.local.write_missing_tags_from_tracks(import_tracks_tags, export_tracks_tags, compare_tags_arr)
+    missing_tags = spoty.local.get_missing_tags_from_tracks(import_tracks_tags, export_tracks_tags, compare_tags_arr)
+    for file_name, tags in missing_tags.items():
+        spoty.local.write_tags(file_name, tags)
 
-    click.echo(f'Edited tracks: {len(edited_files)}/{len(all_files)}')
+    click.echo(f'Edited tracks: {len(missing_tags)}/{len(export_tracks_tags)}')
 
 
-@local.command("list-tags-from-spotify-library")
+@local.command("list-missing-tags-from-spotify-library")
 # @click.argument('compare-by-tags', type=str)
 # @click.argument('missing-tags', type=str)
 @click.argument('export-path', type=str)
@@ -572,12 +576,18 @@ def local_list_tags_from_spotify_library(export_path, recursive, compare_tags, f
 
     import_tracks_tags = spoty.playlist.get_tags_from_spotify_library(filter_names, user_id)
     export_tracks_tags = spoty.local.get_tags_from_tracks(export_path, recursive, have_tags_arr, have_no_tags_arr)
-    edited_files, all_files = spoty.local.write_missing_tags_from_tracks(import_tracks_tags, export_tracks_tags, compare_tags_arr)
+    missing_tags = spoty.local.get_missing_tags_from_tracks(import_tracks_tags, export_tracks_tags, compare_tags_arr)
+    for file_name, tags in missing_tags.items():
+        click.echo(f'----------------------------------------------------')
+        click.echo(f'Tags missing in "{file_name}":')
+        for key, value in tags.items():
+            click.echo(f'{key}: {value}')
 
-    click.echo(f'Edited tracks: {len(edited_files)}/{len(all_files)}')
+    click.echo(f'----------------------------------------------------')
+    click.echo(f'Total tracks have missing tags: {len(missing_tags)}/{len(export_tracks_tags)}')
 
 
-@local.command("list-tags-from-tracks")
+@local.command("list-missing-tags-from-tracks")
 @click.argument('import-path', type=str)
 @click.argument('export-path', type=str)
 @click.option('--compare-tags', type=str, default='ARTIST,TITLE',
@@ -597,11 +607,11 @@ def local_list_tags_from_tracks(import_path, export_path, recursive, compare_tag
 
     Examples:
 
-        spoty local list-tags-from-tracks -r "C:\Users\User\Downloads\import" "C:\Users\User\Downloads\export"
+        spoty local list-missing-tags-from-tracks -r "C:\Users\User\Downloads\import" "C:\Users\User\Downloads\export"
 
-        spoty local list-tags-from-tracks -r "C:\Users\User\Downloads\import" "C:\Users\User\Downloads\export" --compare-tags "artist,title,album"
+        spoty local list-missing-tags-from-tracks -r "C:\Users\User\Downloads\import" "C:\Users\User\Downloads\export" --compare-tags "artist,title,album"
 
-        spoty local list-tags-from-tracks -r "C:\Users\User\Downloads\import" "C:\Users\User\Downloads\export" --filter-names "^awesome"
+        spoty local list-missing-tags-from-tracks -r "C:\Users\User\Downloads\import" "C:\Users\User\Downloads\export" --filter-names "^awesome"
     """
 
     import_path = os.path.abspath(import_path)
@@ -613,9 +623,15 @@ def local_list_tags_from_tracks(import_path, export_path, recursive, compare_tag
 
     import_tracks_tags = spoty.local.get_tags_from_tracks(import_path, recursive, have_tags_arr, have_no_tags_arr)
     export_tracks_tags = spoty.local.get_tags_from_tracks(export_path, recursive, have_tags_arr, have_no_tags_arr)
-    edited_files, all_files = spoty.local.write_missing_tags_from_tracks(import_tracks_tags, export_tracks_tags, compare_tags_arr)
+    missing_tags = spoty.local.get_missing_tags_from_tracks(import_tracks_tags, export_tracks_tags, compare_tags_arr)
+    for file_name, tags in missing_tags.items():
+        click.echo(f'----------------------------------------------------')
+        click.echo(f'Tags missing in "{file_name}":')
+        for key, value in tags.items():
+            click.echo(f'{key}: {value}')
 
-    click.echo(f'Edited tracks: {len(edited_files)}/{len(all_files)}')
+    click.echo(f'----------------------------------------------------')
+    click.echo(f'Total tracks have missing tags: {len(missing_tags)}/{len(export_tracks_tags)}')
 
 
 @local.command("fix-invalid-track-tags")

@@ -440,8 +440,6 @@ def find_duplicates_in_tracks(path,
     return duplicates, all_tracks, skipped_tracks
 
 
-
-
 def get_tags_from_tracks(import_path, recursive, have_tags, have_no_tags):
     import_directories = []
     for (dirpath, dirnames, filenames) in os.walk(import_path):
@@ -466,18 +464,17 @@ def get_tags_from_tracks(import_path, recursive, have_tags, have_no_tags):
 
 
 def get_missing_tags_from_tracks(import_tracks_tags, export_tracks_tags, compare_tags):
-    edited_files = []
-    with click.progressbar(import_tracks_tags, label='Writing missing tags to files') as bar:
+    missing_tags = {}
+    with click.progressbar(import_tracks_tags, label='Searching missing tags in files') as bar:
         for import_tags in bar:
             for export_tags in export_tracks_tags:
                 if spoty.utils.compare_two_tag_tracks(import_tags, export_tags, compare_tags):
                     file_name = export_tags['SPOTY_FILE_NAME']
-                    added_tags = add_missing_tags(file_name, import_tags)
-                    if len(added_tags) > 0:
-                        edited_files.append(file_name)
-                        # click.echo(f'Added {str(added_tags)} to {file_name}')
-                        # log.debug(f'Added {str(added_tags)} to {file_name}')
-    return edited_files, export_tracks_tags
+                    tags = get_missing_tags(file_name, import_tags)
+                    if len(tags) > 0:
+                        missing_tags[file_name] = tags
+    return missing_tags
+
 
 def write_missing_tags_from_tracks(import_tracks_tags, export_tracks_tags, compare_tags):
     edited_files = []
@@ -486,46 +483,50 @@ def write_missing_tags_from_tracks(import_tracks_tags, export_tracks_tags, compa
             for export_tags in export_tracks_tags:
                 if spoty.utils.compare_two_tag_tracks(import_tags, export_tags, compare_tags):
                     file_name = export_tags['SPOTY_FILE_NAME']
-                    added_tags = add_missing_tags(file_name, import_tags)
-                    if len(added_tags) > 0:
+                    missing_tags = get_missing_tags(file_name, import_tags)
+                    if len(missing_tags) > 0:
+                        write_tags(file_name, missing_tags)
                         edited_files.append(file_name)
                         # click.echo(f'Added {str(added_tags)} to {file_name}')
                         # log.debug(f'Added {str(added_tags)} to {file_name}')
     return edited_files, export_tracks_tags
 
 
-def add_missing_tags(file_name, new_tags):
-    added_tags = []
+def get_missing_tags(file_name, new_tags):
+    missing_tags = {}
 
     exist_tags = read_track_tags(file_name)
 
-    if is_flac(file_name):
-        f = FLAC(file_name)
-        for key, value in new_tags.items():
-            if key == 'LENGTH':
-                continue
+    for key, value in new_tags.items():
+        if key == 'LENGTH':
+            continue
 
-            if key in spoty_tags:
-                continue
+        if key in spoty_tags:
+            continue
 
-            if key in exist_tags:
-                continue
+        if key in exist_tags:
+            continue
 
-            found = False
-            for aliases in tag_allies:
-                if key in aliases:
-                    for al in aliases:
-                        if al in exist_tags:
-                            found = True
-            if found:
-                continue
+        found = False
+        for aliases in tag_allies:
+            if key in aliases:
+                for al in aliases:
+                    if al in exist_tags:
+                        found = True
+        if found:
+            continue
 
-            f[key] = str(value)
-            added_tags.append(key)
-        if len(added_tags) > 0:
+        missing_tags[key] = value
+    return missing_tags
+
+
+def write_tags(file_name, new_tags):
+    if len(new_tags) > 0:
+        if is_flac(file_name):
+            f = FLAC(file_name)
+            for key, value in new_tags.items():
+                f[key] = str(value)
             f.save()
-
-    return added_tags
 
 
 def fix_invalid_track_tags(path, recursive, have_tags, have_no_tags):
