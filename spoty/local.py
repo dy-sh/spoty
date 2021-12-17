@@ -169,15 +169,16 @@ def get_all_playlists_in_path(path,
     return full_file_names
 
 
-def read_tracks_tags(track_file_names):
+def read_tracks_tags(track_file_names, add_file_name=False):
     tracks = []
-    for file_name in track_file_names:
-        track = read_track_tags(file_name)
-        tracks.append(track)
+    with click.progressbar(track_file_names, label='Reading files') as bar:
+        for file_name in bar:
+            track = read_track_tags(file_name, add_file_name)
+            tracks.append(track)
     return tracks
 
 
-def read_track_tags(file_name):
+def read_track_tags(file_name, add_file_name=False):
     track = {}
 
     if is_flac(file_name):
@@ -198,6 +199,9 @@ def read_track_tags(file_name):
         #     track[tag] = ",".join(f.tags[tag]) if tag in f.tags else ""
         # for tag in additional_tags:
         #     track[tag] = ",".join(f.tags[tag]) if tag in f.tags else ""
+
+    if add_file_name:
+        track['file_name'] = file_name
 
     return track
 
@@ -328,28 +332,6 @@ def read_tracks_from_csv_file(playlist_file_name, add_playlist_info=False):
     return tracks
 
 
-def find_duplicates_in_playlists_by_isrc(path, recursive=True, filter_names=None):
-    duplicates = {}
-
-    all_tracks=[]
-    groupped_tracks=[]
-
-    playlists = spoty.local.get_all_playlists_in_path(path, recursive, filter_names)
-    for file_name in playlists:
-        tracks = spoty.local.read_tracks_from_csv_file(file_name, True)
-        all_tracks.extend(tracks)
-
-    groupped_tracks=group_tracks_by_pattern('%ISRC%',all_tracks)
-
-    for isrc, tracks in groupped_tracks.items():
-        if len(tracks)>1:
-            if not isrc in duplicates:
-                duplicates[isrc]=[]
-            duplicates[isrc].extend(tracks)
-
-    return duplicates
-
-
 def print_track_main_tags(track, include_playlist_info=False):
     if 'ISRC' in track: print(f'ISRC: {track["ISRC"]}')
     if 'ARTIST' in track: print(f'ARTIST: {track["ARTIST"]}')
@@ -372,3 +354,59 @@ def print_track_main_tags(track, include_playlist_info=False):
     if 'SOURCEID' in track: print(f'SOURCEID: {track["SOURCEID"]}')
     # if 'TEMPO' in track: print(f'TEMPO: {track["TEMPO"]}')
     # if 'YEAR' in track: print(f'YEAR: {track["YEAR"]}')
+
+
+def find_duplicates_in_tag_tracks(all_tracks, tags_to_compare):
+    if len(tags_to_compare) == 0:
+        return
+
+    duplicates = {}
+    pattern = ""
+    for tag in tags_to_compare:
+        pattern += "%" + tag + "%,"
+    pattern = pattern[:-1]
+
+    groupped_tracks = group_tracks_by_pattern(pattern, all_tracks, "Unknown")
+
+    for tags, tracks in groupped_tracks.items():
+        if tags == "Unknown":
+            continue
+        if len(tracks) > 1:
+            if not tags in duplicates:
+                duplicates[tags] = []
+            duplicates[tags].extend(tracks)
+
+    skipped_tracks = groupped_tracks['Unknown'] if 'Unknown' in groupped_tracks else []
+
+    return duplicates, all_tracks, skipped_tracks
+
+
+def find_duplicates_in_playlists(path, tags_to_compare, recursive=True, filter_names=None):
+    all_tracks = []
+
+    playlists = spoty.local.get_all_playlists_in_path(path, recursive, filter_names)
+    for file_name in playlists:
+        tracks = spoty.local.read_tracks_from_csv_file(file_name, True)
+        all_tracks.extend(tracks)
+
+    duplicates, all_tracks, skipped_tracks = find_duplicates_in_tag_tracks(all_tracks, tags_to_compare)
+
+    return duplicates, all_tracks, skipped_tracks
+
+
+def find_duplicates_in_tracks(path,
+                              tags_to_compare,
+                              recursive=True,
+                              filter_names=None,
+                              filter_have_tags=[],
+                              filter_have_no_tags=[]):
+
+    if len(tags_to_compare) == 0:
+        return
+
+    full_file_names = spoty.local.get_local_tracks_file_names(path, recursive, filter_names, filter_have_tags,
+                                                              filter_have_no_tags)
+    all_tracks = read_tracks_tags(full_file_names, True)
+    duplicates, all_tracks, skipped_tracks = find_duplicates_in_tag_tracks(all_tracks, tags_to_compare)
+
+    return duplicates, all_tracks, skipped_tracks
