@@ -6,6 +6,7 @@ import spoty.like
 import os.path
 import click
 import time
+import re
 
 
 def get_playlist_with_full_list_of_tracks(playlist_id):
@@ -385,3 +386,33 @@ def like_all_tracks_in_playlist(playlist_id):
     log.success(f'{len(not_liked_track_ids)} tracks added to liked tracks in playlist {playlist_id}.')
 
     return not_liked_track_ids
+
+
+
+def get_tags_from_spotify_library(filter_names, user_id):
+
+    if user_id == None:
+        playlists = spoty.playlist.get_list_of_playlists()
+        click.echo(f'You have {len(playlists)} playlists')
+    else:
+        playlists = spoty.playlist.get_list_of_user_playlists(user_id)
+        click.echo(f'User has {len(playlists)} playlists')
+
+    if len(playlists) == 0:
+        exit()
+
+    if filter_names is not None:
+        playlists = list(filter(lambda pl: re.findall(filter_names, pl['name']), playlists))
+        click.echo(f'{len(playlists)} playlists matches the filter')
+
+    if len(playlists) == 0:
+        exit()
+
+    all_tracks_tags = []
+    with click.progressbar(playlists, label='Reading tracks from spotify library') as bar:
+        for playlist in bar:
+            tracks = spoty.playlist.get_tracks_of_playlist(playlist['id'])
+            tag_tracks = spoty.utils.read_tags_from_spotify_tracks(tracks)
+            all_tracks_tags.extend(tag_tracks)
+
+    return all_tracks_tags

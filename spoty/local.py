@@ -200,7 +200,7 @@ def read_track_tags(file_name, add_file_name=False):
         track['SPOTY_FILE_NAME'] = file_name
 
     if is_flac(file_name):
-        f= None
+        f = None
         try:
             f = FLAC(file_name)
         except:
@@ -224,7 +224,7 @@ def read_track_tags(file_name, add_file_name=False):
         # for tag in additional_tags:
         #     track[tag] = ",".join(f.tags[tag]) if tag in f.tags else ""
 
-        track['LENGTH'] = str(int(f.info.length*1000))
+        track['LENGTH'] = str(int(f.info.length * 1000))
     return track
 
 
@@ -440,82 +440,18 @@ def find_duplicates_in_tracks(path,
     return duplicates, all_tracks, skipped_tracks
 
 
-def add_tags_from_spotify_library(path, recursive, compare_tags, filter_names, have_tags, have_no_tags, user_id):
-    directories = []
-    for (dirpath, dirnames, filenames) in os.walk(path):
-        directories.append(dirpath)
-        if not recursive:
-            break
-
-    local_tracks_file_names = []
-    local_tracks_tags = []
-
-    with click.progressbar(directories, label='Collecting tracks') as bar:
-        for dir in bar:
-            tracks_file_names = \
-                spoty.local.get_local_tracks_file_names(dir, False, None, have_tags, have_no_tags)
-
-            if len(tracks_file_names) == 0:
-                continue
-
-            local_tracks_file_names.extend(tracks_file_names)
-            tags = spoty.local.read_tracks_tags(tracks_file_names, True)
-            local_tracks_tags.extend(tags)
-
-    if user_id == None:
-        playlists = spoty.playlist.get_list_of_playlists()
-        click.echo(f'You have {len(playlists)} playlists')
-    else:
-        playlists = spoty.playlist.get_list_of_user_playlists(user_id)
-        click.echo(f'User has {len(playlists)} playlists')
-
-    if len(playlists) == 0:
-        exit()
-
-    if filter_names is not None:
-        playlists = list(filter(lambda pl: re.findall(filter_names, pl['name']), playlists))
-        click.echo(f'{len(playlists)} playlists matches the filter')
-
-    if len(playlists) == 0:
-        exit()
-
-    edited_files = []
-    with click.progressbar(playlists, label='Writing tags from spotify library') as bar:
-        for playlist in bar:
-            tracks = spoty.playlist.get_tracks_of_playlist(playlist['id'])
-            tag_tracks = spoty.utils.read_tags_from_spotify_tracks(tracks)
-            for tag_track in tag_tracks:
-                for local_track in local_tracks_tags:
-                    if spoty.utils.compare_two_tag_tracks(local_track, tag_track, compare_tags):
-                        file_name = local_track['SPOTY_FILE_NAME']
-                        added_tags = add_missing_tags(file_name, tag_track)
-                        if len(added_tags) > 0:
-                            edited_files.append(file_name)
-                            # click.echo(f'Added {str(added_tags)} to {file_name}')
-                            # log.debug(f'Added {str(added_tags)} to {file_name}')
-    return edited_files, local_tracks_file_names
 
 
-
-def add_tags_from_tracks(import_path,export_path, recursive, compare_tags, have_tags, have_no_tags):
+def get_tags_from_tracks(import_path, recursive, have_tags, have_no_tags):
     import_directories = []
     for (dirpath, dirnames, filenames) in os.walk(import_path):
         import_directories.append(dirpath)
         if not recursive:
             break
 
-    export_directories = []
-    for (dirpath, dirnames, filenames) in os.walk(export_path):
-        export_directories.append(dirpath)
-        if not recursive:
-            break
+    tracks_tags = []
 
-    import_tracks_file_names = []
-    export_tracks_file_names = []
-    import_tracks_tags = []
-    export_tracks_tags = []
-
-    with click.progressbar(import_directories, label='Reading import tracks') as bar:
+    with click.progressbar(import_directories, label='Reading tracks from local files') as bar:
         for dir in bar:
             tracks_file_names = \
                 spoty.local.get_local_tracks_file_names(dir, False, None, have_tags, have_no_tags)
@@ -523,35 +459,39 @@ def add_tags_from_tracks(import_path,export_path, recursive, compare_tags, have_
             if len(tracks_file_names) == 0:
                 continue
 
-            import_tracks_file_names.extend(tracks_file_names)
             tags = spoty.local.read_tracks_tags(tracks_file_names, True)
-            import_tracks_tags.extend(tags)
+            tracks_tags.extend(tags)
 
-    with click.progressbar(export_directories, label='Reading export tracks') as bar:
-        for dir in bar:
-            tracks_file_names = \
-                spoty.local.get_local_tracks_file_names(dir, False, None, have_tags, have_no_tags)
-
-            if len(tracks_file_names) == 0:
-                continue
-
-            export_tracks_file_names.extend(tracks_file_names)
-            tags = spoty.local.read_tracks_tags(tracks_file_names, True)
-            export_tracks_tags.extend(tags)
+    return tracks_tags
 
 
+def get_missing_tags_from_tracks(import_tracks_tags, export_tracks_tags, compare_tags):
     edited_files = []
-    with click.progressbar(import_tracks_tags, label='Writing tags from spotify library') as bar:
+    with click.progressbar(import_tracks_tags, label='Writing missing tags to files') as bar:
         for import_tags in bar:
             for export_tags in export_tracks_tags:
                 if spoty.utils.compare_two_tag_tracks(import_tags, export_tags, compare_tags):
                     file_name = export_tags['SPOTY_FILE_NAME']
-                    added_tags = add_missing_tags(file_name,import_tags)
+                    added_tags = add_missing_tags(file_name, import_tags)
                     if len(added_tags) > 0:
                         edited_files.append(file_name)
                         # click.echo(f'Added {str(added_tags)} to {file_name}')
                         # log.debug(f'Added {str(added_tags)} to {file_name}')
-    return edited_files, export_tracks_file_names
+    return edited_files, export_tracks_tags
+
+def write_missing_tags_from_tracks(import_tracks_tags, export_tracks_tags, compare_tags):
+    edited_files = []
+    with click.progressbar(import_tracks_tags, label='Writing missing tags to files') as bar:
+        for import_tags in bar:
+            for export_tags in export_tracks_tags:
+                if spoty.utils.compare_two_tag_tracks(import_tags, export_tags, compare_tags):
+                    file_name = export_tags['SPOTY_FILE_NAME']
+                    added_tags = add_missing_tags(file_name, import_tags)
+                    if len(added_tags) > 0:
+                        edited_files.append(file_name)
+                        # click.echo(f'Added {str(added_tags)} to {file_name}')
+                        # log.debug(f'Added {str(added_tags)} to {file_name}')
+    return edited_files, export_tracks_tags
 
 
 def add_missing_tags(file_name, new_tags):
