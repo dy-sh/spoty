@@ -153,6 +153,8 @@ def compare_two_tag_tracks(old_track, new_track, compare_tags, allow_missing=Fal
         if tag == "LENGTH":
             if abs(int(old_track['LENGTH']) - int(new_track['LENGTH'])) > 5:
                 return False
+            else:
+                continue
 
         if tag == "ARTIST":
             old_artist = old_track[tag].replace(',', ';').upper()

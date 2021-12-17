@@ -187,10 +187,9 @@ def get_all_playlists_in_path(path,
 
 def read_tracks_tags(track_file_names, add_file_name=False):
     tracks = []
-    with click.progressbar(track_file_names, label='Reading files') as bar:
-        for file_name in bar:
-            track = read_track_tags(file_name, add_file_name)
-            tracks.append(track)
+    for file_name in track_file_names:
+        track = read_track_tags(file_name, add_file_name)
+        tracks.append(track)
     return tracks
 
 
