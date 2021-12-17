@@ -28,7 +28,7 @@ def like_count():
 
 
 @like.command("add")
-@click.argument("track_ids", type=str, nargs=-1)
+@click.argument("track_ids",  nargs=-1)
 def like_add(track_ids):
     r"""
     Add tracks to liked tracks.
@@ -50,8 +50,8 @@ def like_add(track_ids):
 
 
 @like.command("export")
-@click.option('--path', type=str, default=settings.DEFAULT_LIBRARY_PATH, help='Path to create file')
-@click.option('--file-name', type=str, default=settings.DEFAULT_LIKES_EXPORT_FILE_NAME, help='File name to create')
+@click.option('--path',  default=settings.DEFAULT_LIBRARY_PATH, help='Path to create file')
+@click.option('--file-name',  default=settings.DEFAULT_LIKES_EXPORT_FILE_NAME, help='File name to create')
 @click.option('--overwrite', '-o', type=bool, is_flag=True, default=False,
               help='Overwrite existing files without asking')
 @click.option('--timestamp', '-t', type=bool, is_flag=True, default=False,
@@ -90,7 +90,7 @@ def like_export(path, file_name, overwrite, timestamp):
 
 
 @like.command("import")
-@click.argument('file_names', type=str, nargs=-1)
+@click.argument('file_names',  nargs=-1)
 def like_import(file_names):
     r"""Import liked tracks to yor library from csv file on disk.
 

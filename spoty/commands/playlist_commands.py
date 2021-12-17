@@ -19,9 +19,9 @@ def playlist():
 
 
 @playlist.command("list")
-@click.option('--filter-names', type=str, default=None,
+@click.option('--filter-names',  default=None,
               help='List only playlists whose names matches this regex filter')
-@click.option('--user-id', type=str, default=None, help='Get playlists of this user')
+@click.option('--user-id',  default=None, help='Get playlists of this user')
 def playlist_list(filter_names, user_id):
     r"""
     List of all playlists.
@@ -68,7 +68,7 @@ def playlist_create(name):
 
 
 @playlist.command("copy")
-@click.argument("playlist_ids", type=str, nargs=-1)
+@click.argument("playlist_ids",  nargs=-1)
 def playlist_copy(playlist_ids):
     r"""
     Create copies of playlists.
@@ -101,7 +101,7 @@ def playlist_copy(playlist_ids):
 
 @playlist.command("add-tracks")
 @click.argument("playlist_id", type=str)
-@click.argument("track_ids", type=str, nargs=-1)
+@click.argument("track_ids",  nargs=-1)
 @click.option('--allow-duplicates', '-d', type=bool, is_flag=True, default=False,
               help='Add tracks that are already in the playlist.')
 def playlist_add_tracks(playlist_id, track_ids, allow_duplicates):
@@ -128,7 +128,7 @@ def playlist_add_tracks(playlist_id, track_ids, allow_duplicates):
 
 @playlist.command("remove-tracks")
 @click.argument("playlist_id", type=str)
-@click.argument("track_ids", type=str, nargs=-1)
+@click.argument("track_ids",  nargs=-1)
 def playlist_remove_tracks(playlist_id, track_ids):
     r"""
     Remove tracks from playlist.
@@ -152,7 +152,7 @@ def playlist_remove_tracks(playlist_id, track_ids):
 
 
 @playlist.command("remove-liked-tracks")
-@click.argument("playlist_ids", type=str, nargs=-1)
+@click.argument("playlist_ids",  nargs=-1)
 def playlist_remove_liked_tracks(playlist_ids):
     r"""
     Read playlists and remove all liked tracks found from these playlists.
@@ -179,7 +179,7 @@ def playlist_remove_liked_tracks(playlist_ids):
 
 
 @playlist.command("list-invalid-tracks")
-@click.argument("playlist_ids", type=str, nargs=-1)
+@click.argument("playlist_ids",  nargs=-1)
 def playlist_list_invalid_tracks(playlist_ids):
     r"""
     Read playlists and list all invalid tracks found from these playlists.
@@ -213,7 +213,7 @@ def playlist_list_invalid_tracks(playlist_ids):
 
 
 @playlist.command("like-all-tracks")
-@click.argument("playlist_ids", type=str, nargs=-1)
+@click.argument("playlist_ids",  nargs=-1)
 def playlist_like_all_tracks(playlist_ids):
     r"""
     Read playlists and like all tracks in these playlists.
@@ -240,7 +240,7 @@ def playlist_like_all_tracks(playlist_ids):
 
 
 @playlist.command("read")
-@click.argument("playlist_ids", type=str, nargs=-1)
+@click.argument("playlist_ids",  nargs=-1)
 def playlist_read(playlist_ids):
     r"""
     Read playlists and print track ids.
@@ -268,10 +268,10 @@ def playlist_read(playlist_ids):
 
 
 @playlist.command("export")
-@click.option('--path', type=str, default=settings.DEFAULT_LIBRARY_PATH, help='Path to create files')
+@click.option('--path',  default=settings.DEFAULT_LIBRARY_PATH, help='Path to create files')
 @click.option('--overwrite', '-o', type=bool, is_flag=True, default=False,
               help='Overwrite existing files without asking')
-@click.argument("playlist_ids", type=str, nargs=-1)
+@click.argument("playlist_ids",  nargs=-1)
 def playlist_export(path, playlist_ids, overwrite):
     r"""Export playlists to csv files on disk.
     it could be your playlists or created by another user.
@@ -301,10 +301,10 @@ def playlist_export(path, playlist_ids, overwrite):
 
 
 @playlist.command("export-all")
-@click.option('--path', type=str, default=settings.DEFAULT_LIBRARY_PATH, help='Path to create files')
-@click.option('--filter-names', type=str, default=None,
+@click.option('--path',  default=settings.DEFAULT_LIBRARY_PATH, help='Path to create files')
+@click.option('--filter-names',  default=None,
               help='Export only playlists whose names matches this regex filter')
-@click.option('--user-id', type=str, default=None, help='Get playlists of this user')
+@click.option('--user-id',  default=None, help='Get playlists of this user')
 @click.option('--overwrite', '-o', type=bool, is_flag=True, default=False,
               help='Overwrite existing files without asking')
 @click.option('--confirm', '-y', type=bool, is_flag=True, default=False,
@@ -370,7 +370,7 @@ def playlist_export_all(path, filter_names, user_id, overwrite, confirm, timesta
 
 
 @playlist.command("import")
-@click.argument('file_names', type=str, nargs=-1)
+@click.argument('file_names',  nargs=-1)
 @click.option('--append', '-a', type=bool, is_flag=True, default=False,
               help='Add tracks to an existing playlist, if there is one with the same name. If the parameter is not specified, a new playlist will always be created.')
 @click.option('--allow-duplicates', '-d', type=bool, is_flag=True, default=False,
@@ -420,12 +420,12 @@ def playlist_import(file_names, append, allow_duplicates):
 
 
 @playlist.command("import-all")
-@click.argument('path', type=str, default=settings.DEFAULT_LIBRARY_PATH)
+@click.argument('path',  default=settings.DEFAULT_LIBRARY_PATH)
 @click.option('--append', '-a', type=bool, is_flag=True, default=False,
               help='Add tracks to an existing playlist, if there is one with the same name. If the parameter is not specified, a new playlist will always be created.')
 @click.option('--allow-duplicates', '-d', type=bool, is_flag=True, default=False,
               help='Add tracks that are already in the playlist.')
-@click.option('--filter-names', type=str, default=None,
+@click.option('--filter-names',  default=None,
               help='Export only playlists whose names matches this regex filter')
 @click.option('--confirm', '-y', type=bool, is_flag=True, default=False,
               help='Do not ask for export confirmation')

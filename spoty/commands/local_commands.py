@@ -18,12 +18,12 @@ def local():
 
 
 @local.command("count-tracks")
-@click.argument('path', type=str)
-@click.option('--filter-names', type=str, default=None,
+@click.argument('path')
+@click.option('--filter-names', default=None,
               help='Count only files whose names matches this regex filter')
-@click.option('--have-tags', type=str, default=None,
+@click.option('--have-tags', default=None,
               help='Count only files that have all of the specified tags.')
-@click.option('--have-no-tags', type=str, default=None,
+@click.option('--have-no-tags', default=None,
               help='Count only files that do not have any of the listed tags.')
 @click.option('--recursive', '-r', type=bool, is_flag=True, default=False,
               help='Search in subfolders.')
@@ -54,12 +54,12 @@ def local_count_tracks(path, recursive, filter_names, have_tags, have_no_tags):
 
 
 @local.command("list-tracks")
-@click.argument('path', type=str)
-@click.option('--filter-names', type=str, default=None,
+@click.argument('path')
+@click.option('--filter-names', default=None,
               help='List only files whose names matches this regex filter')
-@click.option('--have-tags', type=str, default=None,
+@click.option('--have-tags', default=None,
               help='List only files that have all of the specified tags.')
-@click.option('--have-no-tags', type=str, default=None,
+@click.option('--have-no-tags', default=None,
               help='List only files that do not have any of the listed tags.')
 @click.option('--recursive', '-r', type=bool, is_flag=True, default=False,
               help='Search in subfolders.')
@@ -94,19 +94,19 @@ def local_list_tracks(path, recursive, filter_names, have_tags, have_no_tags):
 
 
 @local.command("collect-playlist")
-@click.argument('tracks-path', type=str)
-@click.argument('export-path', type=str)
-@click.option('--filter-names', type=str, default=None,
+@click.argument('tracks-path')
+@click.argument('export-path')
+@click.option('--filter-names', default=None,
               help='Export only playlists whose names matches this regex filter')
 @click.option('--overwrite', '-o', type=bool, is_flag=True, default=False,
               help='Overwrite existing files without asking')
 @click.option('--timestamp', '-t', type=bool, is_flag=True, default=False,
               help='Create a subfolder with the current date and time (it can be convenient for creating backups)')
-@click.option('--have-tags', type=str, default=None,
+@click.option('--have-tags', default=None,
               help='Collect only files that have all of the specified tags.')
-@click.option('--have-no-tags', type=str, default=None,
+@click.option('--have-no-tags', default=None,
               help='Collect only files that do not have any of the listed tags.')
-@click.option('--naming-pattern', type=str, default=None,
+@click.option('--naming-pattern', default=None,
               help='')
 def local_collect_playlists(tracks_path, export_path, filter_names, overwrite, timestamp, naming_pattern, have_tags,
                             have_no_tags):
@@ -208,14 +208,14 @@ def local_collect_playlists(tracks_path, export_path, filter_names, overwrite, t
 
 
 @local.command("count-in-playlists")
-@click.argument('path', type=str)
-@click.option('--filter-names', type=str, default=None,
+@click.argument('path')
+@click.option('--filter-names', default=None,
               help='Read only playlists whose names matches this regex filter')
 @click.option('--recursive', '-r', type=bool, is_flag=True, default=False,
               help='Search in subfolders.')
-@click.option('--have-tags', type=str, default=None,
+@click.option('--have-tags', default=None,
               help='Count only tracks that have all of the specified tags.')
-@click.option('--have-no-tags', type=str, default=None,
+@click.option('--have-no-tags', default=None,
               help='Count only tracks that do not have any of the listed tags.')
 def local_count_tracks_in_playlists(path, filter_names, recursive, have_tags, have_no_tags):
     r"""Displays the number of tracks found in local playlists.
@@ -291,9 +291,9 @@ def duplicates_from_dict_to_array(duplicates_dic):
 
 
 @local.command("list-duplicates-in-playlists")
-@click.argument('tags', type=str)
-@click.argument('path', type=str)
-@click.option('--filter-names', type=str, default=None,
+@click.argument('tags')
+@click.argument('path')
+@click.option('--filter-names', default=None,
               help='Read only playlists whose names matches this regex filter')
 @click.option('--recursive', '-r', type=bool, is_flag=True, default=False,
               help='Search in subfolders.')
@@ -324,13 +324,13 @@ def local_list_duplicates_in_playlists(tags, path, filter_names, recursive):
 
 
 @local.command("list-duplicates-in-tracks")
-@click.argument('tags', type=str)
-@click.argument('path', type=str)
-@click.option('--filter-names', type=str, default=None,
+@click.argument('tags')
+@click.argument('path')
+@click.option('--filter-names', default=None,
               help='Include only files whose names matches this regex filter')
-@click.option('--have-tags', type=str, default=None,
+@click.option('--have-tags', default=None,
               help='Include only files that have all of the specified tags.')
-@click.option('--have-no-tags', type=str, default=None,
+@click.option('--have-no-tags', default=None,
               help='Include only files that do not have any of the listed tags.')
 @click.option('--recursive', '-r', type=bool, is_flag=True, default=False,
               help='Search in subfolders.')
@@ -364,10 +364,10 @@ def local_list_duplicates_in_tracks(tags, path, filter_names, recursive, have_ta
 
 
 @local.command("collect-duplicates-in-playlists")
-@click.argument('tags', type=str)
-@click.argument('import-path', type=str)
-@click.argument('export-file-name', type=str)
-@click.option('--filter-names', type=str, default=None,
+@click.argument('tags')
+@click.argument('import-path')
+@click.argument('export-file-name')
+@click.option('--filter-names', default=None,
               help='Read only playlists whose names matches this regex filter')
 @click.option('--recursive', '-r', type=bool, is_flag=True, default=False,
               help='Search in subfolders.')
@@ -403,14 +403,14 @@ def local_collect_duplicates_in_playlists(tags, import_path, export_file_name, f
 
 
 @local.command("collect-duplicates-in-tracks")
-@click.argument('tags', type=str)
-@click.argument('import-path', type=str)
-@click.argument('export-file-name', type=str)
-@click.option('--filter-names', type=str, default=None,
+@click.argument('tags')
+@click.argument('import-path')
+@click.argument('export-file-name')
+@click.option('--filter-names', default=None,
               help='Include only files whose names matches this regex filter')
-@click.option('--have-tags', type=str, default=None,
+@click.option('--have-tags', default=None,
               help='Include only files that have all of the specified tags.')
-@click.option('--have-no-tags', type=str, default=None,
+@click.option('--have-no-tags', default=None,
               help='Include only files that do not have any of the listed tags.')
 @click.option('--recursive', '-r', type=bool, is_flag=True, default=False,
               help='Search in subfolders.')
@@ -451,20 +451,20 @@ def local_collect_duplicates_in_tracks(tags, import_path, export_file_name, filt
 
 
 @local.command("add-missing-tags-from-spotify-library")
-# @click.argument('compare-by-tags', type=str)
-# @click.argument('missing-tags', type=str)
-@click.argument('export-path', type=str)
-@click.option('--compare-tags', type=str, default='ARTIST,TITLE',
+# @click.argument('compare-by-tags')
+# @click.argument('missing-tags')
+@click.argument('export-path')
+@click.option('--compare-tags', default='ARTIST,TITLE',
               help='Tags to compare')
-@click.option('--filter-names', type=str, default=None,
+@click.option('--filter-names', default=None,
               help='Read only playlists whose names matches this regex filter')
-@click.option('--have-tags', type=str, default=None,
+@click.option('--have-tags', default=None,
               help='Include only files that have all of the specified tags.')
-@click.option('--have-no-tags', type=str, default=None,
+@click.option('--have-no-tags', default=None,
               help='Include only files that do not have any of the listed tags.')
 @click.option('--recursive', '-r', type=bool, is_flag=True, default=False,
               help='Search local files in subfolders.')
-@click.option('--user-id', type=str, default=None, help='Get playlists of this user')
+@click.option('--user-id', default=None, help='Get playlists of this user')
 def local_add_tags_from_spotify_library(export_path, recursive, compare_tags, filter_names, have_tags, have_no_tags,
                                         user_id):
     r"""Read local files and try to found it in spotify user library. If found, read tags in spotify tracks and write to local files.
@@ -496,13 +496,13 @@ def local_add_tags_from_spotify_library(export_path, recursive, compare_tags, fi
 
 
 @local.command("add-missing-tags-from-tracks")
-@click.argument('import-path', type=str)
-@click.argument('export-path', type=str)
-@click.option('--compare-tags', type=str, default='ARTIST,TITLE',
+@click.argument('import-path')
+@click.argument('export-path')
+@click.option('--compare-tags', default='ARTIST,TITLE',
               help='Tags to compare')
-@click.option('--have-tags', type=str, default=None,
+@click.option('--have-tags', default=None,
               help='Include only files that have all of the specified tags.')
-@click.option('--have-no-tags', type=str, default=None,
+@click.option('--have-no-tags', default=None,
               help='Include only files that do not have any of the listed tags.')
 @click.option('--recursive', '-r', type=bool, is_flag=True, default=False,
               help='Search local files in subfolders.')
@@ -539,20 +539,20 @@ def local_add_tags_from_tracks(import_path, export_path, recursive, compare_tags
 
 
 @local.command("list-missing-tags-from-spotify-library")
-# @click.argument('compare-by-tags', type=str)
-# @click.argument('missing-tags', type=str)
-@click.argument('export-path', type=str)
-@click.option('--compare-tags', type=str, default='ARTIST,TITLE',
+# @click.argument('compare-by-tags')
+# @click.argument('missing-tags')
+@click.argument('export-path')
+@click.option('--compare-tags', default='ARTIST,TITLE',
               help='Tags to compare')
-@click.option('--filter-names', type=str, default=None,
+@click.option('--filter-names', default=None,
               help='Read only playlists whose names matches this regex filter')
-@click.option('--have-tags', type=str, default=None,
+@click.option('--have-tags', default=None,
               help='Include only files that have all of the specified tags.')
-@click.option('--have-no-tags', type=str, default=None,
+@click.option('--have-no-tags', default=None,
               help='Include only files that do not have any of the listed tags.')
 @click.option('--recursive', '-r', type=bool, is_flag=True, default=False,
               help='Search local files in subfolders.')
-@click.option('--user-id', type=str, default=None, help='Get playlists of this user')
+@click.option('--user-id', default=None, help='Get playlists of this user')
 def local_list_tags_from_spotify_library(export_path, recursive, compare_tags, filter_names, have_tags, have_no_tags,
                                          user_id):
     r"""Read local files and try to found it in spotify user library. If found, read tags in spotify tracks and display missing tags in local files.
@@ -588,13 +588,13 @@ def local_list_tags_from_spotify_library(export_path, recursive, compare_tags, f
 
 
 @local.command("list-missing-tags-from-tracks")
-@click.argument('import-path', type=str)
-@click.argument('export-path', type=str)
-@click.option('--compare-tags', type=str, default='ARTIST,TITLE',
+@click.argument('import-path')
+@click.argument('export-path')
+@click.option('--compare-tags', default='ARTIST,TITLE',
               help='Tags to compare')
-@click.option('--have-tags', type=str, default=None,
+@click.option('--have-tags', default=None,
               help='Include only files that have all of the specified tags.')
-@click.option('--have-no-tags', type=str, default=None,
+@click.option('--have-no-tags', default=None,
               help='Include only files that do not have any of the listed tags.')
 @click.option('--recursive', '-r', type=bool, is_flag=True, default=False,
               help='Search local files in subfolders.')
@@ -635,10 +635,10 @@ def local_list_tags_from_tracks(import_path, export_path, recursive, compare_tag
 
 
 @local.command("fix-invalid-track-tags")
-@click.argument('path', type=str)
-@click.option('--have-tags', type=str, default=None,
+@click.argument('path')
+@click.option('--have-tags',  default=None,
               help='Include only files that have all of the specified tags.')
-@click.option('--have-no-tags', type=str, default=None,
+@click.option('--have-no-tags',  default=None,
               help='Include only files that do not have any of the listed tags.')
 @click.option('--recursive', '-r', type=bool, is_flag=True, default=False,
               help='Search local files in subfolders.')

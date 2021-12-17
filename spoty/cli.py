@@ -3,6 +3,7 @@ from spoty.commands import playlist_commands
 from spoty.commands import like_commands
 from spoty.commands import local_commands
 from spoty.commands import track_commands
+from spoty.commands import list_command
 
 
 @click.group()
@@ -15,9 +16,13 @@ cli.add_command(playlist_commands.playlist)
 cli.add_command(like_commands.like)
 cli.add_command(local_commands.local)
 cli.add_command(track_commands.track)
+cli.add_command(list_command.list)
 
 if __name__ == '__main__':
     # cli()
+    cli(['list', '--ssp', '0yRgrCdkntJG83mFbFvrBP', '--ssp',
+         'https://open.spotify.com/playlist/7E6SNhIGjSqEmzHISqnMrJ?si=23ae8f6ceb4548b5','-c'])
+
     # cli(['like', 'count'])
     # cli(['like', 'add','3MH8ie02My2CNzSCH5Pme5', '3L8GYpi8HyhjeixHIlOyM9'])
     # cli(['playlist', 'import-all'])
@@ -52,4 +57,4 @@ if __name__ == '__main__':
     # cli(['local', 'fix-invalid-track-tags', '-r',r'C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS\test'])
     # cli(['track', 'isrc', 'UK6821402425'])
     # cli(['track', 'artist-title', "Aaron Static", "When We Love"])
-    cli(['track', 'query', "track: breathe"])
+    # cli(['track', 'query', "track: breathe"])

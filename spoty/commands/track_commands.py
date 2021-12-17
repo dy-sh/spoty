@@ -19,7 +19,7 @@ def track():
 
 
 @track.command("isrc")
-@click.argument("isrc", type=str)
+@click.argument("isrc")
 def track_find_by_isrc(isrc):
     r"""
     Find track by isrc.
@@ -38,8 +38,8 @@ def track_find_by_isrc(isrc):
 
 
 @track.command("artist-title")
-@click.argument("artist", type=str)
-@click.argument("title", type=str)
+@click.argument("artist")
+@click.argument("title")
 def track_find_by_title(artist, title):
     r"""
     Find track by artist and title.
@@ -58,7 +58,7 @@ def track_find_by_title(artist, title):
 
 
 @track.command("query")
-@click.argument("query", type=str)
+@click.argument("query")
 def tracks_find_by_query(query):
     r"""
     Find tracks by query.
