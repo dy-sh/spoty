@@ -487,6 +487,44 @@ def local_add_tags_from_spotify_library(path, recursive, compare_tags, filter_na
 
     click.echo(f'Edited tracks: {len(edited_files)}/{len(all_files)}')
 
+@local.command("add-tags-from-tracks")
+@click.argument('import-path', type=str)
+@click.argument('export-path', type=str)
+@click.option('--compare-tags', type=str, default='ARTIST,TITLE',
+              help='Tags to compare')
+@click.option('--have-tags', type=str, default=None,
+              help='Include only files that have all of the specified tags.')
+@click.option('--have-no-tags', type=str, default=None,
+              help='Include only files that do not have any of the listed tags.')
+@click.option('--recursive', '-r', type=bool, is_flag=True, default=False,
+              help='Search local files in subfolders.')
+def local_add_tags_from_tracks(import_path, export_path, recursive, compare_tags, have_tags, have_no_tags):
+    r"""Read local files and try to found it in another folder. If found, read tags in import folder and write to tracks in export folder.
+
+    IMPORT-PATH - Path to search local files for reading tags
+
+    EXPORT-PATH - Path to search local files for writing tags
+
+    Examples:
+
+        spoty local add-tags-from-tracks -r "C:\Users\User\Downloads\import" "C:\Users\User\Downloads\export"
+
+        spoty local add-tags-from-tracks -r "C:\Users\User\Downloads\import" "C:\Users\User\Downloads\export" --compare-tags "artist,title,album"
+
+        spoty local add-tags-from-tracks -r "C:\Users\User\Downloads\import" "C:\Users\User\Downloads\export" --filter-names "^awesome"
+    """
+
+    import_path = os.path.abspath(import_path)
+    export_path = os.path.abspath(export_path)
+
+    have_tags_arr = have_tags.upper().split(',') if have_tags is not None else []
+    have_no_tags_arr = have_no_tags.upper().split(',') if have_no_tags is not None else []
+    compare_tags_arr = compare_tags.upper().split(',') if compare_tags is not None else []
+
+    edited_files, all_files = spoty.local.add_tags_from_tracks(import_path,export_path , recursive, compare_tags_arr, have_tags_arr, have_no_tags_arr)
+
+    click.echo(f'Edited tracks: {len(edited_files)}/{len(all_files)}')
+
 
 @local.command("fix-invalid-track-tags")
 @click.argument('path', type=str)

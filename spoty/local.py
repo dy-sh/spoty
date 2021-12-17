@@ -496,6 +496,64 @@ def add_tags_from_spotify_library(path, recursive, compare_tags, filter_names, h
     return edited_files, local_tracks_file_names
 
 
+
+def add_tags_from_tracks(import_path,export_path, recursive, compare_tags, have_tags, have_no_tags):
+    import_directories = []
+    for (dirpath, dirnames, filenames) in os.walk(import_path):
+        import_directories.append(dirpath)
+        if not recursive:
+            break
+
+    export_directories = []
+    for (dirpath, dirnames, filenames) in os.walk(export_path):
+        export_directories.append(dirpath)
+        if not recursive:
+            break
+
+    import_tracks_file_names = []
+    export_tracks_file_names = []
+    import_tracks_tags = []
+    export_tracks_tags = []
+
+    with click.progressbar(import_directories, label='Reading import tracks') as bar:
+        for dir in bar:
+            tracks_file_names = \
+                spoty.local.get_local_tracks_file_names(dir, False, None, have_tags, have_no_tags)
+
+            if len(tracks_file_names) == 0:
+                continue
+
+            import_tracks_file_names.extend(tracks_file_names)
+            tags = spoty.local.read_tracks_tags(tracks_file_names, True)
+            import_tracks_tags.extend(tags)
+
+    with click.progressbar(export_directories, label='Reading export tracks') as bar:
+        for dir in bar:
+            tracks_file_names = \
+                spoty.local.get_local_tracks_file_names(dir, False, None, have_tags, have_no_tags)
+
+            if len(tracks_file_names) == 0:
+                continue
+
+            export_tracks_file_names.extend(tracks_file_names)
+            tags = spoty.local.read_tracks_tags(tracks_file_names, True)
+            export_tracks_tags.extend(tags)
+
+
+    edited_files = []
+    with click.progressbar(import_tracks_tags, label='Writing tags from spotify library') as bar:
+        for import_tags in bar:
+            for export_tags in export_tracks_tags:
+                if spoty.utils.compare_two_tag_tracks(import_tags, export_tags, compare_tags):
+                    file_name = export_tags['SPOTY_FILE_NAME']
+                    added_tags = add_missing_tags(file_name,import_tags)
+                    if len(added_tags) > 0:
+                        edited_files.append(file_name)
+                        # click.echo(f'Added {str(added_tags)} to {file_name}')
+                        # log.debug(f'Added {str(added_tags)} to {file_name}')
+    return edited_files, export_tracks_file_names
+
+
 def add_missing_tags(file_name, new_tags):
     added_tags = []
 
@@ -505,6 +563,9 @@ def add_missing_tags(file_name, new_tags):
         f = FLAC(file_name)
         for key, value in new_tags.items():
             if key == 'LENGTH':
+                continue
+
+            if key in spoty_tags:
                 continue
 
             if key in exist_tags:
