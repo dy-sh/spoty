@@ -150,7 +150,43 @@ def compare_two_tag_tracks(old_track, new_track, compare_tags, allow_missing=Fal
             else:
                 return False
 
-        if new_track[tag] != old_track[tag]:
+        if tag == "LENGTH":
+            if abs(int(old_track['LENGTH']) - int(new_track['LENGTH'])) > 5:
+                return False
+
+        if tag == "ARTIST":
+            old_artist = old_track[tag].replace(',', ';').upper()
+            old_artist = old_artist.split(';')
+            new_artist = new_track[tag].replace(',', ';').upper()
+            new_artist = new_artist.split(';')
+            found=False
+            for old in old_artist:
+                if old in new_artist:
+                    found=True
+            if not found:
+                return False
+            else:
+                continue
+
+        if tag == "TITLE":
+            old_title = old_track[tag].upper()
+            old_title = ''.join(char for char in old_title if char.isalnum())
+            new_titile = new_track[tag].upper()
+            new_titile = ''.join(char for char in new_titile if char.isalnum())
+            if not new_titile.startswith(old_title) and not old_title.startswith(new_titile):
+                return False
+            else:
+                continue
+
+        if tag == "ALBUM":
+            old_album = old_track[tag].upper()
+            new_album = new_track[tag].upper()
+            if not new_album.startswith(old_album) and not old_album.startswith(new_album):
+                return False
+            else:
+                continue
+
+        if old_track[tag] != new_track[tag]:
             return False
 
     return True

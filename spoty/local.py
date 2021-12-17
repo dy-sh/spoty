@@ -12,12 +12,19 @@ from mutagen.mp3 import MP3
 from mutagen.id3 import ID3
 import csv
 
+tag_allies = [
+    ['YEAR', 'DATE'],
+    ['TRACK', 'TRACKNUMBER'],
+    ['DISK', 'DISKNUMBER']
+]
+
 spoty_tags = \
     [
         'SPOTY_DUPLICATE_GROUP',
         'SPOTY_PLAYLIST_NAME',
         'SPOTY_PLAYLIST_INDEX',
         'SPOTY_FILE_NAME',
+        'LENGTH'
 
     ]
 
@@ -194,7 +201,13 @@ def read_track_tags(file_name, add_file_name=False):
         track['SPOTY_FILE_NAME'] = file_name
 
     if is_flac(file_name):
-        f = FLAC(file_name)
+        f= None
+        try:
+            f = FLAC(file_name)
+        except:
+            time.sleep(0.2)
+            click.echo(f"\nCant open file: {file_name}")
+            return []
         for tag in f.tags:
             if len(tag[1]) > 131072 or \
                     (tag[0] in track and len(track[tag[0]]) + len(tag[1]) > 131072):
@@ -212,6 +225,7 @@ def read_track_tags(file_name, add_file_name=False):
         # for tag in additional_tags:
         #     track[tag] = ",".join(f.tags[tag]) if tag in f.tags else ""
 
+        track['LENGTH'] = str(int(f.info.length*1000))
     return track
 
 
@@ -431,11 +445,11 @@ def add_tags_from_spotify_library(path, recursive, compare_tags, filter_names, h
     directories = []
     for (dirpath, dirnames, filenames) in os.walk(path):
         directories.append(dirpath)
+        if not recursive:
+            break
 
     local_tracks_file_names = []
     local_tracks_tags = []
-    playlist_names = []
-    playlist_file_names = []
 
     with click.progressbar(directories, label='Collecting tracks') as bar:
         for dir in bar:
@@ -466,11 +480,98 @@ def add_tags_from_spotify_library(path, recursive, compare_tags, filter_names, h
     if len(playlists) == 0:
         exit()
 
-    with click.progressbar(playlists, label='Reading spotify playlists') as bar:
+    edited_files = []
+    with click.progressbar(playlists, label='Writing tags from spotify library') as bar:
         for playlist in bar:
             tracks = spoty.playlist.get_tracks_of_playlist(playlist['id'])
             tag_tracks = spoty.utils.read_tags_from_spotify_tracks(tracks)
             for tag_track in tag_tracks:
                 for local_track in local_tracks_tags:
-                    if spoty.utils.compare_two_tag_tracks(local_track,tag_track,compare_tags):
-                        print(str(tag_track))
+                    if spoty.utils.compare_two_tag_tracks(local_track, tag_track, compare_tags):
+                        file_name = local_track['SPOTY_FILE_NAME']
+                        added_tags = add_missing_tags(file_name, tag_track)
+                        if len(added_tags) > 0:
+                            edited_files.append(file_name)
+                            # click.echo(f'Added {str(added_tags)} to {file_name}')
+                            # log.debug(f'Added {str(added_tags)} to {file_name}')
+    return edited_files, local_tracks_file_names
+
+
+def add_missing_tags(file_name, new_tags):
+    added_tags = []
+
+    exist_tags = read_track_tags(file_name)
+
+    if is_flac(file_name):
+        f = FLAC(file_name)
+        for key, value in new_tags.items():
+            if key == 'LENGTH':
+                continue
+
+            if key in exist_tags:
+                continue
+
+            found = False
+            for aliases in tag_allies:
+                if key in aliases:
+                    for al in aliases:
+                        if al in exist_tags:
+                            found = True
+            if found:
+                continue
+
+            f[key] = str(value)
+            added_tags.append(key)
+        if len(added_tags) > 0:
+            f.save()
+
+    return added_tags
+
+
+def fix_invalid_track_tags(path, recursive, have_tags, have_no_tags):
+    directories = []
+    for (dirpath, dirnames, filenames) in os.walk(path):
+        directories.append(dirpath)
+        if not recursive:
+            break
+
+    local_tracks_file_names = []
+    local_tracks_tags = []
+
+    with click.progressbar(directories, label='Collecting tracks') as bar:
+        for dir in bar:
+            tracks_file_names = \
+                spoty.local.get_local_tracks_file_names(dir, False, None, have_tags, have_no_tags)
+
+            if len(tracks_file_names) == 0:
+                continue
+
+            local_tracks_file_names.extend(tracks_file_names)
+            tags = spoty.local.read_tracks_tags(tracks_file_names, True)
+            local_tracks_tags.extend(tags)
+
+    edited_files = []
+
+    replace_comma = []
+    for track in local_tracks_tags:
+        if ',' in track['ARTIST']:
+            replace_comma.append(track)
+
+    if len(replace_comma) > 0:
+        for track in replace_comma:
+            file_name = track['SPOTY_FILE_NAME']
+            click.echo(f'ARTIST: "{track["ARTIST"]}" in "{file_name}"')
+        click.echo(f'Total tracks: {len(replace_comma)}')
+        if (click.confirm("Do you want to replace ',' to ';' in this tracks?")):
+            for track in replace_comma:
+                file_name = track['SPOTY_FILE_NAME']
+                f = FLAC(file_name)
+                artists = f.tags['ARTIST']
+                for i in range(len(artists)):
+                    artists[i] = artists[i].replace(',', ';')
+                f['ARTIST'] = artists
+                f.save()
+                if track not in edited_files:
+                    edited_files.append(track)
+
+    return edited_files, local_tracks_file_names

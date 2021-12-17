@@ -452,7 +452,7 @@ def local_collect_duplicates_in_tracks(tags, import_path, export_file_name, filt
 # @click.argument('compare-by-tags', type=str)
 # @click.argument('missing-tags', type=str)
 @click.argument('path', type=str)
-@click.option('--compare-tags', type=str, default='ARTIST,TITLE,ALBUM',
+@click.option('--compare-tags', type=str, default='ARTIST,TITLE',
               help='Tags to compare')
 @click.option('--filter-names', type=str, default=None,
               help='Read only playlists whose names matches this regex filter')
@@ -472,9 +472,9 @@ def local_add_tags_from_spotify_library(path, recursive, compare_tags, filter_na
 
         spoty local add-missing-tags-from-spotify-library -r "C:\Users\User\Downloads\music"
 
-        spoty local add-missing-tags-from-spotify-library -r "C:\Users\User\Downloads\music" --compare-tags "artist,title"
+        spoty local add-missing-tags-from-spotify-library -r "C:\Users\User\Downloads\music" --compare-tags "artist,title,album"
 
-        spoty local add-missing-tags-from-spotify-library -r "C:\Users\User\Downloads\music" --filter-names "^awesome" "C:\Users\User\Downloads\music"
+        spoty local add-missing-tags-from-spotify-library -r "C:\Users\User\Downloads\music" --filter-names "^awesome"
     """
 
     path = os.path.abspath(path)
@@ -483,6 +483,38 @@ def local_add_tags_from_spotify_library(path, recursive, compare_tags, filter_na
     have_no_tags_arr = have_no_tags.upper().split(',') if have_no_tags is not None else []
     compare_tags_arr = compare_tags.upper().split(',') if compare_tags is not None else []
 
-    spoty.local.add_tags_from_spotify_library(path, recursive, compare_tags_arr, filter_names, have_tags_arr, have_no_tags_arr, user_id)
+    edited_files, all_files = spoty.local.add_tags_from_spotify_library(path, recursive, compare_tags_arr, filter_names, have_tags_arr, have_no_tags_arr, user_id)
+
+    click.echo(f'Edited tracks: {len(edited_files)}/{len(all_files)}')
+
+
+@local.command("fix-invalid-track-tags")
+@click.argument('path', type=str)
+@click.option('--have-tags', type=str, default=None,
+              help='Include only files that have all of the specified tags.')
+@click.option('--have-no-tags', type=str, default=None,
+              help='Include only files that do not have any of the listed tags.')
+@click.option('--recursive', '-r', type=bool, is_flag=True, default=False,
+              help='Search local files in subfolders.')
+def local_fix_invalid_track_tags(path, recursive,   have_tags, have_no_tags):
+    r"""Read local files and try to found it in spotify user library. If found, read tags in spotify tracks and write to local files.
+
+    PATH - Path to search local files
+
+    Examples:
+
+        spoty local fix-invalid-track-tags -r "C:\Users\User\Downloads\music"
+
+        spoty local fix-invalid-track-tags -r "C:\Users\User\Downloads\music" --filter-names "^awesome"
+    """
+
+    path = os.path.abspath(path)
+
+    have_tags_arr = have_tags.upper().split(',') if have_tags is not None else []
+    have_no_tags_arr = have_no_tags.upper().split(',') if have_no_tags is not None else []
+
+    edited_files, all_files = spoty.local.fix_invalid_track_tags(path, recursive, have_tags_arr, have_no_tags_arr)
+
+    click.echo(f'Fixed tracks: {len(edited_files)}/{len(all_files)}')
 
 

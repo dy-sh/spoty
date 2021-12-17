@@ -10,6 +10,7 @@ deezer
 - fix continue downloading, delete last file
 
 local
+CHANGE LOGGER!!!!
 - remove duplicates in local folder
 - remove duplicates in local folder from folder if exist in another folder
 - remove existing tracks from new playlists (generate new playlists without existing)
