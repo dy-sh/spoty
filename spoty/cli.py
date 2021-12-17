@@ -20,8 +20,12 @@ cli.add_command(list_command.list)
 
 if __name__ == '__main__':
     # cli()
-    cli(['list', '--ssp', '0yRgrCdkntJG83mFbFvrBP', '--ssp',
-         'https://open.spotify.com/playlist/7E6SNhIGjSqEmzHISqnMrJ?si=23ae8f6ceb4548b5','-c'])
+    # cli(['list','-c', '--ssp', '0yRgrCdkntJG83mFbFvrBP', '--ssp',
+    #      'https://open.spotify.com/playlist/7E6SNhIGjSqEmzHISqnMrJ'])
+
+    cli(['list','-c', '--ssp', '0yRgrCdkntJG83mFbFvrBP',
+         'https://open.spotify.com/playlist/0yRgrCdkntJG83mFbFvrBP',
+         'https://open.spotify.com/playlist/7E6SNhIGjSqEmzHISqnMrJ'])
 
     # cli(['like', 'count'])
     # cli(['like', 'add','3MH8ie02My2CNzSCH5Pme5', '3L8GYpi8HyhjeixHIlOyM9'])

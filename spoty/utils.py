@@ -33,6 +33,10 @@ def get_track_ids(tracks):
         return [item['track']['id'] for item in tracks]
 
 
+def check_is_playlist_URI(uri):
+    return uri.startswith("https://open.spotify.com/playlist/")
+
+
 def parse_playlist_id(id_or_url):
     if (id_or_url.startswith("https://open.spotify.com/playlist/")):
         id_or_url = id_or_url.split('/playlist/')[1]
@@ -162,10 +166,10 @@ def compare_two_tag_tracks(old_track, new_track, compare_tags, allow_missing=Fal
             old_artist = old_artist.split(';')
             new_artist = new_track[tag].replace(',', ';').upper()
             new_artist = new_artist.split(';')
-            found=False
+            found = False
             for old in old_artist:
                 if old in new_artist:
-                    found=True
+                    found = True
             if not found:
                 return False
             else:

@@ -111,6 +111,12 @@ def is_mp3(file_name):
 def is_csv(file_name):
     return file_name.upper().endswith('.CSV')
 
+def is_valid_path(path):
+    return os.path.isdir(path)
+
+def is_valid_file(path):
+    return os.path.isfile(path)
+
 
 def check_track_have_all_tags(track, tags):
     for tag in tags:
