@@ -23,9 +23,18 @@ if __name__ == '__main__':
     # cli(['list','-c', '--ssp', '0yRgrCdkntJG83mFbFvrBP', '--ssp',
     #      'https://open.spotify.com/playlist/7E6SNhIGjSqEmzHISqnMrJ'])
 
-    cli(['list','-c', '--ssp', '0yRgrCdkntJG83mFbFvrBP',
+    cli(['list', '-p',
+         '--ftt','title',
+         '--ssp', '0yRgrCdkntJG83mFbFvrBP',
          'https://open.spotify.com/playlist/0yRgrCdkntJG83mFbFvrBP',
          'https://open.spotify.com/playlist/7E6SNhIGjSqEmzHISqnMrJ'])
+
+    # cli(['list','-p', '--slf', r'C:\Users\Derwish\Downloads\music\Pop Nutral',
+    #      r'C:\Users\Derwish\Downloads\music\Techno Nutral'])
+
+    # cli(['list','-c', '--slf', r'C:\Users\Derwish\Downloads\music\Pop Nutral',
+    #      'https://open.spotify.com/playlist/0yRgrCdkntJG83mFbFvrBP',
+    #      r'C:\Users\Derwish\Downloads\music\Techno Nutral'])
 
     # cli(['like', 'count'])
     # cli(['like', 'add','3MH8ie02My2CNzSCH5Pme5', '3L8GYpi8HyhjeixHIlOyM9'])

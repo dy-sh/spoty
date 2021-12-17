@@ -47,8 +47,8 @@ def local_count_tracks(path, recursive, filter_names, have_tags, have_no_tags):
 
     have_tags_arr = have_tags.upper().split(',') if have_tags is not None else []
     have_no_tags_arr = have_no_tags.upper().split(',') if have_no_tags is not None else []
-    full_file_names = spoty.local.get_local_tracks_file_names(path, recursive, filter_names, have_tags_arr,
-                                                              have_no_tags_arr)
+    full_file_names = spoty.local.get_local_tracks_file_names_old(path, recursive, filter_names, have_tags_arr,
+                                                                  have_no_tags_arr)
 
     click.echo(f'Local tracks: {len(full_file_names)}')
 
@@ -83,8 +83,8 @@ def local_list_tracks(path, recursive, filter_names, have_tags, have_no_tags):
 
     have_tags_arr = have_tags.upper().split(',') if have_tags is not None else []
     have_no_tags_arr = have_no_tags.upper().split(',') if have_no_tags is not None else []
-    full_file_names = spoty.local.get_local_tracks_file_names(path, recursive, filter_names, have_tags_arr,
-                                                              have_no_tags_arr)
+    full_file_names = spoty.local.get_local_tracks_file_names_old(path, recursive, filter_names, have_tags_arr,
+                                                                  have_no_tags_arr)
 
     click.echo(f'Local tracks:')
     for full_file in full_file_names:
@@ -159,8 +159,8 @@ def local_collect_playlists(tracks_path, export_path, filter_names, overwrite, t
     if naming_pattern is None:
         with click.progressbar(directories, label='Exporting playlists') as bar:
             for dir in bar:
-                tracks_file_names = spoty.local.get_local_tracks_file_names(dir, False, filter_names, have_tags_arr,
-                                                                            have_no_tags_arr)
+                tracks_file_names = spoty.local.get_local_tracks_file_names_old(dir, False, filter_names, have_tags_arr,
+                                                                                have_no_tags_arr)
 
                 if len(tracks_file_names) == 0:
                     continue
@@ -176,8 +176,8 @@ def local_collect_playlists(tracks_path, export_path, filter_names, overwrite, t
     else:
         with click.progressbar(directories, label='Collecting tracks') as bar:
             for dir in bar:
-                tracks_file_names = spoty.local.get_local_tracks_file_names(dir, False, filter_names, have_tags_arr,
-                                                                            have_no_tags_arr)
+                tracks_file_names = spoty.local.get_local_tracks_file_names_old(dir, False, filter_names, have_tags_arr,
+                                                                                have_no_tags_arr)
 
                 if len(tracks_file_names) == 0:
                     continue

@@ -111,25 +111,22 @@ def is_mp3(file_name):
 def is_csv(file_name):
     return file_name.upper().endswith('.CSV')
 
+
 def is_valid_path(path):
     return os.path.isdir(path)
+
 
 def is_valid_file(path):
     return os.path.isfile(path)
 
 
-def check_track_have_all_tags(track, tags):
-    for tag in tags:
-        if not tag in track:
-            return False
-    return True
 
 
 def filter_tracks_which_have_all_tags(file_names, tags):
     filtered = []
     for file_name in file_names:
         track = read_track_tags(file_name)
-        if check_track_have_all_tags(track, tags):
+        if spoty.utils.check_track_have_all_tags(track, tags):
             filtered.append(file_name)
     return filtered
 
@@ -138,17 +135,30 @@ def filter_tracks_which_not_have_any_of_tags(file_names, tags):
     filtered = []
     for file_name in file_names:
         track = read_track_tags(file_name)
-        if not check_track_have_all_tags(track, tags):
+        if not spoty.utils.check_track_have_all_tags(track, tags):
             filtered.append(file_name)
     return filtered
 
 
-def get_local_tracks_file_names(path,
-                                recursive=True,
-                                filter_names=None,
-                                filter_have_tags=[],
-                                filter_have_no_tags=[],
-                                ):
+def get_local_audio_file_names(path, no_recursive=True):
+    full_file_names = []
+    if no_recursive:
+        full_file_names = [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+        full_file_names = list(
+            filter(lambda f: is_flac(f) or is_mp3(f), full_file_names))
+    else:
+        full_file_names = [os.path.join(dp, f) for dp, dn, filenames in os.walk(path) for f in filenames if
+                           is_flac(os.path.splitext(f)[1]) or is_mp3(os.path.splitext(f)[1])]
+
+    return full_file_names
+
+
+def get_local_tracks_file_names_old(path,
+                                    recursive=True,
+                                    filter_names: list = None,
+                                    filter_have_tags=[],
+                                    filter_have_no_tags=[],
+                                    ):
     full_file_names = []
     if recursive:
         full_file_names = [os.path.join(dp, f) for dp, dn, filenames in os.walk(path) for f in filenames if
@@ -367,9 +377,6 @@ def read_tracks_from_csv_file(playlist_file_name, add_playlist_info=False):
     return tracks
 
 
-
-
-
 def find_duplicates_in_tag_tracks(all_tracks, tags_to_compare):
     if len(tags_to_compare) == 0:
         return
@@ -417,8 +424,8 @@ def find_duplicates_in_tracks(path,
     if len(tags_to_compare) == 0:
         return
 
-    full_file_names = spoty.local.get_local_tracks_file_names(path, recursive, filter_names, filter_have_tags,
-                                                              filter_have_no_tags)
+    full_file_names = spoty.local.get_local_tracks_file_names_old(path, recursive, filter_names, filter_have_tags,
+                                                                  filter_have_no_tags)
     all_tracks = read_tracks_tags(full_file_names, True)
     duplicates, all_tracks, skipped_tracks = find_duplicates_in_tag_tracks(all_tracks, tags_to_compare)
 
@@ -437,7 +444,7 @@ def get_tags_from_tracks(import_path, recursive, have_tags, have_no_tags):
     with click.progressbar(import_directories, label='Reading tracks from local files') as bar:
         for dir in bar:
             tracks_file_names = \
-                spoty.local.get_local_tracks_file_names(dir, False, None, have_tags, have_no_tags)
+                spoty.local.get_local_tracks_file_names_old(dir, False, None, have_tags, have_no_tags)
 
             if len(tracks_file_names) == 0:
                 continue
@@ -527,7 +534,7 @@ def fix_invalid_track_tags(path, recursive, have_tags, have_no_tags):
     with click.progressbar(directories, label='Collecting tracks') as bar:
         for dir in bar:
             tracks_file_names = \
-                spoty.local.get_local_tracks_file_names(dir, False, None, have_tags, have_no_tags)
+                spoty.local.get_local_tracks_file_names_old(dir, False, None, have_tags, have_no_tags)
 
             if len(tracks_file_names) == 0:
                 continue

@@ -89,61 +89,66 @@ def remove_duplicates(arr):
             good.append(item)
     return good, dup
 
-
 def read_tags_from_spotify_tracks(tracks):
     tag_tracks = []
 
-    for i, track in enumerate(tracks):
-        if "track" in track:
-            track = track['track']
-
-        tags = {}
-
-        try:
-            tags['ISRC'] = track['external_ids']['isrc']
-        except:
-            pass
-
-        try:
-            artists = list(map(lambda artist: artist['name'], track['artists']))
-            tags['ARTIST'] = ';'.join(artists)
-        except:
-            pass
-
-        tags['TITLE'] = track['name']
-
-        try:
-            tags['ALBUM'] = track['album']['name']
-        except:
-            pass
-
-        tags['LENGTH'] = track['duration_ms']
-
-        try:
-            tags['SPOTIFY_RELEASE_ID'] = track['album']['id']
-        except:
-            pass
-
-        tags['WWWAUDIOFILE'] = track['external_urls']['spotify']
-
-        tags['SPOTIFY_TRACK_ID'] = track["id"]
-
-        tags['EXPLICIT'] = track['explicit']
-
-        tags['TRACK'] = track['track_number']
-
-        try:
-            tags['YEAR'] = track['album']['release_date']
-        except:
-            pass
-
-        # PREVIEW_URL=track['preview_url']
-        # tags['SOURCE'] = "Spotify"
-        # tags['SOURCEID'] = tags['SPOTIFY_TRACK_ID']
-
+    for track in tracks:
+        tags=read_tags_from_spotify_track(track)
         tag_tracks.append(tags)
 
     return tag_tracks
+
+def read_tags_from_spotify_track(track):
+    if "track" in track:
+        track = track['track']
+
+    tags = {}
+
+    try:
+        tags['ISRC'] = track['external_ids']['isrc']
+    except:
+        pass
+
+    try:
+        artists = list(map(lambda artist: artist['name'], track['artists']))
+        tags['ARTIST'] = ';'.join(artists)
+    except:
+        pass
+
+    tags['TITLE'] = track['name']
+
+    try:
+        tags['ALBUM'] = track['album']['name']
+    except:
+        pass
+
+    tags['LENGTH'] = track['duration_ms']
+
+    try:
+        tags['SPOTIFY_RELEASE_ID'] = track['album']['id']
+    except:
+        pass
+
+    tags['WWWAUDIOFILE'] = track['external_urls']['spotify']
+
+    tags['SPOTIFY_TRACK_ID'] = track["id"]
+
+    tags['EXPLICIT'] = track['explicit']
+
+    tags['TRACK'] = track['track_number']
+
+    try:
+        tags['YEAR'] = track['album']['release_date']
+    except:
+        pass
+
+    # PREVIEW_URL=track['preview_url']
+    # tags['SOURCE'] = "Spotify"
+    # tags['SOURCEID'] = tags['SPOTIFY_TRACK_ID']
+
+    return tags
+
+
 
 
 def compare_two_tag_tracks(old_track, new_track, compare_tags, allow_missing=False):
@@ -221,3 +226,44 @@ def print_track_main_tags(track, include_playlist_info=False):
     if 'SOURCEID' in track: print(f'SOURCEID: {track["SOURCEID"]}')
     # if 'TEMPO' in track: print(f'TEMPO: {track["TEMPO"]}')
     if 'YEAR' in track: print(f'YEAR: {track["YEAR"]}')
+
+
+
+def filter_tracks_which_have_all_tags(track_tags, filter_tags):
+    filtered = []
+    for track in track_tags:
+        if check_track_have_all_tags(track, filter_tags):
+            filtered.append(track)
+    return filtered
+
+
+def filter_tracks_which_not_have_any_of_tags(track_tags, filter_tags):
+    filtered = []
+    for track in track_tags:
+        if not check_track_have_all_tags(track, filter_tags):
+            filtered.append(track)
+    return filtered
+
+
+def filter_spotify_tracks_which_have_all_tags(spotify_track, filter_tags):
+    filtered = []
+    for track in spotify_track:
+        tags = spoty.utils.read_tags_from_spotify_track(track)
+        if check_track_have_all_tags(tags, filter_tags):
+            filtered.append(track)
+    return filtered
+
+
+def filter_spotify_tracks_which_not_have_any_of_tags(spotify_track, filter_tags):
+    filtered = []
+    for track in spotify_track:
+        tags = spoty.utils.read_tags_from_spotify_track(track)
+        if not check_track_have_all_tags(tags, filter_tags):
+            filtered.append(track)
+    return filtered
+
+def check_track_have_all_tags(track, tags):
+    for tag in tags:
+        if not tag.upper() in track:
+            return False
+    return True
