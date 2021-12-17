@@ -328,28 +328,24 @@ def read_tracks_from_csv_file(playlist_file_name, add_playlist_info=False):
     return tracks
 
 
-def find_duplicates_in_playlists(path, recursive=True, filter_names=None):
-    tracks_with_isrc = []
-    tracks_wo_isrc=[]
-
+def find_duplicates_in_playlists_by_isrc(path, recursive=True, filter_names=None):
     duplicates = {}
 
-    playlists = spoty.local.get_all_playlists_in_path(path, recursive, filter_names)
-    with click.progressbar(playlists, label='Reading playlists') as bar:
-        for file_name in bar:
-            tracks = spoty.local.read_tracks_from_csv_file(file_name, True)
-            for track in tracks:
-                if 'ISRC' in track:
-                    for exist_track in tracks_with_isrc:
-                        if exist_track['ISRC'] == track['ISRC']:
-                            if track['ISRC'] not in duplicates:
-                                duplicates[track['ISRC']] = []
-                            duplicates[track['ISRC']].append(exist_track)
-                            duplicates[track['ISRC']].append(track)
-                    tracks_with_isrc.append(track)
-                else:
-                    tracks_wo_isrc+=track
+    all_tracks=[]
+    groupped_tracks=[]
 
+    playlists = spoty.local.get_all_playlists_in_path(path, recursive, filter_names)
+    for file_name in playlists:
+        tracks = spoty.local.read_tracks_from_csv_file(file_name, True)
+        all_tracks.extend(tracks)
+
+    groupped_tracks=group_tracks_by_pattern('%ISRC%',all_tracks)
+
+    for isrc, tracks in groupped_tracks.items():
+        if len(tracks)>1:
+            if not isrc in duplicates:
+                duplicates[isrc]=[]
+            duplicates[isrc].extend(tracks)
 
     return duplicates
 

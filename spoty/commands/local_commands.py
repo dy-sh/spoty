@@ -276,7 +276,7 @@ def local_list_duplicates_in_playlists(path, filter_names, recursive):
 
     all_tracks = []
 
-    duplicates_dic = spoty.local.find_duplicates_in_playlists(path, recursive, filter_names)
+    duplicates_dic = spoty.local.find_duplicates_in_playlists_by_isrc(path, recursive, filter_names)
 
 
 
