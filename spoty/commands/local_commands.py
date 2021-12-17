@@ -250,3 +250,45 @@ def local_count_tracks_in_playlists(path, filter_names, recursive, have_tag, hav
             all_tracks.append(track)
 
     click.echo(f'Found {len(all_tracks)} tracks in {len(playlists)} playlistss')
+
+
+@local.command("list-duplicates-in-playlists")
+@click.argument('path', type=str)
+@click.option('--filter-names', type=str, default=None,
+              help='Read only playlists whose names matches this regex filter')
+@click.option('--recursive', '-r', type=bool, is_flag=True, default=False,
+              help='Search in subfolders.')
+def local_list_duplicates_in_playlists(path, filter_names, recursive):
+    r"""Displays the list of duplicates found in local playlists.
+
+    PATH - Path to search files
+
+    Examples:
+
+        spoty local list-duplicates-in-playlists "C:\Users\User\Downloads\music"
+
+        spoty local list-duplicates-in-playlists -r "C:\Users\User\Downloads\music"
+
+        spoty local list-duplicates-in-playlists --filter-names "^awesome" "C:\Users\User\Downloads\music"
+    """
+
+    path = os.path.abspath(path)
+
+    all_tracks = []
+
+    duplicates_dic = spoty.local.find_duplicates_in_playlists(path, recursive, filter_names)
+
+
+
+    i = 0
+    for isrc, duplicates in duplicates_dic.items():
+        i += 1
+        click.echo(f"======================= DUPLICATE {i}/{len(duplicates_dic)} =============================")
+        click.echo(f'{len(duplicates)} duplicates with ISRC: {isrc}')
+        click.echo("-----------------------------------------------------")
+        for track in duplicates:
+            click.echo(f'Track {track["playlist_index"]} in playlist "{track["playlist_name"]}"')
+            spoty.local.print_track_main_tags(track)
+
+
+    click.echo(f'Total duplicates found: {len(duplicates_dic)}')

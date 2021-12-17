@@ -140,10 +140,10 @@ def get_local_tracks_file_names(path,
         full_file_names = list(filter(lambda f:
                                       re.findall(filter_names, os.path.basename(f)),
                                       full_file_names))
-    if len(filter_have_tags)>0:
+    if len(filter_have_tags) > 0:
         full_file_names = filter_tracks_which_have_all_tags(full_file_names, filter_have_tags)
 
-    if len(filter_have_no_tags)>0:
+    if len(filter_have_no_tags) > 0:
         full_file_names = filter_tracks_which_not_have_any_of_tags(full_file_names, filter_have_no_tags)
 
     return full_file_names
@@ -291,7 +291,7 @@ def write_tracks_to_csv_file(tracks, playlist_file_name):
             writer.writerow(values)
 
 
-def read_tracks_from_csv_file(playlist_file_name):
+def read_tracks_from_csv_file(playlist_file_name, add_playlist_info=False):
     tracks = []
 
     with open(playlist_file_name, newline='', encoding='utf-8-sig') as file:
@@ -320,6 +320,59 @@ def read_tracks_from_csv_file(playlist_file_name):
                 if len(row[h]) > 0:
                     track[key] = row[h]
 
-            tracks.append(track)
+            if (add_playlist_info):
+                track['playlist_name'] = playlist_file_name
+                track['playlist_index'] = i - 1
+                tracks.append(track)
 
     return tracks
+
+
+def find_duplicates_in_playlists(path, recursive=True, filter_names=None):
+    tracks_with_isrc = []
+    tracks_wo_isrc=[]
+
+    duplicates = {}
+
+    playlists = spoty.local.get_all_playlists_in_path(path, recursive, filter_names)
+    with click.progressbar(playlists, label='Reading playlists') as bar:
+        for file_name in bar:
+            tracks = spoty.local.read_tracks_from_csv_file(file_name, True)
+            for track in tracks:
+                if 'ISRC' in track:
+                    for exist_track in tracks_with_isrc:
+                        if exist_track['ISRC'] == track['ISRC']:
+                            if track['ISRC'] not in duplicates:
+                                duplicates[track['ISRC']] = []
+                            duplicates[track['ISRC']].append(exist_track)
+                            duplicates[track['ISRC']].append(track)
+                    tracks_with_isrc.append(track)
+                else:
+                    tracks_wo_isrc+=track
+
+
+    return duplicates
+
+
+def print_track_main_tags(track, include_playlist_info=False):
+    if 'ISRC' in track: print(f'ISRC: {track["ISRC"]}')
+    if 'ARTIST' in track: print(f'ARTIST: {track["ARTIST"]}')
+    # if 'ALBUMARTIST' in track: print(f'ALBUMARTIST: {track["ALBUMARTIST"]}')
+    if 'TITLE' in track: print(f'TITLE: {track["TITLE"]}')
+    if 'ALBUM' in track: print(f'ALBUM: {track["ALBUM"]}')
+    if 'GENRE' in track: print(f'GENRE: {track["GENRE"]}')
+    if 'MOOD' in track: print(f'MOOD: {track["MOOD"]}')
+    if 'OCCASION' in track: print(f'OCCASION: {track["OCCASION"]}')
+    if 'RATING' in track: print(f'RATING: {track["RATING"]}')
+    if 'COMMENT' in track: print(f'COMMENT: {track["COMMENT"]}')
+    if 'BARCODE' in track: print(f'BARCODE: {track["BARCODE"]}')
+    # if 'BPM' in track: print(f'BPM: {track["BPM"]}')
+    # if 'FILEOWNER' in track: print(f'FILEOWNER: {track["FILEOWNER"]}')
+    if 'LENGTH' in track: print(f'LENGTH: {track["LENGTH"]}')
+    # if 'QUALITY' in track: print(f'QUALITY: {track["QUALITY"]}')
+    # if 'SPOTIFY_TRACK_ID' in track: print(f'SPOTIFY_TRACK_ID: {track["SPOTIFY_TRACK_ID"]}')
+    # if 'SPOTIFY_RELEASE_ID' in track: print(f'SPOTIFY_RELEASE_ID: {track["SPOTIFY_RELEASE_ID"]}')
+    if 'SOURCE' in track: print(f'SOURCE: {track["SOURCE"]}')
+    if 'SOURCEID' in track: print(f'SOURCEID: {track["SOURCEID"]}')
+    # if 'TEMPO' in track: print(f'TEMPO: {track["TEMPO"]}')
+    # if 'YEAR' in track: print(f'YEAR: {track["YEAR"]}')

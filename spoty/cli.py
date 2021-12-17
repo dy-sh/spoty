@@ -19,7 +19,7 @@ if __name__ == '__main__':
     # cli(['like', 'count'])
     # cli(['like', 'add','3MH8ie02My2CNzSCH5Pme5', '3L8GYpi8HyhjeixHIlOyM9'])
     # cli(['playlist', 'import-all'])
-    cli(['playlist', 'import-all', "-y", r'C:\Users\Derwish\Documents\Develop\spoty\spoty\MUSIC LIBRARY'])
+    # cli(['playlist', 'import-all', "-y", r'C:\Users\Derwish\Documents\Develop\spoty\spoty\MUSIC LIBRARY'])
     # cli(['playlist', 'import', '--append', r'C:\Users\Derwish\Documents\Develop\spotyfy-automation\export\Test playlist.csv'])
     # cli(['playlist', 'export', 'https://open.spotify.com/playlist/4hkN9szbNaxVGmoSa2UHQ5?si=f951fbaa61d842e4'])
     # cli(['playlist', 'export-all', '-yo', "--path", r'C:\Users\Derwish\Documents\Develop\spoty\spoty\MUSIC LIBRARY'])
@@ -38,3 +38,4 @@ if __name__ == '__main__':
     # cli(['local', 'count-in-playlists', r"C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS\EXPORT"])
     # cli(['local', 'count-in-playlists','--have-no-tag', 'title', r"C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS\EXPORT"])
     # cli(['local', 'list-tracks', '--have-no-tag', 'title,isrc', r"C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS"])
+    cli(['local', 'list-duplicates-in-playlists', r"C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS\EXPORT"])
