@@ -260,7 +260,7 @@ def print_duplicates_in_playlist(tags, duplicates_dic):
         click.echo(f'{len(duplicates)} duplicates with "{",".join(tags)}" tags: {isrc}')
         click.echo("-----------------------------------------------------")
         for track in duplicates:
-            click.echo(f'Track {track["playlist_index"]} in playlist "{track["playlist_name"]}"')
+            click.echo(f'Track {track["SPOTY_PLAYLIST_INDEX"]} in playlist "{track["SPOTY_PLAYLIST_NAME"]}"')
             spoty.local.print_track_main_tags(track)
 
 
@@ -272,9 +272,18 @@ def print_duplicates_in_tracks(tags, duplicates_dic):
         click.echo(f'{len(duplicates)} duplicates with "{",".join(tags)}" tags: {isrc}')
         click.echo("-----------------------------------------------------")
         for track in duplicates:
-            click.echo(f'Track {track["file_name"]}"')
+            click.echo(f'Track {track["SPOTY_FILE_NAME"]}"')
             spoty.local.print_track_main_tags(track)
 
+def duplicates_from_dict_to_array(duplicates_dic):
+    duplicates = []
+    i=0
+    for tag, tracks in duplicates_dic.items():
+        i+=1
+        for track in tracks:
+            track['SPOTY_DUPLICATE_GROUP'] = i
+        duplicates.extend(tracks)
+    return duplicates
 
 @local.command("list-duplicates-in-playlists")
 @click.argument('tags', type=str)
@@ -302,7 +311,7 @@ def local_list_duplicates_in_playlists(tags, path, filter_names, recursive):
     path = os.path.abspath(path)
     tags_arr = tags.upper().split(',') if tags is not None else []
     duplicates_dic, all_tracks, skipped_tracks = spoty.local.find_duplicates_in_playlists(path, tags_arr, recursive,
-                                                                                                  filter_names)
+                                                                                          filter_names)
     print_duplicates_in_playlist(tags_arr, duplicates_dic)
 
     click.echo(
@@ -314,7 +323,7 @@ def local_list_duplicates_in_playlists(tags, path, filter_names, recursive):
 @click.argument('path', type=str)
 @click.option('--filter-names', type=str, default=None,
               help='Include only files whose names matches this regex filter')
-@click.option('--have_tags', type=str, default=None,
+@click.option('--have-tags', type=str, default=None,
               help='Include only files that have all of the specified tags.')
 @click.option('--have-no-tags', type=str, default=None,
               help='Include only files that do not have any of the listed tags.')
@@ -347,3 +356,91 @@ def local_list_duplicates_in_tracks(tags, path, filter_names, recursive, have_ta
 
     click.echo(
         f'Total {len(duplicates_dic)} duplicates found in {len(all_tracks)} tracks ({len(skipped_tracks)} have no "{tags}" tags and skipped)')
+
+
+@local.command("collect-duplicates-in-playlists")
+@click.argument('tags', type=str)
+@click.argument('import-path', type=str)
+@click.argument('export-file-name', type=str)
+@click.option('--filter-names', type=str, default=None,
+              help='Read only playlists whose names matches this regex filter')
+@click.option('--recursive', '-r', type=bool, is_flag=True, default=False,
+              help='Search in subfolders.')
+def local_collect_duplicates_in_playlists(tags, import_path, export_file_name, filter_names, recursive):
+    r"""Collect the list of duplicates found in local playlists and create new playlists with duplicates only.
+
+    TAGS - Tags to compare
+
+    IMPORT-PATH - Path to search files
+
+    EXPORT-FILE-NAME - Path to search files
+
+    Examples:
+
+        spoty local collect-duplicates-in-playlists isrc "C:\Users\User\Downloads\import" "C:\Users\User\Downloads\duplicates.csv"
+
+        spoty local collect-duplicates-in-playlists -r "artist,title" "C:\Users\User\Downloads\import" "C:\Users\User\Downloads\duplicates.csv"
+    """
+
+    import_path = os.path.abspath(import_path)
+    export_file_name = os.path.abspath(export_file_name)
+
+    tags_arr = tags.upper().split(',') if tags is not None else []
+    duplicates_dic, all_tracks, skipped_tracks = spoty.local.find_duplicates_in_playlists(import_path, tags_arr, recursive,
+                                                                                          filter_names)
+    duplicates = duplicates_from_dict_to_array(duplicates_dic)
+
+    spoty.local.write_tracks_to_csv_file(duplicates, export_file_name)
+
+    click.echo(
+        f'{len(duplicates_dic)} duplicates found in {len(all_tracks)} tracks ({len(skipped_tracks)} have no "{tags}" tags and skipped) exported to "{export_file_name}"')
+
+
+
+@local.command("collect-duplicates-in-tracks")
+@click.argument('tags', type=str)
+@click.argument('import-path', type=str)
+@click.argument('export-file-name', type=str)
+@click.option('--filter-names', type=str, default=None,
+              help='Include only files whose names matches this regex filter')
+@click.option('--have-tags', type=str, default=None,
+              help='Include only files that have all of the specified tags.')
+@click.option('--have-no-tags', type=str, default=None,
+              help='Include only files that do not have any of the listed tags.')
+@click.option('--recursive', '-r', type=bool, is_flag=True, default=False,
+              help='Search in subfolders.')
+def local_collect_duplicates_in_playlists(tags, import_path, export_file_name, filter_names, recursive, have_tags, have_no_tags):
+    r"""Collect the list of duplicates found in local tracks and create new playlists with duplicates only.
+
+    TAGS - Tags to compare
+
+    IMPORT-PATH - Path to search files
+
+    EXPORT-FILE-NAME - Path to search files
+
+    Examples:
+
+        spoty local collect-duplicates-in-tracks isrc "C:\Users\User\Downloads\import" "C:\Users\User\Downloads\duplicates.csv"
+
+        spoty local collect-duplicates-in-tracks -r "artist,title" "C:\Users\User\Downloads\import" "C:\Users\User\Downloads\duplicates.csv"
+    """
+
+    import_path = os.path.abspath(import_path)
+    export_file_name = os.path.abspath(export_file_name)
+
+    tags_arr = tags.upper().split(',') if tags is not None else []
+    have_tags_arr = have_tags.upper().split(',') if have_tags is not None else []
+    have_no_tags_arr = have_no_tags.upper().split(',') if have_no_tags is not None else []
+
+    duplicates_dic, all_tracks, skipped_tracks \
+        = spoty.local.find_duplicates_in_tracks(import_path, tags_arr, recursive, filter_names, have_tags_arr,
+                                                have_no_tags_arr)
+
+    duplicates = duplicates_from_dict_to_array(duplicates_dic)
+
+    spoty.local.write_tracks_to_csv_file(duplicates, export_file_name)
+
+    click.echo(
+        f'{len(duplicates_dic)} duplicates found in {len(all_tracks)} tracks ({len(skipped_tracks)} have no "{tags}" tags and skipped) exported to "{export_file_name}"')
+
+

@@ -12,6 +12,15 @@ from mutagen.mp3 import MP3
 from mutagen.id3 import ID3
 import csv
 
+spoty_tags = \
+    [
+        'SPOTY_DUPLICATE_GROUP',
+        'SPOTY_PLAYLIST_NAME',
+        'SPOTY_PLAYLIST_INDEX',
+        'SPOTY_FILE_NAME',
+
+    ]
+
 main_tags = \
     [
         'ISRC',
@@ -181,6 +190,9 @@ def read_tracks_tags(track_file_names, add_file_name=False):
 def read_track_tags(file_name, add_file_name=False):
     track = {}
 
+    if add_file_name:
+        track['SPOTY_FILE_NAME'] = file_name
+
     if is_flac(file_name):
         f = FLAC(file_name)
         for tag in f.tags:
@@ -199,9 +211,6 @@ def read_track_tags(file_name, add_file_name=False):
         #     track[tag] = ",".join(f.tags[tag]) if tag in f.tags else ""
         # for tag in additional_tags:
         #     track[tag] = ",".join(f.tags[tag]) if tag in f.tags else ""
-
-    if add_file_name:
-        track['file_name'] = file_name
 
     return track
 
@@ -226,6 +235,11 @@ def collect_playlist_from_files(playlist_file_name, track_file_names, overwrite=
 
 def reorder_tag_keys(keys):
     res = []
+
+    # reorder spoty tags first
+    for key in spoty_tags:
+        if key in keys:
+            res.append(key)
 
     # reorder main tags first
     for key in main_tags:
@@ -320,14 +334,16 @@ def read_tracks_from_csv_file(playlist_file_name, add_playlist_info=False):
                 continue
 
             track = {}
+
+            if (add_playlist_info):
+                track['SPOTY_PLAYLIST_NAME'] = playlist_file_name
+                track['SPOTY_PLAYLIST_INDEX'] = i - 1
+
             for h, key in enumerate(header):
                 if len(row[h]) > 0:
                     track[key] = row[h]
 
-            if (add_playlist_info):
-                track['playlist_name'] = playlist_file_name
-                track['playlist_index'] = i - 1
-                tracks.append(track)
+            tracks.append(track)
 
     return tracks
 
@@ -400,7 +416,6 @@ def find_duplicates_in_tracks(path,
                               filter_names=None,
                               filter_have_tags=[],
                               filter_have_no_tags=[]):
-
     if len(tags_to_compare) == 0:
         return
 
