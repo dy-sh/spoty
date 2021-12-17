@@ -2,6 +2,7 @@ import click
 from spoty.commands import playlist_commands
 from spoty.commands import like_commands
 from spoty.commands import local_commands
+from spoty.commands import track_commands
 
 
 @click.group()
@@ -13,6 +14,7 @@ def cli():
 cli.add_command(playlist_commands.playlist)
 cli.add_command(like_commands.like)
 cli.add_command(local_commands.local)
+cli.add_command(track_commands.track)
 
 if __name__ == '__main__':
     # cli()
@@ -45,6 +47,9 @@ if __name__ == '__main__':
     #      "--filter-names", r'TEMP', '--user-id','yniwbbotyw3ag2o5s3exexycj'])
     # cli(['local', 'add-tags-from-spotify-library', '-r',r'C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS\test\2',
     #      "--filter-names", r'^#DL Techno', '--user-id','yniwbbotyw3ag2o5s3exexycj'])
-    cli(['local', 'add-tags-from-tracks', '-r',r'C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS\test\11',
-         r'C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS\test\2'])
+    # cli(['local', 'add-tags-from-tracks', '-r',r'C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS\test\11',
+    #      r'C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS\test\2'])
     # cli(['local', 'fix-invalid-track-tags', '-r',r'C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS\test'])
+    # cli(['track', 'isrc', 'UK6821402425'])
+    # cli(['track', 'artist-title', "Aaron Static", "When We Love"])
+    cli(['track', 'query', "track: breathe"])

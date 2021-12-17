@@ -361,28 +361,7 @@ def read_tracks_from_csv_file(playlist_file_name, add_playlist_info=False):
     return tracks
 
 
-def print_track_main_tags(track, include_playlist_info=False):
-    if 'ISRC' in track: print(f'ISRC: {track["ISRC"]}')
-    if 'ARTIST' in track: print(f'ARTIST: {track["ARTIST"]}')
-    # if 'ALBUMARTIST' in track: print(f'ALBUMARTIST: {track["ALBUMARTIST"]}')
-    if 'TITLE' in track: print(f'TITLE: {track["TITLE"]}')
-    if 'ALBUM' in track: print(f'ALBUM: {track["ALBUM"]}')
-    if 'GENRE' in track: print(f'GENRE: {track["GENRE"]}')
-    if 'MOOD' in track: print(f'MOOD: {track["MOOD"]}')
-    if 'OCCASION' in track: print(f'OCCASION: {track["OCCASION"]}')
-    if 'RATING' in track: print(f'RATING: {track["RATING"]}')
-    if 'COMMENT' in track: print(f'COMMENT: {track["COMMENT"]}')
-    if 'BARCODE' in track: print(f'BARCODE: {track["BARCODE"]}')
-    # if 'BPM' in track: print(f'BPM: {track["BPM"]}')
-    # if 'FILEOWNER' in track: print(f'FILEOWNER: {track["FILEOWNER"]}')
-    if 'LENGTH' in track: print(f'LENGTH: {track["LENGTH"]}')
-    # if 'QUALITY' in track: print(f'QUALITY: {track["QUALITY"]}')
-    # if 'SPOTIFY_TRACK_ID' in track: print(f'SPOTIFY_TRACK_ID: {track["SPOTIFY_TRACK_ID"]}')
-    # if 'SPOTIFY_RELEASE_ID' in track: print(f'SPOTIFY_RELEASE_ID: {track["SPOTIFY_RELEASE_ID"]}')
-    if 'SOURCE' in track: print(f'SOURCE: {track["SOURCE"]}')
-    if 'SOURCEID' in track: print(f'SOURCEID: {track["SOURCEID"]}')
-    # if 'TEMPO' in track: print(f'TEMPO: {track["TEMPO"]}')
-    # if 'YEAR' in track: print(f'YEAR: {track["YEAR"]}')
+
 
 
 def find_duplicates_in_tag_tracks(all_tracks, tags_to_compare):

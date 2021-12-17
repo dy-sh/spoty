@@ -3,6 +3,7 @@ from spoty import log
 import spoty.local
 import spoty.utils
 import spoty.like
+import spoty.track
 import os.path
 import click
 import time
@@ -314,7 +315,7 @@ def import_playlist_from_file(file_name, append_if_exist=False, allow_duplicates
         playlist_id = create_playlist(playlist_name)
 
     tag_tracks = spoty.local.read_tracks_from_csv_file(file_name)
-    found_ids = find_tracks_from_tags(tag_tracks)
+    found_ids = spoty.track.find_tracks_from_tags(tag_tracks)
 
     if len(found_ids) > 0:
         tracks_added = add_tracks_to_playlist(playlist_id, found_ids, allow_duplicates)
@@ -324,53 +325,7 @@ def import_playlist_from_file(file_name, append_if_exist=False, allow_duplicates
     return playlist_id, tracks_added, tag_tracks
 
 
-def find_track_id_by_isrc(isrc):
-    res=sp.search(f'isrc:{isrc}')
 
-    try:
-        #todo: find for the best matching by album, length and other tags
-        id = res['tracks']['items'][0]['id']
-        return id
-    except:
-        pass
-
-    return None
-
-def find_track_id_by_artist_and_title(title, artist):
-    res=sp.search(f'track:{title} artist:{artist}')
-
-    try:
-        #todo: find for the best matching by album, length and other tags
-        id = res['tracks']['items'][0]['id']
-        return id
-    except:
-        pass
-
-    return None
-
-def find_tracks_from_tags(tag_tracks):
-    found_ids = []
-    not_found_tracks = []
-    for tag_track in tag_tracks:
-        if "SPOTIFY_TRACK_ID" in tag_track:
-            found_ids.append(tag_track['SPOTIFY_TRACK_ID'])
-            continue
-
-        if "ISRC" in tag_track:
-            id = find_track_id_by_isrc(tag_track['ISRC'])
-            if id is not None:
-                found_ids.append(id)
-            continue
-
-        if "TITLE" in tag_track and "ARTIST" in tag_track:
-            id = find_track_id_by_artist_and_title(tag_track['TITLE'], tag_track['ARTIST'])
-            if id is not None:
-                found_ids.append(id)
-            continue
-
-        not_found_tracks += tag_track
-
-    return found_ids
 
 
 def like_all_tracks_in_playlist(playlist_id):
