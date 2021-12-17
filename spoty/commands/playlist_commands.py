@@ -17,40 +17,6 @@ def playlist():
     pass
 
 
-@playlist.command("list")
-@click.option('--filter-names', type=str, default=None,
-              help='List only playlists whose names matches this regex filter')
-@click.option('--user-id', type=str, default=None, help='Get playlists of this user')
-def playlist_list(filter_names, user_id):
-    r"""
-    List of all playlists.
-
-    Examples:
-
-        spoty playlist list
-
-        spoty playlist list --user-id 4717400682
-    """
-    if user_id == None:
-        playlists = spoty.playlist.get_list_of_playlists()
-    else:
-        playlists = spoty.playlist.get_list_of_user_playlists(user_id)
-
-    if len(playlists) == 0:
-        exit()
-
-    if filter_names is not None:
-        playlists = list(filter(lambda pl: re.findall(filter_names, pl['name']), playlists))
-        click.echo(f'{len(playlists)} playlists matches the filter')
-
-    if len(playlists) == 0:
-        exit()
-
-    for playlist in playlists:
-        click.echo(f'{playlist["id"]} "{playlist["name"]}"')
-
-    click.echo(f'Total playlists: {len(playlists)}')
-
 
 @playlist.command("list")
 @click.option('--filter-names', type=str, default=None,

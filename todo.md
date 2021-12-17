@@ -10,8 +10,8 @@ deezer
 - fix continue downloading, delete last file
 
 local
-- remove duplicates in local folder by ISRCs (move to folder with "isrc-deezer1.flac" "isrc-spotify1.flac")
-- remove existing tracks from folder if exist in another folder by ISRCs
+- remove duplicates in local folder
+- remove duplicates in local folder from folder if exist in another folder
 - remove existing tracks from new playlists (generate new playlists without existing)
 - read playlists and write spotify_track_id tag from playlist to local files if title matches
 - read playlists and write isrc if empty (and check if exist) for local files if title matches

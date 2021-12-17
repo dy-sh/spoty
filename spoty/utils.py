@@ -2,6 +2,7 @@ import os.path
 import csv
 import spoty.local
 
+
 class CSVImportException(Exception):
     """Base class for exceptions when importing CSV file."""
     pass
@@ -86,12 +87,12 @@ def remove_duplicates(arr):
 
 
 def read_tags_from_spotify_tracks(tracks):
-    tag_tracks=[]
+    tag_tracks = []
 
     for i, track in enumerate(tracks):
         track = track['track']
 
-        tags={}
+        tags = {}
 
         try:
             tags['ISRC'] = track['external_ids']['isrc']
@@ -127,16 +128,29 @@ def read_tags_from_spotify_tracks(tracks):
         tags['TRACK'] = track['track_number']
 
         try:
-            tags['YEAR']  = track['album']['release_date']
+            tags['YEAR'] = track['album']['release_date']
         except:
             pass
 
         # PREVIEW_URL=track['preview_url']
-        tags['SOURCE']  = "Spotify"
-        tags['SOURCEID']  = tags['SPOTIFY_TRACK_ID']
+        tags['SOURCE'] = "Spotify"
+        tags['SOURCEID'] = tags['SPOTIFY_TRACK_ID']
 
         tag_tracks.append(tags)
 
     return tag_tracks
 
 
+def compare_two_tag_tracks(old_track, new_track, compare_tags, allow_missing=False):
+    for tag in compare_tags:
+
+        if not tag in old_track or not tag in new_track:
+            if allow_missing:
+                continue
+            else:
+                return False
+
+        if new_track[tag] != old_track[tag]:
+            return False
+
+    return True

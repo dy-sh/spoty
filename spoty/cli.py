@@ -40,4 +40,6 @@ if __name__ == '__main__':
     # cli(['local', 'list-tracks', '--have-no-tag', 'title,isrc', r"C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS"])
     # cli(['local', 'list-duplicates-in-playlists', r"C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS\EXPORT"])
     # cli(['local', 'list-duplicates-in-tracks', '-r','isrc',r"C:\Users\Derwish\Music\MusicBee\Music"])
-    cli(['local', 'list-duplicates-in-tracks', '-r','isrc,isrc',r"C:\Users\Derwish\Music\deemix"])
+    # cli(['local', 'list-duplicates-in-tracks', '-r','isrc,isrc',r"C:\Users\Derwish\Music\deemix"])
+    cli(['local', 'add-tags-from-spotify-library', '-r',r'C:\Users\Derwish\Documents\Develop\deezy\DOWNLOADS\test',
+         "--filter-names", r'^#DL Instrumental2', '--user-id','yniwbbotyw3ag2o5s3exexycj'])

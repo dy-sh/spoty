@@ -425,3 +425,52 @@ def find_duplicates_in_tracks(path,
     duplicates, all_tracks, skipped_tracks = find_duplicates_in_tag_tracks(all_tracks, tags_to_compare)
 
     return duplicates, all_tracks, skipped_tracks
+
+
+def add_tags_from_spotify_library(path, recursive, compare_tags, filter_names, have_tags, have_no_tags, user_id):
+    directories = []
+    for (dirpath, dirnames, filenames) in os.walk(path):
+        directories.append(dirpath)
+
+    local_tracks_file_names = []
+    local_tracks_tags = []
+    playlist_names = []
+    playlist_file_names = []
+
+    with click.progressbar(directories, label='Collecting tracks') as bar:
+        for dir in bar:
+            tracks_file_names = \
+                spoty.local.get_local_tracks_file_names(dir, False, None, have_tags, have_no_tags)
+
+            if len(tracks_file_names) == 0:
+                continue
+
+            local_tracks_file_names.extend(tracks_file_names)
+            tags = spoty.local.read_tracks_tags(tracks_file_names, True)
+            local_tracks_tags.extend(tags)
+
+    if user_id == None:
+        playlists = spoty.playlist.get_list_of_playlists()
+        click.echo(f'You have {len(playlists)} playlists')
+    else:
+        playlists = spoty.playlist.get_list_of_user_playlists(user_id)
+        click.echo(f'User has {len(playlists)} playlists')
+
+    if len(playlists) == 0:
+        exit()
+
+    if filter_names is not None:
+        playlists = list(filter(lambda pl: re.findall(filter_names, pl['name']), playlists))
+        click.echo(f'{len(playlists)} playlists matches the filter')
+
+    if len(playlists) == 0:
+        exit()
+
+    with click.progressbar(playlists, label='Reading spotify playlists') as bar:
+        for playlist in bar:
+            tracks = spoty.playlist.get_tracks_of_playlist(playlist['id'])
+            tag_tracks = spoty.utils.read_tags_from_spotify_tracks(tracks)
+            for tag_track in tag_tracks:
+                for local_track in local_tracks_tags:
+                    if spoty.utils.compare_two_tag_tracks(local_track,tag_track,compare_tags):
+                        print(str(tag_track))
