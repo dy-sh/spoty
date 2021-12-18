@@ -155,7 +155,7 @@ def list(sources,
         if len(filter_tracks_no_tags) > 0:
             local_files = spoty.local.filter_tracks_which_not_have_any_of_tags(local_files, filter_tracks_no_tags)
 
-        tags=spoty.local.read_tracks_tags(local_files,True)
+        tags=spoty.local.read_local_audio_tracks_tags(local_files, True)
 
         source_local_tracks.append(local_files)
         source_local_tracks_tags.extend(tags)

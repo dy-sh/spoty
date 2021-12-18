@@ -183,7 +183,7 @@ def local_collect_playlists(tracks_path, export_path, filter_names, overwrite, t
                     continue
 
                 all_track_file_names.extend(tracks_file_names)
-                tags = spoty.local.read_tracks_tags(tracks_file_names)
+                tags = spoty.local.read_local_audio_tracks_tags(tracks_file_names)
                 all_track_tags.extend(tags)
 
         grouped_tracks = spoty.local.group_tracks_by_pattern(naming_pattern, all_track_tags)

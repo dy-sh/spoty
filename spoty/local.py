@@ -50,7 +50,7 @@ def is_valid_file(path):
 def filter_tracks_which_have_all_tags(file_names, tags):
     filtered = []
     for file_name in file_names:
-        track = read_track_tags(file_name)
+        track = read_local_audio_track_tags(file_name)
         if spoty.utils.check_track_have_all_tags(track, tags):
             filtered.append(file_name)
     return filtered
@@ -59,7 +59,7 @@ def filter_tracks_which_have_all_tags(file_names, tags):
 def filter_tracks_which_not_have_any_of_tags(file_names, tags):
     filtered = []
     for file_name in file_names:
-        track = read_track_tags(file_name)
+        track = read_local_audio_track_tags(file_name)
         if not spoty.utils.check_track_have_all_tags(track, tags):
             filtered.append(file_name)
     return filtered
@@ -126,19 +126,24 @@ def get_all_playlists_in_path(path,
     return full_file_names
 
 
-def read_tracks_tags(track_file_names, add_file_name=False):
+def read_local_audio_tracks_tags(track_file_names, add_extra_info=True):
     tracks = []
     for file_name in track_file_names:
-        track = read_track_tags(file_name, add_file_name)
+        track = read_local_audio_track_tags(file_name, add_extra_info)
         tracks.append(track)
     return tracks
 
 
-def read_track_tags(file_name, add_file_name=False):
+def read_local_audio_track_tags(file_name, add_extra_info=True):
     track = {}
 
-    if add_file_name:
+    file_name=os.path.abspath(file_name)
+
+    if add_extra_info:
+        dir = os.path.dirname(file_name)
         track['SPOTY_FILE_NAME'] = file_name
+        track['SPOTY_PLAYLIST_SOURCE'] = "LOCAL"
+        track['SPOTY_PLAYLIST_NAME'] = os.path.basename(os.path.normpath(dir))
 
     if is_flac(file_name):
         f = None
@@ -178,7 +183,7 @@ def collect_playlist_from_files(playlist_file_name, track_file_names, overwrite=
             log.info(f'Canceled by user (file already exist)')
             return None
 
-    tracks = read_tracks_tags(track_file_names)
+    tracks = read_local_audio_tracks_tags(track_file_names)
 
     write_tracks_to_csv_file(tracks, playlist_file_name)
     #
@@ -313,7 +318,7 @@ def find_duplicates_in_tracks(path,
 
     full_file_names = spoty.local.get_local_tracks_file_names_old(path, recursive, filter_names, filter_have_tags,
                                                                   filter_have_no_tags)
-    all_tracks = read_tracks_tags(full_file_names, True)
+    all_tracks = read_local_audio_tracks_tags(full_file_names, True)
     duplicates, all_tracks, skipped_tracks = find_duplicates_in_tag_tracks(all_tracks, tags_to_compare)
 
     return duplicates, all_tracks, skipped_tracks
@@ -336,7 +341,7 @@ def get_tags_from_tracks(import_path, recursive, have_tags, have_no_tags):
             if len(tracks_file_names) == 0:
                 continue
 
-            tags = spoty.local.read_tracks_tags(tracks_file_names, True)
+            tags = spoty.local.read_local_audio_tracks_tags(tracks_file_names, True)
             tracks_tags.extend(tags)
 
     return tracks_tags
@@ -374,7 +379,7 @@ def write_missing_tags_from_tracks(import_tracks_tags, export_tracks_tags, compa
 def get_missing_tags(file_name, new_tags):
     missing_tags = {}
 
-    exist_tags = read_track_tags(file_name)
+    exist_tags = read_local_audio_track_tags(file_name)
 
     for key, value in new_tags.items():
         if key == 'LENGTH':
@@ -427,7 +432,7 @@ def fix_invalid_track_tags(path, recursive, have_tags, have_no_tags):
                 continue
 
             local_tracks_file_names.extend(tracks_file_names)
-            tags = spoty.local.read_tracks_tags(tracks_file_names, True)
+            tags = spoty.local.read_local_audio_tracks_tags(tracks_file_names, True)
             local_tracks_tags.extend(tags)
 
     edited_files = []
