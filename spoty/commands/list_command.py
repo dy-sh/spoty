@@ -1,11 +1,10 @@
 from spoty import settings
 from spoty import log
-import spoty.playlist
-import spoty.like
-import spoty.local
+import spoty.spotify
+import spoty.local_files
+import spoty.csv_playlist
 import click
 import re
-import spoty.utils
 import time
 import os
 from datetime import datetime
@@ -108,12 +107,12 @@ def list(sources,
         else:
             click.echo(f'Cant recognize source: "{source}"', err=True)
 
-    spotify_tracks, spotify_tags = get_tracks_from_spotify_playlists(
+    spotify_tracks, spotify_tags = spoty.spotify.get_tracks_from_spotify_playlists(
         source_spotify_playlist, filter_playlists_names, filter_tracks_tags, filter_tracks_no_tags)
 
     all_tags.extend(spotify_tags)
 
-    local_file_names, local_tags = get_tracks_from_local_path(
+    local_file_names, local_tags = spoty.local_files.get_tracks_from_local_path(
         source_local_files, no_recursive, filter_tracks_tags, filter_tracks_no_tags)
 
     all_tags.extend(local_tags)
@@ -143,7 +142,7 @@ def list(sources,
             export_path = os.path.join(export_path, date_time_str)
 
         exported_playlists_file_names, exported_playlists_names, exported_tracks = \
-            export_tags(all_tags, export_path, export_naming_pattern, overwrite)
+            spoty.csv_playlist.export_tags(all_tags, export_path, export_naming_pattern, overwrite)
 
 
 def to_list(some_tuple):
@@ -152,92 +151,4 @@ def to_list(some_tuple):
     return l
 
 
-def get_tracks_from_spotify_playlists(source_spotify_playlists, filter_playlists_names, filter_tracks_tags,
-                                      filter_tracks_no_tags):
-    spotify_tracks = []
-    source_tags = []
 
-    if len(source_spotify_playlists) > 0:
-        playlists = []
-        with click.progressbar(source_spotify_playlists, label='Reading spotify playlists') as bar:
-            for playlist_id in bar:
-                playlist = spoty.playlist.get_playlist(playlist_id)
-                playlists.append(playlist)
-
-        if len(filter_playlists_names) > 0:
-            playlists = list(filter(lambda pl: re.findall(filter_playlists_names, pl['name']), playlists))
-
-        with click.progressbar(playlists, label='Reading spotify tracks') as bar:
-            for playlist in bar:
-
-                tracks = spoty.playlist.get_tracks_of_playlist(playlist['id'])
-                for track in tracks:
-                    track['track']['SPOTY_PLAYLIST_NAME'] = playlist['name']
-
-                if len(filter_tracks_tags) > 0:
-                    tracks = spoty.utils.filter_spotify_tracks_which_have_all_tags(tracks, filter_tracks_tags)
-
-                if len(filter_tracks_no_tags) > 0:
-                    tracks = spoty.utils.filter_spotify_tracks_which_not_have_any_of_tags(tracks, filter_tracks_no_tags)
-
-                tags = spoty.utils.read_tags_from_spotify_tracks(tracks)
-
-                spotify_tracks.extend(tracks)
-                source_tags.extend(tags)
-
-    return spotify_tracks, source_tags
-
-
-def get_tracks_from_local_path(source_paths, no_recursive, filter_tracks_tags, filter_tracks_no_tags):
-    local_file_names = []
-    local_tags = []
-
-    for path in source_paths:
-        path = os.path.abspath(path)
-        local_files = spoty.local.get_local_audio_file_names(path, no_recursive)
-
-        if len(filter_tracks_tags) > 0:
-            local_files = spoty.local.filter_tracks_which_have_all_tags(local_files, filter_tracks_tags)
-
-        if len(filter_tracks_no_tags) > 0:
-            local_files = spoty.local.filter_tracks_which_not_have_any_of_tags(local_files, filter_tracks_no_tags)
-
-        tags = spoty.local.read_local_audio_tracks_tags(local_files, True)
-
-        local_file_names.append(local_files)
-        local_tags.extend(tags)
-
-    return local_file_names, local_tags
-
-
-
-def export_tags(all_tags, export_path, export_naming_pattern, overwrite):
-    exported_playlists_file_names = []
-    exported_playlists_names = []
-    exported_tracks = []
-
-    if len(all_tags) > 0:
-        grouped_tracks = spoty.utils.group_tracks_by_pattern(export_naming_pattern, all_tags)
-
-        for group, tracks in grouped_tracks.items():
-            playlist_name = group
-            playlist_name = spoty.utils.slugify_file_pah(playlist_name)
-            playlist_file_name = os.path.join(export_path, playlist_name + '.csv')
-
-            if playlist_file_name in exported_playlists_file_names:
-                spoty.local.write_tracks_to_csv_file(tracks, playlist_file_name, True)
-            else:
-                if os.path.isfile(playlist_file_name) and not overwrite:
-                    if not click.confirm(f'File "{playlist_file_name}" already exist. Overwrite?'):
-                        continue
-
-                spoty.local.write_tracks_to_csv_file(tracks, playlist_file_name, False)
-
-            exported_playlists_names.append(playlist_name)
-            exported_playlists_file_names.append(playlist_file_name)
-            exported_tracks.extend(tracks)
-
-        mess = f'\n{len(exported_tracks)} tracks exported to {len(exported_playlists_file_names)} playlists in path: "{export_path}"'
-        click.echo(mess)
-
-    return exported_playlists_file_names, exported_playlists_names, exported_tracks
