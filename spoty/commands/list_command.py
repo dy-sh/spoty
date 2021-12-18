@@ -110,8 +110,6 @@ def list(sources,
     filter_tracks_no_tags = to_list(filter_tracks_no_tags)
     print_tags = print_tags.split(',')
 
-    all_tags = []
-
     for source in sources:
         if spoty.spotify.check_is_playlist_URI(source):
             source_spotify_playlist.append(source)
@@ -122,19 +120,23 @@ def list(sources,
         else:
             click.echo(f'Cant recognize source: "{source}"', err=True)
 
-    spotify_tracks, spotify_tags = spoty.spotify.get_tracks_from_spotify_playlists(
+    all_tags = []
+
+    tracks, tags = spoty.spotify.get_tracks_from_spotify_playlists(
         source_spotify_playlist, filter_playlists_names, filter_tracks_tags, filter_tracks_no_tags)
-    all_tags.extend(spotify_tags)
+    all_tags.extend(tags)
 
-    new_spotify_tracks, new_spotify_tags = spoty.spotify.get_tracks_of_spotify_user(
+    tracks, tags = spoty.spotify.get_tracks_of_spotify_user(
         source_spotify_user, filter_playlists_names, filter_tracks_tags, filter_tracks_no_tags)
-    spotify_tracks.extend(new_spotify_tracks)
-    spotify_tags.extend(new_spotify_tags)
-    all_tags.extend(new_spotify_tags)
+    all_tags.extend(tags)
 
-    local_file_names, local_tags = spoty.local_files.get_tracks_from_local_path(
-        source_local_files, no_recursive, filter_tracks_tags, filter_tracks_no_tags)
-    all_tags.extend(local_tags)
+    file_names, tags = spoty.local_files.get_tracks_from_local_paths(
+        source_local_files, not no_recursive, filter_tracks_tags, filter_tracks_no_tags)
+    all_tags.extend(tags)
+
+    playlists, tags = spoty.csv_playlist.get_tracks_from_local_paths(
+        source_local_playlists, not no_recursive, filter_tracks_tags, filter_tracks_no_tags)
+    all_tags.extend(tags)
 
     if print_to_console:
         spoty.utils.print_tracks(all_tags, print_tags)

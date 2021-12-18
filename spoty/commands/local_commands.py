@@ -2,7 +2,8 @@ from spoty import log
 import spoty.spotify
 import spoty.csv_playlist
 import spoty.utils
-import spoty.local
+import spoty.local_files
+import spoty.local_files
 import click
 import os
 import time
@@ -14,196 +15,6 @@ import re
 def local():
     r"""Local files management."""
     pass
-
-
-@local.command("count-tracks")
-@click.argument('path')
-@click.option('--filter-names', default=None,
-              help='Count only files whose names matches this regex filter')
-@click.option('--have-tags', default=None,
-              help='Count only files that have all of the specified tags.')
-@click.option('--have-no-tags', default=None,
-              help='Count only files that do not have any of the listed tags.')
-@click.option('--recursive', '-r', type=bool, is_flag=True, default=False,
-              help='Search in subfolders.')
-def local_count_tracks(path, recursive, filter_names, have_tags, have_no_tags):
-    r"""
-    Displays the number of local tracks found in the folder.
-
-    PATH - Path to search files
-
-    Examples:
-
-        spoty local count-tracks "C:\Users\User\Downloads\music"
-
-        spoty local count-tracks -r "C:\Users\User\Downloads\music"
-
-        spoty local count-tracks -r --have-tags "isrc,genre" "C:\Users\User\Downloads\music"
-
-        spoty local count-tracks --filter-names "^awesome" "C:\Users\User\Downloads\music"
-    """
-    path = os.path.abspath(path)
-
-    have_tags_arr = have_tags.upper().split(',') if have_tags is not None else []
-    have_no_tags_arr = have_no_tags.upper().split(',') if have_no_tags is not None else []
-    full_file_names = spoty.local.get_local_tracks_file_names_old(path, recursive, filter_names, have_tags_arr,
-                                                                  have_no_tags_arr)
-
-    click.echo(f'Local tracks: {len(full_file_names)}')
-
-
-@local.command("list-tracks")
-@click.argument('path')
-@click.option('--filter-names', default=None,
-              help='List only files whose names matches this regex filter')
-@click.option('--have-tags', default=None,
-              help='List only files that have all of the specified tags.')
-@click.option('--have-no-tags', default=None,
-              help='List only files that do not have any of the listed tags.')
-@click.option('--recursive', '-r', type=bool, is_flag=True, default=False,
-              help='Search in subfolders.')
-def local_list_tracks(path, recursive, filter_names, have_tags, have_no_tags):
-    r"""
-    Displays the list of local tracks found in the folder.
-
-    PATH - Path to search files
-
-    Examples:
-
-        spoty local list-tracks "C:\Users\User\Downloads\music"
-
-        spoty local list-tracks -r "C:\Users\User\Downloads\music"
-
-        spoty local list-tracks -r --have-isrc "C:\Users\User\Downloads\music"
-
-        spoty local list-tracks --filter-names "^awesome" "C:\Users\User\Downloads\music"
-    """
-    path = os.path.abspath(path)
-
-    have_tags_arr = have_tags.upper().split(',') if have_tags is not None else []
-    have_no_tags_arr = have_no_tags.upper().split(',') if have_no_tags is not None else []
-    full_file_names = spoty.local.get_local_tracks_file_names_old(path, recursive, filter_names, have_tags_arr,
-                                                                  have_no_tags_arr)
-
-    click.echo(f'Local tracks:')
-    for full_file in full_file_names:
-        click.echo(full_file)
-
-    click.echo(f'Total tracks: {len(full_file_names)}')
-
-
-@local.command("collect-playlist")
-@click.argument('tracks-path')
-@click.argument('export-path')
-@click.option('--filter-names', default=None,
-              help='Export only playlists whose names matches this regex filter')
-@click.option('--overwrite', '-o', type=bool, is_flag=True, default=False,
-              help='Overwrite existing files without asking')
-@click.option('--timestamp', '-t', type=bool, is_flag=True, default=False,
-              help='Create a subfolder with the current date and time (it can be convenient for creating backups)')
-@click.option('--have-tags', default=None,
-              help='Collect only files that have all of the specified tags.')
-@click.option('--have-no-tags', default=None,
-              help='Collect only files that do not have any of the listed tags.')
-@click.option('--naming-pattern', default=None,
-              help='')
-def local_collect_playlists(tracks_path, export_path, filter_names, overwrite, timestamp, naming_pattern, have_tags,
-                            have_no_tags):
-    r"""Create playlists from your local tracks and save to csv files on disk.
-
-    TRACKS_PATH - path where local music files located
-
-    EXPORT_PATH - path where to create playlists files
-
-    If "--naming-pattern" flag is not set, then playlist names will be generated from the name of the subfolder where the files are located.
-    if "--naming-pattern" flag is set, then the playlists will be named according to the pattern. Any tags from the tracks can be used in the template.
-
-
-    Examples:
-
-        spoty local collect-playlist "C:\Users\User\Downloads\music" "C:\Users\User\Downloads\export"
-
-        Export only playlists whose names starts with "awesome":
-
-            spoty local collect-playlist --filter-names "^awesome" "C:\Users\User\Downloads\music" "C:\Users\User\Downloads\export"
-
-        Export playlists by genres:
-
-            spoty local collect-playlist --naming-pattern "%genre%" "C:\Users\User\Downloads\music" "C:\Users\User\Downloads\export"
-
-        Export playlists by genre and mood:
-
-            spoty local collect-playlist --naming-pattern "%genre% - %mood%" "C:\Users\User\Downloads\music" "C:\Users\User\Downloads\export"
-    """
-
-    path = os.path.abspath(tracks_path)
-
-    directories = []
-    for (dirpath, dirnames, filenames) in os.walk(path):
-        directories.append(dirpath)
-
-    all_track_file_names = []
-    all_track_tags = []
-    playlist_names = []
-    playlist_file_names = []
-
-    if timestamp:
-        now = datetime.now()
-        date_time_str = now.strftime("%Y_%m_%d-%H_%M_%S")
-        export_path = os.path.join(export_path, date_time_str)
-
-    have_tags_arr = have_tags.upper().split(',') if have_tags is not None else []
-    have_no_tags_arr = have_no_tags.upper().split(',') if have_no_tags is not None else []
-
-    if naming_pattern is None:
-        with click.progressbar(directories, label='Exporting playlists') as bar:
-            for dir in bar:
-                tracks_file_names = spoty.local.get_local_tracks_file_names_old(dir, False, filter_names, have_tags_arr,
-                                                                                have_no_tags_arr)
-
-                if len(tracks_file_names) == 0:
-                    continue
-
-                playlist_name = os.path.basename(os.path.normpath(dir))
-                playlist_file_name = os.path.join(export_path, playlist_name + '.csv')
-
-                spoty.csv_playlist.collect_playlist_from_files(playlist_file_name, tracks_file_names, overwrite)
-
-                all_track_file_names.extend(tracks_file_names)
-                playlist_names.append(playlist_name)
-                playlist_file_names.append(playlist_file_name)
-    else:
-        with click.progressbar(directories, label='Collecting tracks') as bar:
-            for dir in bar:
-                tracks_file_names = spoty.local.get_local_tracks_file_names_old(dir, False, filter_names, have_tags_arr,
-                                                                                have_no_tags_arr)
-
-                if len(tracks_file_names) == 0:
-                    continue
-
-                all_track_file_names.extend(tracks_file_names)
-                tags = spoty.local.read_local_audio_tracks_tags(tracks_file_names)
-                all_track_tags.extend(tags)
-
-        grouped_tracks = spoty.utils.group_tracks_by_pattern(naming_pattern, all_track_tags)
-        for key, value in grouped_tracks.items():
-            playlist_name = key
-            playlist_name = spoty.utils.slugify_file_pah(playlist_name)
-            playlist_file_name = os.path.join(export_path, playlist_name + '.csv')
-
-            if os.path.isfile(playlist_file_name) and not overwrite:
-                time.sleep(0.2)  # waiting progressbar updating
-                if not click.confirm(f'\nFile "{playlist_file_name}" already exist. Overwrite?'):
-                    continue
-
-            spoty.csv_playlist.write_tracks_to_csv_file(value, playlist_file_name)
-
-            playlist_names.append(playlist_name)
-            playlist_file_names.append(playlist_file_name)
-
-    mess = f'{len(all_track_file_names)} tracks exported to {len(playlist_names)} playlists in path: "{export_path}"'
-    log.success(mess)
-    click.echo(mess)
 
 
 @local.command("count-in-playlists")
@@ -354,7 +165,7 @@ def local_list_duplicates_in_tracks(tags, path, filter_names, recursive, have_ta
     have_no_tags_arr = have_no_tags.upper().split(',') if have_no_tags is not None else []
 
     duplicates_dic, all_tracks, skipped_tracks \
-        = spoty.local.find_duplicates_in_tracks(path, tags_arr, recursive, filter_names, have_tags_arr,
+        = spoty.local_files.find_duplicates_in_tracks(path, tags_arr, recursive, filter_names, have_tags_arr,
                                                 have_no_tags_arr)
     print_duplicates_in_tracks(tags_arr, duplicates_dic)
 
@@ -438,7 +249,7 @@ def local_collect_duplicates_in_tracks(tags, import_path, export_file_name, filt
     have_no_tags_arr = have_no_tags.upper().split(',') if have_no_tags is not None else []
 
     duplicates_dic, all_tracks, skipped_tracks \
-        = spoty.local.find_duplicates_in_tracks(import_path, tags_arr, recursive, filter_names, have_tags_arr,
+        = spoty.local_files.find_duplicates_in_tracks(import_path, tags_arr, recursive, filter_names, have_tags_arr,
                                                 have_no_tags_arr)
 
     duplicates = duplicates_from_dict_to_array(duplicates_dic)
@@ -486,10 +297,10 @@ def local_add_tags_from_spotify_library(export_path, recursive, compare_tags, fi
     compare_tags_arr = compare_tags.upper().split(',') if compare_tags is not None else []
 
     import_tracks_tags = spoty.spotify.get_tags_from_spotify_library(filter_names, user_id)
-    export_tracks_tags = spoty.local.get_tags_from_tracks(export_path, recursive, have_tags_arr, have_no_tags_arr)
-    missing_tags = spoty.local.get_missing_tags_from_tracks(import_tracks_tags, export_tracks_tags, compare_tags_arr)
+    export_tracks_tags = spoty.local_files.get_tags_from_tracks(export_path, recursive, have_tags_arr, have_no_tags_arr)
+    missing_tags = spoty.local_files.get_missing_tags_from_tracks(import_tracks_tags, export_tracks_tags, compare_tags_arr)
     for file_name, tags in missing_tags.items():
-        spoty.local.write_tags(file_name, tags)
+        spoty.local_files.write_tags(file_name, tags)
 
     click.echo(f'Edited tracks: {len(missing_tags)}/{len(export_tracks_tags)}')
 
@@ -528,11 +339,11 @@ def local_add_tags_from_tracks(import_path, export_path, recursive, compare_tags
     have_no_tags_arr = have_no_tags.upper().split(',') if have_no_tags is not None else []
     compare_tags_arr = compare_tags.upper().split(',') if compare_tags is not None else []
 
-    import_tracks_tags = spoty.local.get_tags_from_tracks(import_path, recursive, have_tags_arr, have_no_tags_arr)
-    export_tracks_tags = spoty.local.get_tags_from_tracks(export_path, recursive, have_tags_arr, have_no_tags_arr)
-    missing_tags = spoty.local.get_missing_tags_from_tracks(import_tracks_tags, export_tracks_tags, compare_tags_arr)
+    import_tracks_tags = spoty.local_files.get_tags_from_tracks(import_path, recursive, have_tags_arr, have_no_tags_arr)
+    export_tracks_tags = spoty.local_files.get_tags_from_tracks(export_path, recursive, have_tags_arr, have_no_tags_arr)
+    missing_tags = spoty.local_files.get_missing_tags_from_tracks(import_tracks_tags, export_tracks_tags, compare_tags_arr)
     for file_name, tags in missing_tags.items():
-        spoty.local.write_tags(file_name, tags)
+        spoty.local_files.write_tags(file_name, tags)
 
     click.echo(f'Edited tracks: {len(missing_tags)}/{len(export_tracks_tags)}')
 
@@ -574,8 +385,8 @@ def local_list_tags_from_spotify_library(export_path, recursive, compare_tags, f
     compare_tags_arr = compare_tags.upper().split(',') if compare_tags is not None else []
 
     import_tracks_tags = spoty.spotify.get_tags_from_spotify_library(filter_names, user_id)
-    export_tracks_tags = spoty.local.get_tags_from_tracks(export_path, recursive, have_tags_arr, have_no_tags_arr)
-    missing_tags = spoty.local.get_missing_tags_from_tracks(import_tracks_tags, export_tracks_tags, compare_tags_arr)
+    export_tracks_tags = spoty.local_files.get_tags_from_tracks(export_path, recursive, have_tags_arr, have_no_tags_arr)
+    missing_tags = spoty.local_files.get_missing_tags_from_tracks(import_tracks_tags, export_tracks_tags, compare_tags_arr)
     for file_name, tags in missing_tags.items():
         click.echo(f'----------------------------------------------------')
         click.echo(f'Tags missing in "{file_name}":')
@@ -620,9 +431,9 @@ def local_list_tags_from_tracks(import_path, export_path, recursive, compare_tag
     have_no_tags_arr = have_no_tags.upper().split(',') if have_no_tags is not None else []
     compare_tags_arr = compare_tags.upper().split(',') if compare_tags is not None else []
 
-    import_tracks_tags = spoty.local.get_tags_from_tracks(import_path, recursive, have_tags_arr, have_no_tags_arr)
-    export_tracks_tags = spoty.local.get_tags_from_tracks(export_path, recursive, have_tags_arr, have_no_tags_arr)
-    missing_tags = spoty.local.get_missing_tags_from_tracks(import_tracks_tags, export_tracks_tags, compare_tags_arr)
+    import_tracks_tags = spoty.local_files.get_tags_from_tracks(import_path, recursive, have_tags_arr, have_no_tags_arr)
+    export_tracks_tags = spoty.local_files.get_tags_from_tracks(export_path, recursive, have_tags_arr, have_no_tags_arr)
+    missing_tags = spoty.local_files.get_missing_tags_from_tracks(import_tracks_tags, export_tracks_tags, compare_tags_arr)
     for file_name, tags in missing_tags.items():
         click.echo(f'----------------------------------------------------')
         click.echo(f'Tags missing in "{file_name}":')
@@ -658,6 +469,6 @@ def local_fix_invalid_track_tags(path, recursive, have_tags, have_no_tags):
     have_tags_arr = have_tags.upper().split(',') if have_tags is not None else []
     have_no_tags_arr = have_no_tags.upper().split(',') if have_no_tags is not None else []
 
-    edited_files, all_files = spoty.local.fix_invalid_track_tags(path, recursive, have_tags_arr, have_no_tags_arr)
+    edited_files, all_files = spoty.local_files.fix_invalid_track_tags(path, recursive, have_tags_arr, have_no_tags_arr)
 
     click.echo(f'Fixed tracks: {len(edited_files)}/{len(all_files)}')

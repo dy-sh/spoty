@@ -23,18 +23,18 @@ if __name__ == '__main__':
     # cli(['list','-c', '--ssp', '0yRgrCdkntJG83mFbFvrBP', '--ssp',
     #      'https://open.spotify.com/playlist/7E6SNhIGjSqEmzHISqnMrJ'])
 
-    cli(['list',
-         '-p',
-         '--ssp', '0yRgrCdkntJG83mFbFvrBP',
-         '--ssp', '0yRgrCdkntJG83mFbFvrBP',
-         '--ssp', '0yRgrCdkntJG83mFbFvrBP',
-         'https://open.spotify.com/playlist/0yRgrCdkntJG83mFbFvrBP',
-         'https://open.spotify.com/playlist/7E6SNhIGjSqEmzHISqnMrJ'])
+    # cli(['list',
+    #      '-p',
+    #      '--ssp', '0yRgrCdkntJG83mFbFvrBP',
+    #      '--ssp', '0yRgrCdkntJG83mFbFvrBP',
+    #      '--ssp', '0yRgrCdkntJG83mFbFvrBP',
+    #      'https://open.spotify.com/playlist/0yRgrCdkntJG83mFbFvrBP',
+    #      'https://open.spotify.com/playlist/7E6SNhIGjSqEmzHISqnMrJ'])
 
-    # cli(['list','-p', '-c',
-    #      '--ep','./export',
-    #      r'C:\Users\Derwish\Downloads\music\Pop Nutral',
-    #      r'C:\Users\Derwish\Downloads\music\Techno Nutral'])
+    cli(['list','-p',
+         '--ep','./export',
+         r'C:\Users\Derwish\Downloads\music\Pop Nutral',
+         r'C:\Users\Derwish\Downloads\music\Techno Nutral'])
 
     # cli(['list','-c', '--slf', r'C:\Users\Derwish\Downloads\music\Pop Nutral',
     #      'https://open.spotify.com/playlist/0yRgrCdkntJG83mFbFvrBP',

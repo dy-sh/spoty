@@ -1,6 +1,6 @@
 from spoty import log
 import spoty.utils
-import spoty.local
+import spoty.local_files
 import click
 import os
 import csv
@@ -25,6 +25,33 @@ class CSVFileInvalidHeader(CSVImportException):
 
 def is_csv(file_name):
     return file_name.upper().endswith('.CSV')
+
+
+def get_tracks_from_local_paths(audio_files_paths, recursive, filter_tracks_tags, filter_tracks_no_tags):
+    all_playlists = []
+    all_tags = []
+
+    for path in audio_files_paths:
+        playlists, tags = get_tracks_from_local_path(path, recursive, filter_tracks_tags, filter_tracks_no_tags)
+        all_playlists.extend(playlists)
+        all_tags.extend(tags)
+
+    return all_playlists, all_tags
+
+
+def get_tracks_from_local_path(audio_files_path, recursive, filter_tracks_tags, filter_tracks_no_tags):
+    path = os.path.abspath(audio_files_path)
+    file_names = get_all_playlists_in_path(path, recursive)
+
+    if len(filter_tracks_tags) > 0:
+        file_names = spoty.local_files.filter_tracks_which_have_all_tags(file_names, filter_tracks_tags)
+
+    if len(filter_tracks_no_tags) > 0:
+        file_names = spoty.local_files.filter_tracks_which_not_have_any_of_tags(file_names, filter_tracks_no_tags)
+
+    tags = spoty.local_files.read_local_audio_tracks_tags(file_names, True)
+
+    return file_names, tags
 
 
 def export_tags(all_tags, export_path, export_naming_pattern, overwrite):
@@ -61,10 +88,7 @@ def export_tags(all_tags, export_path, export_naming_pattern, overwrite):
     return exported_playlists_file_names, exported_playlists_names, exported_tracks
 
 
-def get_all_playlists_in_path(path,
-                              recursive=True,
-                              filter_names=None
-                              ):
+def get_all_playlists_in_path(path, recursive=True):
     full_file_names = []
     if recursive:
         full_file_names = [os.path.join(dp, f) for dp, dn, filenames in os.walk(path) for f in filenames if
@@ -72,11 +96,6 @@ def get_all_playlists_in_path(path,
     else:
         full_file_names = [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
         full_file_names = list(filter(lambda f: is_csv(f), full_file_names))
-
-    if filter_names is not None:
-        full_file_names = list(filter(lambda f:
-                                      re.findall(filter_names, os.path.basename(f)),
-                                      full_file_names))
 
     return full_file_names
 
@@ -166,7 +185,7 @@ def collect_playlist_from_files(playlist_file_name, track_file_names, overwrite=
             log.info(f'Canceled by user (file already exist)')
             return None
 
-    tracks = spoty.local.read_local_audio_tracks_tags(track_file_names)
+    tracks = spoty.local_files.read_local_audio_tracks_tags(track_file_names)
 
     write_tracks_to_csv_file(tracks, playlist_file_name)
     #

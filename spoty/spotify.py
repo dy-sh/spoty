@@ -1,6 +1,5 @@
 from spoty import sp
 from spoty import log
-import spoty.local
 import spoty.utils
 import spoty.csv_playlist
 import os.path
