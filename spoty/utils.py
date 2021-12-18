@@ -203,6 +203,21 @@ def print_track_main_tags(track, include_playlist_info=False):
     # if 'TEMPO' in track: print(f'TEMPO: {track["TEMPO"]}')
     if 'YEAR' in track: print(f'YEAR: {track["YEAR"]}')
 
+def print_tracks(tags_list, tags_to_print):
+    for i, track in enumerate(tags_list):
+        print(
+            f'--------------------- TRACK {i + 1} / {len(tags_list)} ---------------------')
+        print_track_tags(track, tags_to_print)
+
+    if len(tags_list) > 0:
+        print("-------------------------------------------------------------------------------------")
+
+def print_track_tags(track, tags_to_print):
+    for tag in tags_to_print:
+        if tag.upper() in track:
+            print(f'{tag}: {track[tag]}')
+
+
 
 def filter_tracks_which_have_all_tags(track_tags, filter_tags):
     filtered = []

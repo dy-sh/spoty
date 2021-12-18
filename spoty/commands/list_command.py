@@ -37,6 +37,8 @@ from datetime import datetime
               help='Print number of tracks read to console.')
 @click.option('--print', '-p', 'print_to_console', is_flag=True,
               help='Print a list of read tracks to console.')
+@click.option('--print-tags', '--pt', default='ISRC,ARTIST,TITLE',
+              help='Print this track tags.')
 @click.option('--export-csv-playlists', '-e', is_flag=True,
               help='Export a list of read tracks to csv playlists.')
 @click.option('--export-path', '--ep', default="./PLAYLISTS",
@@ -60,6 +62,7 @@ def list(sources,
          no_recursive,
          count,
          print_to_console,
+         print_tags,
          export_csv_playlists,
          export_path,
          export_naming_pattern,
@@ -112,6 +115,7 @@ def list(sources,
     filter_playlists_names = to_list(filter_playlists_names)
     filter_tracks_tags = to_list(filter_tracks_tags)
     filter_tracks_no_tags = to_list(filter_tracks_no_tags)
+    print_tags = print_tags.split(',')
 
     all_tags = []
 
@@ -140,20 +144,10 @@ def list(sources,
     all_tags.extend(local_tags)
 
     if print_to_console:
-        for i, track in enumerate(spotify_tags):
-            click.echo(
-                f'--------------------- SPOTIFY TRACK {i + 1} / {len(spotify_tags)} ---------------------')
-            spoty.utils.print_track_main_tags(track)
-        for i, track in enumerate(local_tags):
-            click.echo(
-                f'--------------------- LOCAL TRACK {i + 1} / {len(local_tags)} ---------------------')
-            spoty.utils.print_track_main_tags(track)
-
-        if len(all_tags) > 0:
-            click.echo("-------------------------------------------------------------------------------------")
+        spoty.utils.print_tracks(all_tags, print_tags)
 
     if count:
-        click.echo(f'Total tracks: {len(all_tags)}')
+        click.echo(f'Total tracks found: {len(all_tags)}')
 
     if export_csv_playlists:
         if timestamp:
