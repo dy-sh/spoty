@@ -32,7 +32,7 @@ if __name__ == '__main__':
     #      'https://open.spotify.com/playlist/7E6SNhIGjSqEmzHISqnMrJ'])
 
     cli(['list','-p',
-         '--ep','./export',
+        '--ftnt','isrc',
          r'C:\Users\Derwish\Downloads\music\Pop Nutral',
          r'C:\Users\Derwish\Downloads\music\Techno Nutral'])
 

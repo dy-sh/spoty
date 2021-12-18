@@ -45,9 +45,9 @@ def local_count_tracks_in_playlists(path, filter_names, recursive, have_tags, ha
 
     all_tracks = []
 
-    playlists = spoty.csv_playlist.get_all_playlists_in_path(path, recursive, filter_names)
+    playlists = spoty.csv_playlist.get_all_csvs_in_path(path, recursive, filter_names)
     for file_name in playlists:
-        tracks = spoty.csv_playlist.read_tracks_from_csv_file(file_name)
+        tracks = spoty.csv_playlist.read_tracks_from_csv(file_name)
 
         for track in tracks:
             if have_tags is not None:
@@ -125,8 +125,8 @@ def local_list_duplicates_in_playlists(tags, path, filter_names, recursive):
 
     path = os.path.abspath(path)
     tags_arr = tags.upper().split(',') if tags is not None else []
-    duplicates_dic, all_tracks, skipped_tracks = spoty.csv_playlist.find_duplicates_in_playlists(path, tags_arr, recursive,
-                                                                                          filter_names)
+    duplicates_dic, all_tracks, skipped_tracks = spoty.csv_playlist.find_duplicates_in_csvs(path, tags_arr, recursive,
+                                                                                            filter_names)
     print_duplicates_in_playlist(tags_arr, duplicates_dic)
 
     click.echo(
@@ -201,12 +201,12 @@ def local_collect_duplicates_in_playlists(tags, import_path, export_file_name, f
     export_file_name = os.path.abspath(export_file_name)
 
     tags_arr = tags.upper().split(',') if tags is not None else []
-    duplicates_dic, all_tracks, skipped_tracks = spoty.csv_playlist.find_duplicates_in_playlists(import_path, tags_arr,
-                                                                                          recursive,
-                                                                                          filter_names)
+    duplicates_dic, all_tracks, skipped_tracks = spoty.csv_playlist.find_duplicates_in_csvs(import_path, tags_arr,
+                                                                                            recursive,
+                                                                                            filter_names)
     duplicates = duplicates_from_dict_to_array(duplicates_dic)
 
-    spoty.csv_playlist.write_tracks_to_csv_file(duplicates, export_file_name)
+    spoty.csv_playlist.write_tracks_to_csv(duplicates, export_file_name)
 
     click.echo(
         f'{len(duplicates_dic)} duplicates found in {len(all_tracks)} tracks ({len(skipped_tracks)} have no "{tags}" tags and skipped) exported to "{export_file_name}"')
@@ -254,7 +254,7 @@ def local_collect_duplicates_in_tracks(tags, import_path, export_file_name, filt
 
     duplicates = duplicates_from_dict_to_array(duplicates_dic)
 
-    spoty.csv_playlist.write_tracks_to_csv_file(duplicates, export_file_name)
+    spoty.csv_playlist.write_tracks_to_csv(duplicates, export_file_name)
 
     click.echo(
         f'{len(duplicates_dic)} duplicates found in {len(all_tracks)} tracks ({len(skipped_tracks)} have no "{tags}" tags and skipped) exported to "{export_file_name}"')

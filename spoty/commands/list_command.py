@@ -130,8 +130,9 @@ def list(sources,
         source_spotify_user, filter_playlists_names, filter_tracks_tags, filter_tracks_no_tags)
     all_tags.extend(tags)
 
-    file_names, tags = spoty.local_files.get_tracks_from_local_paths(
+    file_names = spoty.local_files.find_audio_files_in_paths(
         source_local_files, not no_recursive, filter_tracks_tags, filter_tracks_no_tags)
+    tags = spoty.local_files.read_local_audio_tracks_tags(file_names)
     all_tags.extend(tags)
 
     playlists, tags = spoty.csv_playlist.get_tracks_from_local_paths(
@@ -150,7 +151,7 @@ def list(sources,
             export_path = os.path.join(export_path, date_time_str)
 
         exported_playlists_file_names, exported_playlists_names, exported_tracks = \
-            spoty.csv_playlist.export_tags(all_tags, export_path, export_naming_pattern, overwrite)
+            spoty.csv_playlist.create_csvs_from_tags(all_tags, export_path, export_naming_pattern, overwrite)
 
 
 def to_list(some_tuple):

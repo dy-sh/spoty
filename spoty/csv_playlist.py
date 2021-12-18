@@ -27,42 +27,40 @@ def is_csv(file_name):
     return file_name.upper().endswith('.CSV')
 
 
-def get_tracks_from_local_paths(audio_files_paths, recursive, filter_tracks_tags, filter_tracks_no_tags):
-    all_playlists = []
-    all_tags = []
+def get_tracks_from_local_paths(playlists_paths, recursive, filter_tracks_tags, filter_tracks_no_tags):
+    all_file_names = []
 
-    for path in audio_files_paths:
-        playlists, tags = get_tracks_from_local_path(path, recursive, filter_tracks_tags, filter_tracks_no_tags)
-        all_playlists.extend(playlists)
-        all_tags.extend(tags)
+    for path in playlists_paths:
+        file_names = get_tracks_from_local_path(path, recursive, filter_tracks_tags, filter_tracks_no_tags)
+        all_file_names.extend(file_names)
 
-    return all_playlists, all_tags
+    return all_file_names
 
 
-def get_tracks_from_local_path(audio_files_path, recursive, filter_tracks_tags, filter_tracks_no_tags):
-    path = os.path.abspath(audio_files_path)
-    file_names = get_all_playlists_in_path(path, recursive)
+def get_tracks_from_local_path(playlists_path, recursive, filter_tracks_tags=None, filter_tracks_no_tags=None):
+    path = os.path.abspath(playlists_path)
+    file_names = get_all_csvs_in_path(path, recursive)
+
+
 
     if len(filter_tracks_tags) > 0:
-        file_names = spoty.local_files.filter_tracks_which_have_all_tags(file_names, filter_tracks_tags)
+        file_names = filter_tracks_which_have_all_tags(file_names, filter_tracks_tags)
 
     if len(filter_tracks_no_tags) > 0:
-        file_names = spoty.local_files.filter_tracks_which_not_have_any_of_tags(file_names, filter_tracks_no_tags)
+        file_names = filter_tracks_which_not_have_any_of_tags(file_names, filter_tracks_no_tags)
 
-    tags = spoty.local_files.read_local_audio_tracks_tags(file_names, True)
-
-    return file_names, tags
+    return file_names
 
 
-def export_tags(all_tags, export_path, export_naming_pattern, overwrite):
+def create_csvs_from_tags(tags, export_path, csvs_naming_pattern, overwrite):
     export_path = os.path.abspath(export_path)
 
     exported_playlists_file_names = []
     exported_playlists_names = []
     exported_tracks = []
 
-    if len(all_tags) > 0:
-        grouped_tracks = spoty.utils.group_tracks_by_pattern(export_naming_pattern, all_tags)
+    if len(tags) > 0:
+        grouped_tracks = spoty.utils.group_tracks_by_pattern(csvs_naming_pattern, tags)
 
         for group, tracks in grouped_tracks.items():
             playlist_name = group
@@ -70,13 +68,13 @@ def export_tags(all_tags, export_path, export_naming_pattern, overwrite):
             playlist_file_name = os.path.join(export_path, playlist_name + '.csv')
 
             if playlist_file_name in exported_playlists_file_names:
-                write_tracks_to_csv_file(tracks, playlist_file_name, True)
+                write_tracks_to_csv(tracks, playlist_file_name, True)
             else:
                 if os.path.isfile(playlist_file_name) and not overwrite:
                     if not click.confirm(f'File "{playlist_file_name}" already exist. Overwrite?'):
                         continue
 
-                write_tracks_to_csv_file(tracks, playlist_file_name, False)
+                write_tracks_to_csv(tracks, playlist_file_name, False)
 
             exported_playlists_names.append(playlist_name)
             exported_playlists_file_names.append(playlist_file_name)
@@ -88,7 +86,7 @@ def export_tags(all_tags, export_path, export_naming_pattern, overwrite):
     return exported_playlists_file_names, exported_playlists_names, exported_tracks
 
 
-def get_all_playlists_in_path(path, recursive=True):
+def get_all_csvs_in_path(path, recursive=True):
     full_file_names = []
     if recursive:
         full_file_names = [os.path.join(dp, f) for dp, dn, filenames in os.walk(path) for f in filenames if
@@ -100,7 +98,7 @@ def get_all_playlists_in_path(path, recursive=True):
     return full_file_names
 
 
-def write_tracks_to_csv_file(tracks, playlist_file_name, append=False):
+def write_tracks_to_csv(tracks, playlist_file_name, append=False):
     # collect all keys
     keys = []
     for track in tracks:
@@ -137,7 +135,7 @@ def write_tracks_to_csv_file(tracks, playlist_file_name, append=False):
             writer.writerow(values)
 
 
-def read_tracks_from_csv_file(playlist_file_name, add_playlist_info=False):
+def read_tracks_from_csv(playlist_file_name, add_playlist_info=False):
     tracks = []
 
     with open(playlist_file_name, newline='', encoding='utf-8-sig') as file:
@@ -176,7 +174,7 @@ def read_tracks_from_csv_file(playlist_file_name, add_playlist_info=False):
     return tracks
 
 
-def collect_playlist_from_files(playlist_file_name, track_file_names, overwrite=False):
+def create_csv_from_audio_files(playlist_file_name, track_file_names, overwrite=False):
     log.info(f'Exporting playlist (tracks:{len(track_file_names)}, file name: {playlist_file_name})')
 
     if os.path.isfile(playlist_file_name) and not overwrite:
@@ -187,19 +185,19 @@ def collect_playlist_from_files(playlist_file_name, track_file_names, overwrite=
 
     tracks = spoty.local_files.read_local_audio_tracks_tags(track_file_names)
 
-    write_tracks_to_csv_file(tracks, playlist_file_name)
+    write_tracks_to_csv(tracks, playlist_file_name)
     #
     # log.success(f'Playlist {playlist_id} exported (file: "{file_name}")')
     #
     return tracks
 
 
-def find_duplicates_in_playlists(path, tags_to_compare, recursive=True, filter_names=None):
+def find_duplicates_in_csvs(path, tags_to_compare, recursive=True, filter_names=None):
     all_tracks = []
 
-    playlists = spoty.csv_playlist.get_all_playlists_in_path(path, recursive, filter_names)
+    playlists = spoty.csv_playlist.get_all_csvs_in_path(path, recursive, filter_names)
     for file_name in playlists:
-        tracks = spoty.csv_playlist.read_tracks_from_csv_file(file_name, True)
+        tracks = spoty.csv_playlist.read_tracks_from_csv(file_name, True)
         all_tracks.extend(tracks)
 
     duplicates, all_tracks, skipped_tracks = spoty.utils.find_duplicates_in_tag_tracks(all_tracks, tags_to_compare)

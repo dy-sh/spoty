@@ -5,6 +5,8 @@ import click
 import time
 import re
 from mutagen.flac import FLAC
+
+
 # from mutagen.mp3 import MP3
 # from mutagen.id3 import ID3
 
@@ -16,48 +18,36 @@ def is_mp3(file_name):
     return file_name.upper().endswith('.MP3')
 
 
-def get_tracks_from_local_paths(audio_files_paths, recursive, filter_tracks_tags, filter_tracks_no_tags):
+def find_audio_files_in_paths(audio_files_paths, recursive, filter_have_tags=None, filter_have_no_tags=None):
     all_file_names = []
-    all_tags = []
 
     for path in audio_files_paths:
-        file_names, tags = get_tracks_from_local_path(path, recursive, filter_tracks_tags, filter_tracks_no_tags)
+        file_names = find_audio_files_in_path(path, recursive, filter_have_tags, filter_have_no_tags)
         all_file_names.extend(file_names)
-        all_tags.extend(tags)
 
-    return all_file_names, all_tags
-
-
-def get_tracks_from_local_path(audio_files_path, recursive, filter_tracks_tags, filter_tracks_no_tags):
-    path = os.path.abspath(audio_files_path)
-    file_names = get_local_audio_file_names(path, recursive)
-
-    if len(filter_tracks_tags) > 0:
-        file_names = filter_tracks_which_have_all_tags(file_names, filter_tracks_tags)
-
-    if len(filter_tracks_no_tags) > 0:
-        file_names = filter_tracks_which_not_have_any_of_tags(file_names, filter_tracks_no_tags)
-
-    tags = read_local_audio_tracks_tags(file_names, True)
-
-    return file_names, tags
+    return all_file_names
 
 
-def get_local_audio_file_names(path, recursive=False):
-    full_file_names = []
+def find_audio_files_in_path(audio_files_path, recursive=False, filter_have_tags=None, filter_have_no_tags=None):
+    audio_files_path = os.path.abspath(audio_files_path)
+    file_names = []
+
     if recursive:
-        full_file_names = [os.path.join(dp, f) for dp, dn, filenames in os.walk(path) for f in filenames if
-                           is_flac(os.path.splitext(f)[1]) or is_mp3(os.path.splitext(f)[1])]
+        file_names = [os.path.join(dp, f) for dp, dn, filenames in os.walk(audio_files_path) for f in filenames if
+                      is_flac(os.path.splitext(f)[1]) or is_mp3(os.path.splitext(f)[1])]
     else:
-        full_file_names = [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
-        full_file_names = list(
-            filter(lambda f: is_flac(f) or is_mp3(f), full_file_names))
+        file_names = [os.path.join(audio_files_path, f) for f in os.listdir(audio_files_path) if
+                      os.path.isfile(os.path.join(audio_files_path, f))]
+        file_names = list(
+            filter(lambda f: is_flac(f) or is_mp3(f), file_names))
 
-    return full_file_names
+    if len(filter_have_tags) > 0:
+        file_names = filter_tracks_which_have_all_tags(file_names, filter_have_tags)
 
+    if len(filter_have_no_tags) > 0:
+        file_names = filter_tracks_which_not_have_any_of_tags(file_names, filter_have_no_tags)
 
-
-
+    return file_names
 
 
 def filter_tracks_which_have_all_tags(file_names, tags):
@@ -76,9 +66,6 @@ def filter_tracks_which_not_have_any_of_tags(file_names, tags):
         if not spoty.utils.check_track_have_all_tags(track, tags):
             filtered.append(file_name)
     return filtered
-
-
-
 
 
 def get_local_tracks_file_names_old(path,
@@ -179,7 +166,7 @@ def find_duplicates_in_tracks(path,
         filter_have_no_tags = []
 
     full_file_names = get_local_tracks_file_names_old(path, recursive, filter_names, filter_have_tags,
-                                                                  filter_have_no_tags)
+                                                      filter_have_no_tags)
     all_tracks = read_local_audio_tracks_tags(full_file_names, True)
     duplicates, all_tracks, skipped_tracks = spoty.utils.find_duplicates_in_tag_tracks(all_tracks, tags_to_compare)
 
