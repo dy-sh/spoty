@@ -28,6 +28,8 @@ def is_csv(file_name):
 
 
 def export_tags(all_tags, export_path, export_naming_pattern, overwrite):
+    export_path = os.path.abspath(export_path)
+
     exported_playlists_file_names = []
     exported_playlists_names = []
     exported_tracks = []

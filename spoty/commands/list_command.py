@@ -16,11 +16,11 @@ from datetime import datetime
 @click.option('--source-spotify-playlist', '--ssp', multiple=True,
               help='Read tracks in specified spotify playlist.')
 @click.option('--source-spotify-user', '--ssu', multiple=True, is_flag=False, flag_value="me",
-              help='Read tracks in this spotify user library. If no user ID is specified, the current user will be used.')
-@click.option('--source-deezer-playlist', '--sdp', multiple=True,
-              help='Read tracks in specified deezer playlist.')
-@click.option('--source-deezer-user', '--sdu', multiple=True,
-              help='Read tracks in this spotify user library.')
+              help='Read tracks in this spotify user library. To request a list for the current user, leave this option empty, or use "me" as ID.')
+# @click.option('--source-deezer-playlist', '--sdp', multiple=True,
+#               help='Read tracks in specified deezer playlist.')
+# @click.option('--source-deezer-user', '--sdu', multiple=True,
+#               help='Read tracks in this spotify user library.')
 @click.option('--source-local-files', '--slf', multiple=True,
               help='Read tracks from local files in specified path.')
 @click.option('--source-local-playlists', '--slp', multiple=True,
@@ -37,8 +37,10 @@ from datetime import datetime
               help='Print number of tracks read to console.')
 @click.option('--print', '-p', 'print_to_console', is_flag=True,
               help='Print a list of read tracks to console.')
-@click.option('--export-path', '--ep',
-              help='Export a list of read tracks to csv playlists in specified path.')
+@click.option('--export-csv-playlists', '-e', is_flag=True,
+              help='Export a list of read tracks to csv playlists.')
+@click.option('--export-path', '--ep', default="./PLAYLISTS",
+              help='The path on disk where to export csv-playlists.')
 @click.option('--export-naming-pattern', '--enp', default='%SPOTY_PLAYLIST_NAME%',
               help='Exported playlists will be named according to this pattern.')
 @click.option('--overwrite', '-o', is_flag=True,
@@ -48,8 +50,8 @@ from datetime import datetime
 def list(sources,
          source_spotify_playlist,
          source_spotify_user,
-         source_deezer_playlist,
-         source_deezer_user,
+         # source_deezer_playlist,
+         # source_deezer_user,
          source_local_files,
          source_local_playlists,
          filter_playlists_names,
@@ -58,21 +60,36 @@ def list(sources,
          no_recursive,
          count,
          print_to_console,
+         export_csv_playlists,
          export_path,
          export_naming_pattern,
          overwrite,
          timestamp
          ):
-    r"""
+    """
     List of tracks.
 
     \b
     SOURCES - List of local files paths or music services URIs.
-    This argument is optional. Instead, you can pass parameters as --source options.
-    Unlike --source options, the SRC argument accepts only the path to local files or the full URI to playlist.
-    The --source options can also accept the ID of the playlist on a music service.
+        This argument is optional. Instead, you can pass parameters as --source options.
+        Unlike --source options, the SRC argument accepts only the path to local files or the full URI to playlist.
+        The --source options can also accept the ID of the playlist on a music service.
 
+    \b
     Examples:
+        Display number of tracks in the current spotify user playlists:
+        spoty list --ssu -c
+
+        Display all tracks and numver of tracks in the current spotify user playlists:
+        spoty list --ssu -pc
+
+        Export all current spotify user playlists to default (./PLAYLISTS) path (overwrite files if already exist):
+        spoty list --ssu -eo
+
+        Export all current spotify user playlists to default path, overwrite files and display them to console:
+        spoty list --ssu -pceo
+
+
         spoty list -c https://open.spotify.com/playlist/7E6SNhIGjSqEmzHISqnMrJ https://open.spotify.com/playlist/7E45634fjSqEmzHISqnMrJ
 
         spoty list -c --ssp 0yRgrCdkntJG83mFbFvrBP --ssp https://open.spotify.com/playlist/7E6SNhIGjSqEmzHISqnMrJ
@@ -82,14 +99,14 @@ def list(sources,
     if export_path == None and not print_to_console and not count:
         click.echo("Please, specify what to do with the read files:\n" +
                    "-p, to printing the list to the console.\n" +
-                   "--ep [PATH], to export the list to the csv files.\n"
+                   "--ep, to export the list to the csv files.\n"
                    "-c, to count the number of tracks and print to the console.")
         exit()
 
     source_spotify_playlist = to_list(source_spotify_playlist)
     source_spotify_user = to_list(source_spotify_user)
-    source_deezer_playlist = to_list(source_deezer_playlist)
-    source_deezer_user = to_list(source_deezer_user)
+    # source_deezer_playlist = to_list(source_deezer_playlist)
+    # source_deezer_user = to_list(source_deezer_user)
     source_local_files = to_list(source_local_files)
     source_local_playlists = to_list(source_local_playlists)
     filter_playlists_names = to_list(filter_playlists_names)
@@ -112,16 +129,15 @@ def list(sources,
         source_spotify_playlist, filter_playlists_names, filter_tracks_tags, filter_tracks_no_tags)
     all_tags.extend(spotify_tags)
 
-    spotify__user_tracks, spotify_user_tags = spoty.spotify.get_tracks_of_spotify_user(
+    new_spotify_tracks, new_spotify_tags = spoty.spotify.get_tracks_of_spotify_user(
         source_spotify_user, filter_playlists_names, filter_tracks_tags, filter_tracks_no_tags)
-    all_tags.extend(spotify_user_tags)
-
+    spotify_tracks.extend(new_spotify_tracks)
+    spotify_tags.extend(new_spotify_tags)
+    all_tags.extend(new_spotify_tags)
 
     local_file_names, local_tags = spoty.local_files.get_tracks_from_local_path(
         source_local_files, no_recursive, filter_tracks_tags, filter_tracks_no_tags)
     all_tags.extend(local_tags)
-
-
 
     if print_to_console:
         for i, track in enumerate(spotify_tags):
@@ -139,9 +155,7 @@ def list(sources,
     if count:
         click.echo(f'Total tracks: {len(all_tags)}')
 
-
-
-    if export_path is not None:
+    if export_csv_playlists:
         if timestamp:
             now = datetime.now()
             date_time_str = now.strftime("%Y_%m_%d-%H_%M_%S")
@@ -155,6 +169,3 @@ def to_list(some_tuple):
     l = []
     l.extend(some_tuple)
     return l
-
-
-
