@@ -159,8 +159,14 @@ def list(sources,
     exported_playlists_file_names=[]
     exported_playlists_names=[]
     exported_tracks=[]
+
     if export_path is not None:
         if len(all_source_tracks_tags)>0:
+
+            if timestamp:
+                now = datetime.now()
+                date_time_str = now.strftime("%Y_%m_%d-%H_%M_%S")
+                export_path = os.path.join(export_path, date_time_str)
 
             grouped_tracks = spoty.utils.group_tracks_by_pattern(export_naming_pattern, all_source_tracks_tags)
 
