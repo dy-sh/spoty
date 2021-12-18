@@ -33,8 +33,6 @@ from datetime import datetime
               help='Get only tracks that do not have any of the listed tags.')
 @click.option('--no-recursive', '-r', is_flag=True,
               help='Do not search in subdirectories from the specified path.')
-@click.option('--count', '-c', is_flag=True,
-              help='Print number of tracks read to console.')
 @click.option('--print', '-p', 'print_to_console', is_flag=True,
               help='Print a list of read tracks to console.')
 @click.option('--print-tags', '--pt', default='ISRC,ARTIST,TITLE',
@@ -60,7 +58,6 @@ def list(sources,
          filter_tracks_tags,
          filter_tracks_no_tags,
          no_recursive,
-         count,
          print_to_console,
          print_tags,
          export_csv_playlists,
@@ -81,29 +78,25 @@ def list(sources,
     \b
     Examples:
         Display number of tracks in the current spotify user playlists:
-        spoty list --ssu -c
+        spoty list --ssu
 
         Display all tracks and numver of tracks in the current spotify user playlists:
-        spoty list --ssu -pc
+        spoty list --ssu -p
 
         Export all current spotify user playlists to default (./PLAYLISTS) path (overwrite files if already exist):
         spoty list --ssu -eo
 
         Export all current spotify user playlists to default path, overwrite files and display them to console:
-        spoty list --ssu -pceo
-
-
-        spoty list -c https://open.spotify.com/playlist/7E6SNhIGjSqEmzHISqnMrJ https://open.spotify.com/playlist/7E45634fjSqEmzHISqnMrJ
-
-        spoty list -c --ssp 0yRgrCdkntJG83mFbFvrBP --ssp https://open.spotify.com/playlist/7E6SNhIGjSqEmzHISqnMrJ
+        spoty list --ssu -peo
 
     """
 
-    if export_path == None and not print_to_console and not count:
-        click.echo("Please, specify what to do with the read files:\n" +
-                   "-p, to printing the list to the console.\n" +
-                   "--ep, to export the list to the csv files.\n"
-                   "-c, to count the number of tracks and print to the console.")
+    if len(source_spotify_user)==0 \
+            and len(source_spotify_playlist)==0 \
+            and len(source_local_files) == 0 \
+            and len(source_local_playlists) == 0 \
+            and len(sources) == 0:
+        list(['list','--help'])
         exit()
 
     source_spotify_playlist = to_list(source_spotify_playlist)
@@ -146,8 +139,7 @@ def list(sources,
     if print_to_console:
         spoty.utils.print_tracks(all_tags, print_tags)
 
-    if count:
-        click.echo(f'Total tracks found: {len(all_tags)}')
+    click.echo(f'Total tracks found: {len(all_tags)}')
 
     if export_csv_playlists:
         if timestamp:
