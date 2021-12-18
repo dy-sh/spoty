@@ -496,7 +496,7 @@ def import_playlist_from_file(file_name, append_if_exist=False, allow_duplicates
     if playlist_id is None:
         playlist_id = create_playlist(playlist_name)
 
-    tag_tracks = spoty.csv_playlist.read_tracks_from_csv(file_name)
+    tag_tracks = spoty.csv_playlist.read_tags_from_csv(file_name)
     found_ids = find_tracks_from_tags(tag_tracks)
 
     if len(found_ids) > 0:
@@ -612,7 +612,7 @@ def export_liked_tracks_to_file(file_name):
 
 def import_likes_from_file(file_name):
     log.info(f'Importing liked tracks from file "{file_name}"')
-    tracks_in_file = spoty.csv_playlist.read_tracks_from_csv(file_name)
+    tracks_in_file = spoty.csv_playlist.read_tags_from_csv(file_name)
     if len(tracks_in_file) > 0:
         add_tracks_to_liked(tracks_in_file)
 

@@ -47,7 +47,7 @@ def local_count_tracks_in_playlists(path, filter_names, recursive, have_tags, ha
 
     playlists = spoty.csv_playlist.find_csvs_in_path(path, recursive, filter_names)
     for file_name in playlists:
-        tracks = spoty.csv_playlist.read_tracks_from_csv(file_name)
+        tracks = spoty.csv_playlist.read_tags_from_csv(file_name)
 
         for track in tracks:
             if have_tags is not None:

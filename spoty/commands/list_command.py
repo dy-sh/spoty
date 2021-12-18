@@ -135,9 +135,10 @@ def list(sources,
     tags = spoty.audio_files.read_audio_files_tags(file_names)
     all_tags.extend(tags)
 
-    # playlists, tags = spoty.csv_playlist.get_tracks_from_local_paths(
-    #     source_local_playlists, not no_recursive, filter_tracks_tags, filter_tracks_no_tags)
-    # all_tags.extend(tags)
+    playlists = spoty.csv_playlist.find_csvs_in_path(
+        source_local_playlists, not no_recursive, filter_tracks_tags, filter_tracks_no_tags)
+    tags=spoty.csv_playlist.read_tags_from_csv()
+    all_tags.extend(tags)
 
     if print_to_console:
         spoty.utils.print_tags_list(all_tags, print_tags)
