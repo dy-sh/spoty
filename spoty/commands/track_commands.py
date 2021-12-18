@@ -26,7 +26,7 @@ def track_find_by_isrc(isrc):
         click.echo("Not found")
         return
     tags = spoty.spotify.read_tags_from_spotify_tracks([track])
-    spoty.utils.print_track_main_tags(tags[0])
+    spoty.utils.print_main_tags(tags[0])
 
 
 @track.command("artist-title")
@@ -46,7 +46,7 @@ def track_find_by_title(artist, title):
         click.echo("Not found")
         return
     tags = spoty.spotify.read_tags_from_spotify_tracks([track])
-    spoty.utils.print_track_main_tags(tags[0])
+    spoty.utils.print_main_tags(tags[0])
 
 
 @track.command("query")
@@ -67,4 +67,4 @@ def tracks_find_by_query(query):
     tags = spoty.spotify.read_tags_from_spotify_tracks(tracks)
     for t in tags:
         click.echo("------------------------------")
-        spoty.utils.print_track_main_tags(t)
+        spoty.utils.print_main_tags(t)

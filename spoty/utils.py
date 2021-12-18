@@ -74,12 +74,14 @@ additional_tags = \
         'WRITER',
     ]
 
+
 def is_valid_path(path):
     return os.path.isdir(path)
 
 
 def is_valid_file(path):
     return os.path.isfile(path)
+
 
 def slugify_file_pah(text):
     # valid_chars = "-_.()=!@#$%%^&+ %s%s" % (string.ascii_letters, string.digits)
@@ -93,8 +95,8 @@ def slugify_file_pah(text):
     return text
 
 
-def filter_duplicates(original_arr, new_arr):
-    return list(filter(lambda id: id not in original_arr, new_arr))
+def filter_duplicates(src_arr, dest_arr):
+    return list(filter(lambda id: id not in src_arr, dest_arr))
 
 
 def remove_duplicates(arr):
@@ -108,25 +110,25 @@ def remove_duplicates(arr):
     return good, dup
 
 
-def compare_two_tags_list(old_track, new_track, compare_tags, allow_missing=False):
+def compare_tags(src_tags, dest_tags, compare_tags, allow_missing=False):
     for tag in compare_tags:
 
-        if not tag in old_track or not tag in new_track:
+        if not tag in src_tags or not tag in dest_tags:
             if allow_missing:
                 continue
             else:
                 return False
 
         if tag == "LENGTH":
-            if abs(int(old_track['LENGTH']) - int(new_track['LENGTH'])) > 5:
+            if abs(int(src_tags['LENGTH']) - int(dest_tags['LENGTH'])) > 5:
                 return False
             else:
                 continue
 
         if tag == "ARTIST":
-            old_artist = old_track[tag].replace(',', ';').upper()
+            old_artist = src_tags[tag].replace(',', ';').upper()
             old_artist = old_artist.split(';')
-            new_artist = new_track[tag].replace(',', ';').upper()
+            new_artist = dest_tags[tag].replace(',', ';').upper()
             new_artist = new_artist.split(';')
             found = False
             for old in old_artist:
@@ -138,9 +140,9 @@ def compare_two_tags_list(old_track, new_track, compare_tags, allow_missing=Fals
                 continue
 
         if tag == "TITLE":
-            old_title = old_track[tag].upper()
+            old_title = src_tags[tag].upper()
             old_title = ''.join(char for char in old_title if char.isalnum())
-            new_titile = new_track[tag].upper()
+            new_titile = dest_tags[tag].upper()
             new_titile = ''.join(char for char in new_titile if char.isalnum())
             if not new_titile.startswith(old_title) and not old_title.startswith(new_titile):
                 return False
@@ -148,20 +150,20 @@ def compare_two_tags_list(old_track, new_track, compare_tags, allow_missing=Fals
                 continue
 
         if tag == "ALBUM":
-            old_album = old_track[tag].upper()
-            new_album = new_track[tag].upper()
+            old_album = src_tags[tag].upper()
+            new_album = dest_tags[tag].upper()
             if not new_album.startswith(old_album) and not old_album.startswith(new_album):
                 return False
             else:
                 continue
 
-        if old_track[tag] != new_track[tag]:
+        if src_tags[tag] != dest_tags[tag]:
             return False
 
     return True
 
 
-def find_duplicates_in_tags(all_tracks, compare_tags):
+def find_duplicates_in_tags(tags_list, compare_tags):
     if len(compare_tags) == 0:
         return
 
@@ -171,87 +173,82 @@ def find_duplicates_in_tags(all_tracks, compare_tags):
         pattern += "%" + tag + "%,"
     pattern = pattern[:-1]
 
-    groupped_tracks = group_tracks_by_pattern(pattern, all_tracks, "Unknown")
+    groupped_tags = group_tags_by_pattern(tags_list, pattern, "Unknown")
 
-    for tags, tracks in groupped_tracks.items():
-        if tags == "Unknown":
+    for group, tags in groupped_tags.items():
+        if group == "Unknown":
             continue
-        if len(tracks) > 1:
-            if not tags in duplicates:
-                duplicates[tags] = []
-            duplicates[tags].extend(tracks)
+        if len(tags) > 1:
+            if not group in duplicates:
+                duplicates[group] = []
+            duplicates[group].extend(tags)
 
-    skipped_tracks = groupped_tracks['Unknown'] if 'Unknown' in groupped_tracks else []
+    skipped_tags = groupped_tags['Unknown'] if 'Unknown' in groupped_tags else []
 
-    return duplicates, skipped_tracks
+    return duplicates, skipped_tags
 
 
-def print_track_main_tags(track, include_playlist_info=False):
-    if 'ISRC' in track: print(f'ISRC: {track["ISRC"]}')
-    if 'ARTIST' in track: print(f'ARTIST: {track["ARTIST"]}')
-    # if 'ALBUMARTIST' in track: print(f'ALBUMARTIST: {track["ALBUMARTIST"]}')
-    if 'TITLE' in track: print(f'TITLE: {track["TITLE"]}')
-    if 'ALBUM' in track: print(f'ALBUM: {track["ALBUM"]}')
-    if 'GENRE' in track: print(f'GENRE: {track["GENRE"]}')
-    if 'MOOD' in track: print(f'MOOD: {track["MOOD"]}')
-    if 'OCCASION' in track: print(f'OCCASION: {track["OCCASION"]}')
-    if 'RATING' in track: print(f'RATING: {track["RATING"]}')
-    if 'COMMENT' in track: print(f'COMMENT: {track["COMMENT"]}')
-    if 'BARCODE' in track: print(f'BARCODE: {track["BARCODE"]}')
-    # if 'BPM' in track: print(f'BPM: {track["BPM"]}')
-    # if 'FILEOWNER' in track: print(f'FILEOWNER: {track["FILEOWNER"]}')
-    if 'LENGTH' in track: print(f'LENGTH: {track["LENGTH"]}')
-    # if 'QUALITY' in track: print(f'QUALITY: {track["QUALITY"]}')
-    if 'SPOTIFY_TRACK_ID' in track: print(f'SPOTIFY_TRACK_ID: {track["SPOTIFY_TRACK_ID"]}')
-    # if 'SPOTIFY_RELEASE_ID' in track: print(f'SPOTIFY_RELEASE_ID: {track["SPOTIFY_RELEASE_ID"]}')
-    if 'SOURCE' in track: print(f'SOURCE: {track["SOURCE"]}')
-    if 'SOURCEID' in track: print(f'SOURCEID: {track["SOURCEID"]}')
-    # if 'TEMPO' in track: print(f'TEMPO: {track["TEMPO"]}')
-    if 'YEAR' in track: print(f'YEAR: {track["YEAR"]}')
+def print_main_tags(tags):
+    if 'ISRC' in tags: print(f'ISRC: {tags["ISRC"]}')
+    if 'ARTIST' in tags: print(f'ARTIST: {tags["ARTIST"]}')
+    if 'TITLE' in tags: print(f'TITLE: {tags["TITLE"]}')
+    if 'ALBUM' in tags: print(f'ALBUM: {tags["ALBUM"]}')
+    if 'GENRE' in tags: print(f'GENRE: {tags["GENRE"]}')
+    if 'MOOD' in tags: print(f'MOOD: {tags["MOOD"]}')
+    if 'OCCASION' in tags: print(f'OCCASION: {tags["OCCASION"]}')
+    if 'RATING' in tags: print(f'RATING: {tags["RATING"]}')
+    if 'COMMENT' in tags: print(f'COMMENT: {tags["COMMENT"]}')
+    if 'BARCODE' in tags: print(f'BARCODE: {tags["BARCODE"]}')
+    if 'LENGTH' in tags: print(f'LENGTH: {tags["LENGTH"]}')
+    if 'SPOTIFY_TRACK_ID' in tags: print(f'SPOTIFY_TRACK_ID: {tags["SPOTIFY_TRACK_ID"]}')
+    if 'SOURCE' in tags: print(f'SOURCE: {tags["SOURCE"]}')
+    if 'SOURCEID' in tags: print(f'SOURCEID: {tags["SOURCEID"]}')
+    if 'YEAR' in tags: print(f'YEAR: {tags["YEAR"]}')
 
-def print_tracks(tags_list, tags_to_print):
-    for i, track in enumerate(tags_list):
+
+def print_tags_list(tags_list, tags_to_print):
+    for i, tags in enumerate(tags_list):
         print(
             f'--------------------- TRACK {i + 1} / {len(tags_list)} ---------------------')
-        print_track_tags(track, tags_to_print)
+        print_tags(tags, tags_to_print)
 
     if len(tags_list) > 0:
         print("-------------------------------------------------------------------------------------")
 
-def print_track_tags(track, tags_to_print):
+
+def print_tags(tags, tags_to_print):
     for tag in tags_to_print:
-        if tag.upper() in track:
-            print(f'{tag}: {track[tag]}')
+        if tag.upper() in tags:
+            print(f'{tag}: {tags[tag]}')
 
 
-
-def filter_tracks_which_have_all_tags(track_tags, filter_tags):
+def filter_tags_list_have_tags(tags_list, filter_tags):
     filtered = []
-    for track in track_tags:
-        if check_all_tags_exist(track, filter_tags):
-            filtered.append(track)
+    for tags in tags_list:
+        if check_all_tags_exist(tags, filter_tags):
+            filtered.append(tags)
     return filtered
 
 
-def filter_tracks_which_not_have_any_of_tags(track_tags, filter_tags):
+def filter_tags_list_have_no_tags(tags_list, filter_tags):
     filtered = []
-    for track in track_tags:
-        if not check_all_tags_exist(track, filter_tags):
-            filtered.append(track)
+    for tags in tags_list:
+        if not check_all_tags_exist(tags, filter_tags):
+            filtered.append(tags)
     return filtered
 
 
-def check_all_tags_exist(track, tags):
-    for tag in tags:
-        if not tag.upper() in track:
+def check_all_tags_exist(tags, tags_to_check):
+    for tag in tags_to_check:
+        if not tag.upper() in tags:
             return False
     return True
 
 
-def group_tracks_by_pattern(pattern, tracks, not_found_tag_name="Unknown"):
+def group_tags_by_pattern(tags_list, pattern, not_found_tag_name="Unknown"):
     groups = {}
 
-    for track in tracks:
+    for tags in tags_list:
         group_name = ""
         tag_name = ""
         building_tag = False
@@ -259,7 +256,7 @@ def group_tracks_by_pattern(pattern, tracks, not_found_tag_name="Unknown"):
             if c == "%":
                 building_tag = not building_tag
                 if not building_tag:
-                    tag = track[tag_name] if tag_name in track else not_found_tag_name
+                    tag = tags[tag_name] if tag_name in tags else not_found_tag_name
                     group_name += str(tag)
                     tag_name = ""
             else:
@@ -272,12 +269,12 @@ def group_tracks_by_pattern(pattern, tracks, not_found_tag_name="Unknown"):
         if not group_name in groups:
             groups[group_name] = []
 
-        groups[group_name].append(track)
+        groups[group_name].append(tags)
 
     return groups
 
 
-def reorder_tag_keys(keys):
+def reorder_tag_keys_main_first(keys):
     res = []
 
     # reorder spoty tags first
@@ -296,7 +293,6 @@ def reorder_tag_keys(keys):
             res.append(key)
 
     return res
-
 
 
 def get_missing_tags(exist_tags, new_tags):

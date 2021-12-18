@@ -130,9 +130,9 @@ def list(sources,
         source_spotify_user, filter_playlists_names, filter_tracks_tags, filter_tracks_no_tags)
     all_tags.extend(tags)
 
-    file_names = spoty.local_files.find_audio_files_in_paths(
+    file_names = spoty.audio_files.find_audio_files_in_paths(
         source_local_files, not no_recursive, filter_tracks_tags, filter_tracks_no_tags)
-    tags = spoty.local_files.read_audio_files_tags(file_names)
+    tags = spoty.audio_files.read_audio_files_tags(file_names)
     all_tags.extend(tags)
 
     # playlists, tags = spoty.csv_playlist.get_tracks_from_local_paths(
@@ -140,7 +140,7 @@ def list(sources,
     # all_tags.extend(tags)
 
     if print_to_console:
-        spoty.utils.print_tracks(all_tags, print_tags)
+        spoty.utils.print_tags_list(all_tags, print_tags)
 
     click.echo(f'Total tracks found: {len(all_tags)}')
 
@@ -151,7 +151,10 @@ def list(sources,
             export_path = os.path.join(export_path, date_time_str)
 
         exported_playlists_file_names, exported_playlists_names, exported_tracks = \
-            spoty.csv_playlist.create_csvs_from_tags(all_tags, export_path, export_naming_pattern, overwrite)
+            spoty.csv_playlist.create_csvs(all_tags, export_path, export_naming_pattern, overwrite)
+
+        mess = f'\n{len(exported_tracks)} tracks exported to {len(exported_playlists_file_names)} playlists in path: "{export_path}"'
+        click.echo(mess)
 
 
 def to_list(some_tuple):

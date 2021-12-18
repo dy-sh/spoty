@@ -468,7 +468,7 @@ def export_playlist_to_file(playlist_id, path, overwrite=False, avoid_filenames=
     tracks = playlist["tracks"]["items"]
 
     tag_tracks = read_tags_from_spotify_tracks(tracks)
-    spoty.csv_playlist.write_tracks_to_csv(tag_tracks, file_name)
+    spoty.csv_playlist.write_tags_to_csv(tag_tracks, file_name)
 
     log.success(f'Playlist {playlist_id} exported (file: "{file_name}")')
 
@@ -603,7 +603,7 @@ def export_liked_tracks_to_file(file_name):
 
     liked_tracks = get_liked_tracks()
     tag_tracks = read_tags_from_spotify_tracks(liked_tracks)
-    spoty.csv_playlist.write_tracks_to_csv(tag_tracks, file_name)
+    spoty.csv_playlist.write_tags_to_csv(tag_tracks, file_name)
 
     log.success(f'{len(liked_tracks)} liked tracks exported to file: "{file_name}"')
 

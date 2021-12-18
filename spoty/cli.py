@@ -31,14 +31,16 @@ if __name__ == '__main__':
     #      'https://open.spotify.com/playlist/0yRgrCdkntJG83mFbFvrBP',
     #      'https://open.spotify.com/playlist/7E6SNhIGjSqEmzHISqnMrJ'])
 
-    cli(['list','-p',
-        '--ftnt','isrc',
-         r'C:\Users\Derwish\Downloads\music\Pop Nutral',
-         r'C:\Users\Derwish\Downloads\music\Techno Nutral'])
-
-    # cli(['list','-c', '--slf', r'C:\Users\Derwish\Downloads\music\Pop Nutral',
-    #      'https://open.spotify.com/playlist/0yRgrCdkntJG83mFbFvrBP',
+    # cli(['list','-p',
+    #     '--ftnt','isrc',
+    #      r'C:\Users\Derwish\Downloads\music\Pop Nutral',
     #      r'C:\Users\Derwish\Downloads\music\Techno Nutral'])
+
+    cli(['list',
+         '-p',
+         r'C:\Users\Derwish\Downloads\music\Pop Nutral',
+         'https://open.spotify.com/playlist/0yRgrCdkntJG83mFbFvrBP',
+         r'C:\Users\Derwish\Downloads\music\Techno Nutral'])
 
     # cli(['list','-p', '-c',
     #      '--ep','./export',

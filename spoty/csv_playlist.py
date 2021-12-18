@@ -28,41 +28,38 @@ def is_csv(file_name):
 
 
 
-def create_csvs_from_tags(tags, export_path, csvs_naming_pattern, overwrite):
+def create_csvs(tags, export_path, csvs_naming_pattern, overwrite):
     export_path = os.path.abspath(export_path)
 
     exported_playlists_file_names = []
     exported_playlists_names = []
-    exported_tracks = []
+    exported_tags = []
 
     if len(tags) > 0:
-        grouped_tracks = spoty.utils.group_tracks_by_pattern(csvs_naming_pattern, tags)
+        grouped_tags = spoty.utils.group_tags_by_pattern(tags, csvs_naming_pattern)
 
-        for group, tracks in grouped_tracks.items():
+        for group, tags in grouped_tags.items():
             playlist_name = group
             playlist_name = spoty.utils.slugify_file_pah(playlist_name)
             playlist_file_name = os.path.join(export_path, playlist_name + '.csv')
 
             if playlist_file_name in exported_playlists_file_names:
-                write_tracks_to_csv(tracks, playlist_file_name, True)
+                write_tags_to_csv(tags, playlist_file_name, True)
             else:
                 if os.path.isfile(playlist_file_name) and not overwrite:
                     if not click.confirm(f'File "{playlist_file_name}" already exist. Overwrite?'):
                         continue
 
-                write_tracks_to_csv(tracks, playlist_file_name, False)
+                write_tags_to_csv(tags, playlist_file_name, False)
 
             exported_playlists_names.append(playlist_name)
             exported_playlists_file_names.append(playlist_file_name)
-            exported_tracks.extend(tracks)
+            exported_tags.extend(tags)
 
-        mess = f'\n{len(exported_tracks)} tracks exported to {len(exported_playlists_file_names)} playlists in path: "{export_path}"'
-        click.echo(mess)
-
-    return exported_playlists_file_names, exported_playlists_names, exported_tracks
+    return exported_playlists_file_names, exported_playlists_names, exported_tags
 
 
-def find_csvs_in_path(path, recursive=True, filter_have_tags=None, filter_have_no_tags=None):
+def find_csvs_in_path(path, recursive=True):
     full_file_names = []
     if recursive:
         full_file_names = [os.path.join(dp, f) for dp, dn, filenames in os.walk(path) for f in filenames if
@@ -71,26 +68,26 @@ def find_csvs_in_path(path, recursive=True, filter_have_tags=None, filter_have_n
         full_file_names = [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
         full_file_names = list(filter(lambda f: is_csv(f), full_file_names))
 
-    
+
 
     return full_file_names
 
 
-def write_tracks_to_csv(tracks, playlist_file_name, append=False):
+def write_tags_to_csv(tags_list, playlist_file_name, append=False):
     # collect all keys
     keys = []
-    for track in tracks:
-        for key, value in track.items():
+    for tags in tags_list:
+        for key, value in tags.items():
             if not key in keys:
                 keys.append(key)
 
-    keys = spoty.utils.reorder_tag_keys(keys)
+    keys = spoty.utils.reorder_tag_keys_main_first(keys)
 
     # write missing keys to all tracks
-    for track in tracks:
+    for tags in tags_list:
         for key in keys:
-            if not key in track:
-                track[key] = ""
+            if not key in tags:
+                tags[key] = ""
 
     os.makedirs(os.path.dirname(playlist_file_name), exist_ok=True)
 
@@ -108,8 +105,8 @@ def write_tracks_to_csv(tracks, playlist_file_name, append=False):
         if method == 'w':  # write header to new file
             writer.writerow(keys)
 
-        for track in tracks:
-            values = [track[key] for key in keys]
+        for tags in tags_list:
+            values = [tags[key] for key in keys]
             writer.writerow(values)
 
 
@@ -161,9 +158,9 @@ def create_csv_from_audio_files(playlist_file_name, track_file_names, overwrite=
             log.info(f'Canceled by user (file already exist)')
             return None
 
-    tracks = spoty.local_files.read_audio_files_tags(track_file_names)
+    tracks = spoty.audio_files.read_audio_files_tags(track_file_names)
 
-    write_tracks_to_csv(tracks, playlist_file_name)
+    write_tags_to_csv(tracks, playlist_file_name)
     #
     # log.success(f'Playlist {playlist_id} exported (file: "{file_name}")')
     #
