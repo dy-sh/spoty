@@ -149,7 +149,7 @@ def copy_playlist(playlist_id):
     return new_playlist_id, tracks_added
 
 
-def get_tracks_of_playlist(playlist_id):
+def get_tracks_of_playlist(playlist_id, add_playlist_info=True):
     playlist_id = spoty.utils.parse_playlist_id(playlist_id)
 
     log.info(f'Collecting tracks from playlist {playlist_id}')
@@ -157,14 +157,34 @@ def get_tracks_of_playlist(playlist_id):
     # load the first 100 songs
     tracks = []
     result = sp.playlist_items(playlist_id, additional_types=['track'], limit=100)
-    tracks.extend(result['items'])
+
+    i = 0
+    new_tracks = result['items']
+    if (add_playlist_info):
+        for track in new_tracks:
+            track['track']['SPOTY_PLAYLIST_ID'] = playlist_id
+            track['track']['SPOTY_PLAYLIST_INDEX'] = i
+            track['track']['SPOTY_PLAYLIST_SOURCE'] = 'SPOTIFY'
+            i += 1
+
+    tracks.extend(new_tracks)
 
     log.debug(f'Collected {len(tracks)}/{result["total"]} tracks')
 
     # if playlist is larger than 100 songs, continue loading it until end
     while result['next']:
         result = sp.next(result)
-        tracks.extend(result['items'])
+
+        new_tracks = result['items']
+        if (add_playlist_info):
+            for track in new_tracks:
+                track['track']['SPOTY_PLAYLIST_ID'] = playlist_id
+                track['track']['SPOTY_PLAYLIST_INDEX'] = i
+                track['track']['SPOTY_PLAYLIST_SOURCE'] = 'SPOTIFY'
+                i += 1
+
+        tracks.extend(new_tracks)
+
         log.debug(f'Collected {len(tracks)}/{result["total"]} tracks')
 
     # removing invalid tracks without ids (was deleted from spotify library)
@@ -325,9 +345,6 @@ def import_playlist_from_file(file_name, append_if_exist=False, allow_duplicates
     return playlist_id, tracks_added, tag_tracks
 
 
-
-
-
 def like_all_tracks_in_playlist(playlist_id):
     playlist_id = spoty.utils.parse_playlist_id(playlist_id)
 
@@ -343,9 +360,7 @@ def like_all_tracks_in_playlist(playlist_id):
     return not_liked_track_ids
 
 
-
 def get_tags_from_spotify_library(filter_names, user_id):
-
     if user_id == None:
         playlists = spoty.playlist.get_list_of_playlists()
         click.echo(f'You have {len(playlists)} playlists')

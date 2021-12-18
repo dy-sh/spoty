@@ -39,7 +39,7 @@ from datetime import datetime
               help='Print a list of read tracks to console.')
 @click.option('--export-path', '--ep',
               help='Export a list of read tracks to csv playlists in specified path.')
-@click.option('--export-naming-pattern', '--enp', default='%playlist_name%',
+@click.option('--export-naming-pattern', '--enp', default='%SPOTY_PLAYLIST_NAME%',
               help='Exported playlists will be named according to this pattern.')
 @click.option('--overwrite', '-o', is_flag=True,
               help='Overwrite existing csv playlists without asking')
@@ -120,10 +120,15 @@ def list(sources,
                 playlist = spoty.playlist.get_playlist(playlist_id)
                 playlists.append(playlist)
 
-                if len(filter_playlists_names) > 0:
-                    playlists = list(filter(lambda pl: re.findall(filter_playlists_names, pl['name']), playlists))
+        if len(filter_playlists_names) > 0:
+            playlists = list(filter(lambda pl: re.findall(filter_playlists_names, pl['name']), playlists))
 
-                tracks = spoty.playlist.get_tracks_of_playlist(playlist_id)
+        with click.progressbar(playlists, label='Reading spotify tracks') as bar:
+            for playlist in bar:
+
+                tracks = spoty.playlist.get_tracks_of_playlist(playlist['id'])
+                for track in tracks:
+                    track['track']['SPOTY_PLAYLIST_NAME']=playlist['name']
 
                 if len(filter_tracks_tags) > 0:
                     tracks = spoty.utils.filter_spotify_tracks_which_have_all_tags(tracks, filter_tracks_tags)
@@ -155,6 +160,27 @@ def list(sources,
         source_local_tracks.append(local_files)
         source_local_tracks_tags.extend(tags)
         all_source_tracks_tags.extend(tags)
+
+
+
+    if print_to_console:
+        for i, track in enumerate(source_spotify_tracks_tags):
+            click.echo(
+                f'--------------------- SPOTIFY TRACK {i + 1} / {len(source_spotify_tracks_tags)} ---------------------')
+            spoty.utils.print_track_main_tags(track)
+        for i, track in enumerate(source_local_tracks_tags):
+            click.echo(
+                f'--------------------- LOCAL TRACK {i + 1} / {len(source_local_tracks_tags)} ---------------------')
+            spoty.utils.print_track_main_tags(track)
+
+        if len(all_source_tracks_tags)>0:
+            click.echo("-------------------------------------------------------------------------------------")
+
+
+    if count:
+        click.echo(f'Total tracks: {len(all_source_tracks_tags)}')
+
+
 
     exported_playlists_file_names=[]
     exported_playlists_names=[]
@@ -190,26 +216,11 @@ def list(sources,
                 exported_playlists_file_names.append(playlist_file_name)
                 exported_tracks.extend(tracks)
 
-            mess = f'{len(exported_tracks)} tracks exported to {len(exported_playlists_file_names)} playlists in path: "{export_path}"'
+            mess = f'\n{len(exported_tracks)} tracks exported to {len(exported_playlists_file_names)} playlists in path: "{export_path}"'
             click.echo(mess)
 
 
 
-    if print_to_console:
-        for i, track in enumerate(source_spotify_tracks_tags):
-            click.echo(
-                f'--------------------- SPOTIFY TRACK {i + 1} / {len(source_spotify_tracks_tags)} ---------------------')
-            spoty.utils.print_track_main_tags(track)
-        for i, track in enumerate(source_local_tracks_tags):
-            click.echo(
-                f'--------------------- LOCAL TRACK {i + 1} / {len(source_local_tracks_tags)} ---------------------')
-            spoty.utils.print_track_main_tags(track)
-
-        if len(all_source_tracks_tags)>0:
-            click.echo("-------------------------------------------------------------------------------------")
-
-    if count:
-        click.echo(f'Total tracks: {len(all_source_tracks_tags)}')
 
 def to_list(some_tuple):
     l = []

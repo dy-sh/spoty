@@ -2,6 +2,80 @@ import os.path
 import csv
 import spoty.local
 
+tag_allies = [
+    ['YEAR', 'DATE'],
+    ['TRACK', 'TRACKNUMBER'],
+    ['DISK', 'DISKNUMBER']
+]
+
+spoty_tags = \
+    [
+        'SPOTY_DUPLICATE_GROUP',
+        'SPOTY_PLAYLIST_SOURCE',
+        'SPOTY_PLAYLIST_NAME',
+        'SPOTY_PLAYLIST_ID',
+        'SPOTY_PLAYLIST_INDEX',
+        'SPOTY_FILE_NAME',
+        'LENGTH'
+
+    ]
+
+main_tags = \
+    [
+        'ISRC',
+        'ARTIST',
+        'ALBUMARTIST',
+        'TITLE',
+        'ALBUM',
+        'GENRE',
+        'MOOD',
+        'OCCASION',
+        'RATING',
+        'COMMENT'
+        'BARCODE',
+        'BPM',
+        'FILEOWNER'  # public
+        'LENGTH',
+        'QUALITY',
+        'SPOTIFY_TRACK_ID'  # spotify specific
+        'SPOTIFY_RELEASE_ID',  # spotify specific
+        'SOURCE',  # deezer specific
+        'SOURCEID',  # deezer specific
+        'TEMPO',
+        'YEAR',
+    ]
+
+additional_tags = \
+    [
+        '1T_TAGGEDDATE',  # auto tagger
+        'AUTHOR',
+        'COMPILATION',
+        'COMPOSER',
+        'COPYRIGHT',
+        'DISC',
+        'ENCODER',
+        'EXPLICIT'
+        'INITIAL KEY',
+        'INITIALKEY'
+        'ENGINEER',
+        'INVOLVEDPEOPLE',
+        'ITUNESADVISORY',
+        'LABEL',
+        'LOVE RATING',
+        'LYRICS',
+        'MIXER',
+        'PRODUCER',
+        'PUBLISHER',
+        'REPLAYGAIN_TRACK_GAIN',
+        'RELEASE DATE'
+        'STYLE',
+        'TOTALDISCS',
+        'TOTALTRACKS',
+        'TRACK',
+        'UPC',
+        'WRITER',
+    ]
+
 
 class CSVImportException(Exception):
     """Base class for exceptions when importing CSV file."""
@@ -89,14 +163,16 @@ def remove_duplicates(arr):
             good.append(item)
     return good, dup
 
+
 def read_tags_from_spotify_tracks(tracks):
     tag_tracks = []
 
     for track in tracks:
-        tags=read_tags_from_spotify_track(track)
+        tags = read_tags_from_spotify_track(track)
         tag_tracks.append(tags)
 
     return tag_tracks
+
 
 def read_tags_from_spotify_track(track):
     if "track" in track:
@@ -146,9 +222,11 @@ def read_tags_from_spotify_track(track):
     # tags['SOURCE'] = "Spotify"
     # tags['SOURCEID'] = tags['SPOTIFY_TRACK_ID']
 
+    for tag in spoty_tags:
+        if tag in track:
+            tags[tag] = track[tag]
+
     return tags
-
-
 
 
 def compare_two_tag_tracks(old_track, new_track, compare_tags, allow_missing=False):
@@ -228,7 +306,6 @@ def print_track_main_tags(track, include_playlist_info=False):
     if 'YEAR' in track: print(f'YEAR: {track["YEAR"]}')
 
 
-
 def filter_tracks_which_have_all_tags(track_tags, filter_tags):
     filtered = []
     for track in track_tags:
@@ -261,6 +338,7 @@ def filter_spotify_tracks_which_not_have_any_of_tags(spotify_track, filter_tags)
         if not check_track_have_all_tags(tags, filter_tags):
             filtered.append(track)
     return filtered
+
 
 def check_track_have_all_tags(track, tags):
     for tag in tags:
@@ -296,3 +374,25 @@ def group_tracks_by_pattern(pattern, tracks, not_found_tag_name="Unknown"):
         groups[group_name].append(track)
 
     return groups
+
+
+
+def reorder_tag_keys(keys):
+    res = []
+
+    # reorder spoty tags first
+    for key in spoty_tags:
+        if key in keys:
+            res.append(key)
+
+    # reorder main tags first
+    for key in main_tags:
+        if key in keys:
+            res.append(key)
+
+    # add other tags
+    for key in keys:
+        if not key in res:
+            res.append(key)
+
+    return res

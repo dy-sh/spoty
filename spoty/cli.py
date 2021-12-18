@@ -24,7 +24,7 @@ if __name__ == '__main__':
     #      'https://open.spotify.com/playlist/7E6SNhIGjSqEmzHISqnMrJ'])
 
     cli(['list', '-p',
-         '--ftt','title',
+         '--ep', './export',
          '--ssp', '0yRgrCdkntJG83mFbFvrBP',
          'https://open.spotify.com/playlist/0yRgrCdkntJG83mFbFvrBP',
          'https://open.spotify.com/playlist/7E6SNhIGjSqEmzHISqnMrJ'])

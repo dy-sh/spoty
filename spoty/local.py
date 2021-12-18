@@ -12,79 +12,6 @@ from mutagen.mp3 import MP3
 from mutagen.id3 import ID3
 import csv
 
-tag_allies = [
-    ['YEAR', 'DATE'],
-    ['TRACK', 'TRACKNUMBER'],
-    ['DISK', 'DISKNUMBER']
-]
-
-spoty_tags = \
-    [
-        'SPOTY_DUPLICATE_GROUP',
-        'SPOTY_PLAYLIST_NAME',
-        'SPOTY_PLAYLIST_INDEX',
-        'SPOTY_FILE_NAME',
-        'LENGTH'
-
-    ]
-
-main_tags = \
-    [
-        'ISRC',
-        'ARTIST',
-        'ALBUMARTIST',
-        'TITLE',
-        'ALBUM',
-        'GENRE',
-        'MOOD',
-        'OCCASION',
-        'RATING',
-        'COMMENT'
-        'BARCODE',
-        'BPM',
-        'FILEOWNER'  # public
-        'LENGTH',
-        'QUALITY',
-        'SPOTIFY_TRACK_ID'  # spotify specific
-        'SPOTIFY_RELEASE_ID',  # spotify specific
-        'SOURCE',  # deezer specific
-        'SOURCEID',  # deezer specific
-        'TEMPO',
-        'YEAR',
-    ]
-
-additional_tags = \
-    [
-        '1T_TAGGEDDATE',  # auto tagger
-        'AUTHOR',
-        'COMPILATION',
-        'COMPOSER',
-        'COPYRIGHT',
-        'DISC',
-        'ENCODER',
-        'EXPLICIT'
-        'INITIAL KEY',
-        'INITIALKEY'
-        'ENGINEER',
-        'INVOLVEDPEOPLE',
-        'ITUNESADVISORY',
-        'LABEL',
-        'LOVE RATING',
-        'LYRICS',
-        'MIXER',
-        'PRODUCER',
-        'PUBLISHER',
-        'REPLAYGAIN_TRACK_GAIN',
-        'RELEASE DATE'
-        'STYLE',
-        'TOTALDISCS',
-        'TOTALTRACKS',
-        'TRACK',
-        'UPC',
-        'WRITER',
-    ]
-
-
 class CSVImportException(Exception):
     """Base class for exceptions when importing CSV file."""
     pass
@@ -260,26 +187,6 @@ def collect_playlist_from_files(playlist_file_name, track_file_names, overwrite=
     return tracks
 
 
-def reorder_tag_keys(keys):
-    res = []
-
-    # reorder spoty tags first
-    for key in spoty_tags:
-        if key in keys:
-            res.append(key)
-
-    # reorder main tags first
-    for key in main_tags:
-        if key in keys:
-            res.append(key)
-
-    # add other tags
-    for key in keys:
-        if not key in res:
-            res.append(key)
-
-    return res
-
 
 def write_tracks_to_csv_file(tracks, playlist_file_name, append=False):
     # collect all keys
@@ -289,7 +196,7 @@ def write_tracks_to_csv_file(tracks, playlist_file_name, append=False):
             if not key in keys:
                 keys.append(key)
 
-    keys = reorder_tag_keys(keys)
+    keys = spoty.utils.reorder_tag_keys(keys)
 
     # write missing keys to all tracks
     for track in tracks:
@@ -367,7 +274,7 @@ def find_duplicates_in_tag_tracks(all_tracks, tags_to_compare):
         pattern += "%" + tag + "%,"
     pattern = pattern[:-1]
 
-    groupped_tracks = group_tracks_by_pattern(pattern, all_tracks, "Unknown")
+    groupped_tracks = spoty.utils.group_tracks_by_pattern(pattern, all_tracks, "Unknown")
 
     for tags, tracks in groupped_tracks.items():
         if tags == "Unknown":
@@ -473,14 +380,14 @@ def get_missing_tags(file_name, new_tags):
         if key == 'LENGTH':
             continue
 
-        if key in spoty_tags:
+        if key in spoty.utils.spoty_tags:
             continue
 
         if key in exist_tags:
             continue
 
         found = False
-        for aliases in tag_allies:
+        for aliases in spoty.utils.tag_allies:
             if key in aliases:
                 for al in aliases:
                     if al in exist_tags:
