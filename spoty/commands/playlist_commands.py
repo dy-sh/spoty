@@ -1,8 +1,8 @@
 from spoty import settings
 from spoty import log
-import spoty.playlist
-import spoty.like
+import spoty.spotify
 import spoty.local
+import spoty.csv_playlist
 import click
 import re
 import spoty.utils
@@ -33,9 +33,9 @@ def playlist_list(filter_names, user_id):
         spoty playlist list --user-id 4717400682
     """
     if user_id == None:
-        playlists = spoty.playlist.get_list_of_playlists()
+        playlists = spoty.spotify.get_list_of_playlists()
     else:
-        playlists = spoty.playlist.get_list_of_user_playlists(user_id)
+        playlists = spoty.spotify.get_list_of_user_playlists(user_id)
 
     if len(playlists) == 0:
         exit()
@@ -63,7 +63,7 @@ def playlist_create(name):
 
         spoty playlist create "My awesome playlist"
     """
-    id = spoty.playlist.create_playlist(name)
+    id = spoty.spotify.create_playlist(name)
     click.echo(f'New playlist created (id: {id}, name: "{name}")')
 
 
@@ -92,7 +92,7 @@ def playlist_copy(playlist_ids):
     tracks = []
     with click.progressbar(playlist_ids, label='Copying playlists') as bar:
         for playlist_id in bar:
-            new_playlist_id, tracks_added = spoty.playlist.copy_playlist(playlist_id)
+            new_playlist_id, tracks_added = spoty.spotify.copy_playlist(playlist_id)
             playlists.extend(new_playlist_id)
             tracks.extend(tracks_added)
 
@@ -122,7 +122,7 @@ def playlist_add_tracks(playlist_id, track_ids, allow_duplicates):
 
     """
     track_ids = list(track_ids)
-    tracks_added = spoty.playlist.add_tracks_to_playlist(playlist_id, track_ids, allow_duplicates)
+    tracks_added = spoty.spotify.add_tracks_to_playlist(playlist_id, track_ids, allow_duplicates)
     click.echo(f'{len(tracks_added)} tracks added to playlist {playlist_id}')
 
 
@@ -147,7 +147,7 @@ def playlist_remove_tracks(playlist_id, track_ids):
 
     """
     track_ids = list(track_ids)
-    spoty.playlist.remove_tracks_from_paylist(playlist_id, track_ids)
+    spoty.spotify.remove_tracks_from_paylist(playlist_id, track_ids)
     click.echo(f'Tracks removed from playlist {playlist_id}')
 
 
@@ -172,7 +172,7 @@ def playlist_remove_liked_tracks(playlist_ids):
     all_removed_tracks = []
     with click.progressbar(playlist_ids, label='Removing liked tracks from playlists') as bar:
         for playlist_id in bar:
-            removed_tracks = spoty.playlist.remove_liked_tracks_in_playlist(playlist_id)
+            removed_tracks = spoty.spotify.remove_liked_tracks_in_playlist(playlist_id)
             all_removed_tracks.extend(removed_tracks)
 
     click.echo(f'{len(all_removed_tracks)} liked tracks removed from {len(playlist_ids)} playlists.')
@@ -202,7 +202,7 @@ def playlist_list_invalid_tracks(playlist_ids):
     all_invalid_tracks = []
     with click.progressbar(playlist_ids, label='Collecting invalid tracks from playlists') as bar:
         for playlist_id in bar:
-            removed_tracks = spoty.playlist.get_invalid_tracks_in_playlist(playlist_id)
+            removed_tracks = spoty.spotify.get_invalid_tracks_in_playlist(playlist_id)
             all_invalid_tracks.extend(removed_tracks)
 
     click.echo(f'{len(all_invalid_tracks)} invalid tracks in {len(playlist_ids)} playlists.')
@@ -233,7 +233,7 @@ def playlist_like_all_tracks(playlist_ids):
     all_liked_tracks = []
     with click.progressbar(playlist_ids, label='Liking all tracks in playlists') as bar:
         for playlist_id in bar:
-            liked_tracks = spoty.playlist.like_all_tracks_in_playlist(playlist_id)
+            liked_tracks = spoty.spotify.like_all_tracks_in_playlist(playlist_id)
             all_liked_tracks.extend(liked_tracks)
 
     click.echo(f'{len(all_liked_tracks)} tracks added to liked tracks in {len(playlist_ids)} playlists.')
@@ -257,11 +257,12 @@ def playlist_read(playlist_ids):
         spoty playlist read https://open.spotify.com/playlist/37i9dQZF1DX8z1UW9HQvSq
 
     """
+    tracks=[]
     for playlist_id in playlist_ids:
         click.echo(f'Tracks in playlist {playlist_id}:')
-        tracks = spoty.playlist.get_tracks_of_playlist(playlist_id)
+        tracks = spoty.spotify.get_tracks_of_playlist(playlist_id)
         for track in tracks:
-            title = spoty.utils.get_track_artist_and_title(track["track"])
+            title = spoty.spotify.get_track_artist_and_title(track["track"])
             click.echo(f'{track["track"]["id"]}: {title}')
 
     click.echo(f'Total tracks: {len(tracks)}')
@@ -292,7 +293,7 @@ def playlist_export(path, playlist_ids, overwrite):
     file_names = []
     with click.progressbar(playlist_ids, label='Exporting playlists') as bar:
         for playlist_id in bar:
-            file_name = spoty.playlist.export_playlist_to_file(playlist_id, path, overwrite)
+            file_name = spoty.spotify.export_playlist_to_file(playlist_id, path, overwrite)
             if file_name is not None:
                 file_names.append(file_name)
 
@@ -328,10 +329,10 @@ def playlist_export_all(path, filter_names, user_id, overwrite, confirm, timesta
     path = os.path.abspath(path)
 
     if user_id == None:
-        playlists = spoty.playlist.get_list_of_playlists()
+        playlists = spoty.spotify.get_list_of_playlists()
         click.echo(f'You have {len(playlists)} playlists')
     else:
-        playlists = spoty.playlist.get_list_of_user_playlists(user_id)
+        playlists = spoty.spotify.get_list_of_user_playlists(user_id)
         click.echo(f'User has {len(playlists)} playlists')
 
     if len(playlists) == 0:
@@ -361,7 +362,7 @@ def playlist_export_all(path, filter_names, user_id, overwrite, confirm, timesta
     file_names = []
     with click.progressbar(playlists, label='Exporting playlists') as bar:
         for playlist in bar:
-            file_name = spoty.playlist.export_playlist_to_file(playlist['id'], path, overwrite, file_names)
+            file_name = spoty.spotify.export_playlist_to_file(playlist['id'], path, overwrite, file_names)
             if file_name is not None:
                 file_names.append(file_name)
 
@@ -394,24 +395,24 @@ def playlist_import(file_names, append, allow_duplicates):
         all_readed_tags = []
         for file_name in bar:
             try:
-                playlist_id, tracks_added, readed_tags = spoty.playlist.import_playlist_from_file(file_name, append,
+                playlist_id, tracks_added, readed_tags = spoty.spotify.import_playlist_from_file(file_name, append,
                                                                                                      allow_duplicates)
                 all_tracks_added += tracks_added
                 all_readed_tags += readed_tags
             except FileNotFoundError:
                 time.sleep(0.2)  # waiting progressbar updating
                 click.echo(f'\nFile does not exist: "{file_name}"')
-            except spoty.local.CSVFileEmpty as e:
+            except spoty.csv_playlist.CSVFileEmpty as e:
                 log.warning(f'Cant import file "{file_name}". File is empty.')
                 time.sleep(0.2)  # waiting progressbar updating
                 click.echo(f'\nCant import file "{file_name}". File is empty.')
-            except spoty.local.CSVFileInvalidHeader as e:
+            except spoty.csv_playlist.CSVFileInvalidHeader as e:
                 log.error(
-                    f'Cant import file "{file_name}". The header of csv table does not contain any of the required ' \
+                    f'Cant import file "{file_name}". The header of csv table does not contain any of the required ' +
                     f'fields (isrc, spotify_track_id, title).')
                 time.sleep(0.2)  # waiting progressbar updating
                 click.echo(
-                    f'\nCant import file "{file_name}". The header of csv table does not contain any of the required ' \
+                    f'\nCant import file "{file_name}". The header of csv table does not contain any of the required ' +
                     f'fields (isrc, spotify_track_id, title).')
 
             time.sleep(0.2)

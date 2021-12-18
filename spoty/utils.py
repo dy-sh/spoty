@@ -1,6 +1,4 @@
 import os.path
-import csv
-import spoty.local
 
 tag_allies = [
     ['YEAR', 'DATE'],
@@ -77,54 +75,6 @@ additional_tags = \
     ]
 
 
-class CSVImportException(Exception):
-    """Base class for exceptions when importing CSV file."""
-    pass
-
-
-class CSVFileEmpty(CSVImportException):
-    """File is empty."""
-    pass
-
-
-class CSVFileInvalidHeader(CSVImportException):
-    """The header of csv table does not contain any of the required fields."""
-    pass
-
-
-def get_track_artist_and_title(track):
-    artists = list(map(lambda artist: artist['name'], track['artists']))
-    artists_str = ', '.join(artists)
-    artists_str.replace(' - ', ' ')
-    title = track['name'].replace(' - ', ' ')
-    return f"{artists_str} - {title}"
-
-
-def get_track_ids(tracks):
-    if len(tracks) == 0:
-        return []
-    else:
-        return [item['track']['id'] for item in tracks]
-
-
-def check_is_playlist_URI(uri):
-    return uri.startswith("https://open.spotify.com/playlist/")
-
-
-def parse_playlist_id(id_or_url):
-    if (id_or_url.startswith("https://open.spotify.com/playlist/")):
-        id_or_url = id_or_url.split('/playlist/')[1]
-        id_or_url = id_or_url.split('?')[0]
-    return id_or_url
-
-
-def parse_track_id(id_or_url):
-    if (id_or_url.startswith("https://open.spotify.com/track/")):
-        id_or_url = id_or_url.split('/track/')[1]
-        id_or_url = id_or_url.split('?')[0]
-    return id_or_url
-
-
 def slugify_file_pah(text):
     # valid_chars = "-_.()=!@#$%%^&+ %s%s" % (string.ascii_letters, string.digits)
     # return ''.join(c for c in text if c in valid_chars).strip()
@@ -135,18 +85,6 @@ def slugify_file_pah(text):
         text = text.replace(char, '')
 
     return text
-
-
-def get_playlist_file_name(playlist_name, playlist_id, path, avoid_filenames):
-    playlist_name = slugify_file_pah(playlist_name)
-    if (len(playlist_name) == 0):
-        playlist_name = playlist_id
-    full_file_name = os.path.join(path, playlist_name + ".csv")
-
-    if full_file_name in avoid_filenames:
-        full_file_name = get_playlist_file_name(playlist_name + " (1)", playlist_id, path, avoid_filenames)
-
-    return full_file_name
 
 
 def filter_duplicates(original_arr, new_arr):
@@ -162,71 +100,6 @@ def remove_duplicates(arr):
         else:
             good.append(item)
     return good, dup
-
-
-def read_tags_from_spotify_tracks(tracks):
-    tag_tracks = []
-
-    for track in tracks:
-        tags = read_tags_from_spotify_track(track)
-        tag_tracks.append(tags)
-
-    return tag_tracks
-
-
-def read_tags_from_spotify_track(track):
-    if "track" in track:
-        track = track['track']
-
-    tags = {}
-
-    try:
-        tags['ISRC'] = track['external_ids']['isrc']
-    except:
-        pass
-
-    try:
-        artists = list(map(lambda artist: artist['name'], track['artists']))
-        tags['ARTIST'] = ';'.join(artists)
-    except:
-        pass
-
-    tags['TITLE'] = track['name']
-
-    try:
-        tags['ALBUM'] = track['album']['name']
-    except:
-        pass
-
-    tags['LENGTH'] = track['duration_ms']
-
-    try:
-        tags['SPOTIFY_RELEASE_ID'] = track['album']['id']
-    except:
-        pass
-
-    tags['WWWAUDIOFILE'] = track['external_urls']['spotify']
-
-    tags['SPOTIFY_TRACK_ID'] = track["id"]
-
-    tags['EXPLICIT'] = track['explicit']
-
-    tags['TRACK'] = track['track_number']
-
-    try:
-        tags['YEAR'] = track['album']['release_date']
-    except:
-        pass
-
-    # PREVIEW_URL=track['preview_url']
-    # tags['SOURCE'] = "Spotify"
-    # tags['SOURCEID'] = tags['SPOTIFY_TRACK_ID']
-
-    for tag in spoty_tags:
-        if tag in track:
-            tags[tag] = track[tag]
-
-    return tags
 
 
 def compare_two_tag_tracks(old_track, new_track, compare_tags, allow_missing=False):
@@ -282,6 +155,31 @@ def compare_two_tag_tracks(old_track, new_track, compare_tags, allow_missing=Fal
     return True
 
 
+def find_duplicates_in_tag_tracks(all_tracks, tags_to_compare):
+    if len(tags_to_compare) == 0:
+        return
+
+    duplicates = {}
+    pattern = ""
+    for tag in tags_to_compare:
+        pattern += "%" + tag + "%,"
+    pattern = pattern[:-1]
+
+    groupped_tracks = group_tracks_by_pattern(pattern, all_tracks, "Unknown")
+
+    for tags, tracks in groupped_tracks.items():
+        if tags == "Unknown":
+            continue
+        if len(tracks) > 1:
+            if not tags in duplicates:
+                duplicates[tags] = []
+            duplicates[tags].extend(tracks)
+
+    skipped_tracks = groupped_tracks['Unknown'] if 'Unknown' in groupped_tracks else []
+
+    return duplicates, all_tracks, skipped_tracks
+
+
 def print_track_main_tags(track, include_playlist_info=False):
     if 'ISRC' in track: print(f'ISRC: {track["ISRC"]}')
     if 'ARTIST' in track: print(f'ARTIST: {track["ARTIST"]}')
@@ -322,24 +220,6 @@ def filter_tracks_which_not_have_any_of_tags(track_tags, filter_tags):
     return filtered
 
 
-def filter_spotify_tracks_which_have_all_tags(spotify_track, filter_tags):
-    filtered = []
-    for track in spotify_track:
-        tags = spoty.utils.read_tags_from_spotify_track(track)
-        if check_track_have_all_tags(tags, filter_tags):
-            filtered.append(track)
-    return filtered
-
-
-def filter_spotify_tracks_which_not_have_any_of_tags(spotify_track, filter_tags):
-    filtered = []
-    for track in spotify_track:
-        tags = spoty.utils.read_tags_from_spotify_track(track)
-        if not check_track_have_all_tags(tags, filter_tags):
-            filtered.append(track)
-    return filtered
-
-
 def check_track_have_all_tags(track, tags):
     for tag in tags:
         if not tag.upper() in track:
@@ -376,7 +256,6 @@ def group_tracks_by_pattern(pattern, tracks, not_found_tag_name="Unknown"):
     return groups
 
 
-
 def reorder_tag_keys(keys):
     res = []
 
@@ -396,3 +275,11 @@ def reorder_tag_keys(keys):
             res.append(key)
 
     return res
+
+
+def is_valid_path(path):
+    return os.path.isdir(path)
+
+
+def is_valid_file(path):
+    return os.path.isfile(path)

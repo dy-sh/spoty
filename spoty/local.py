@@ -1,30 +1,12 @@
-from spoty import sp
 from spoty import log
 import spoty.utils
-import spoty.like
 import os.path
 import click
 import time
 import re
-import mutagen
 from mutagen.flac import FLAC
-from mutagen.mp3 import MP3
-from mutagen.id3 import ID3
-import csv
-
-class CSVImportException(Exception):
-    """Base class for exceptions when importing CSV file."""
-    pass
-
-
-class CSVFileEmpty(CSVImportException):
-    """File is empty."""
-    pass
-
-
-class CSVFileInvalidHeader(CSVImportException):
-    """The header of csv table does not contain any of the required fields."""
-    pass
+# from mutagen.mp3 import MP3
+# from mutagen.id3 import ID3
 
 
 def is_flac(file_name):
@@ -33,18 +15,6 @@ def is_flac(file_name):
 
 def is_mp3(file_name):
     return file_name.upper().endswith('.MP3')
-
-
-def is_csv(file_name):
-    return file_name.upper().endswith('.CSV')
-
-
-def is_valid_path(path):
-    return os.path.isdir(path)
-
-
-def is_valid_file(path):
-    return os.path.isfile(path)
 
 
 def filter_tracks_which_have_all_tags(file_names, tags):
@@ -81,10 +51,16 @@ def get_local_audio_file_names(path, no_recursive=True):
 def get_local_tracks_file_names_old(path,
                                     recursive=True,
                                     filter_names: list = None,
-                                    filter_have_tags=[],
-                                    filter_have_no_tags=[],
+                                    filter_have_tags=None,
+                                    filter_have_no_tags=None,
                                     ):
     full_file_names = []
+    if filter_have_tags is None:
+        filter_have_tags = []
+
+    if filter_have_no_tags is None:
+        filter_have_no_tags = []
+
     if recursive:
         full_file_names = [os.path.join(dp, f) for dp, dn, filenames in os.walk(path) for f in filenames if
                            is_flac(os.path.splitext(f)[1]) or is_mp3(os.path.splitext(f)[1])]
@@ -106,26 +82,6 @@ def get_local_tracks_file_names_old(path,
     return full_file_names
 
 
-def get_all_playlists_in_path(path,
-                              recursive=True,
-                              filter_names=None
-                              ):
-    full_file_names = []
-    if recursive:
-        full_file_names = [os.path.join(dp, f) for dp, dn, filenames in os.walk(path) for f in filenames if
-                           is_csv(os.path.splitext(f)[1])]
-    else:
-        full_file_names = [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
-        full_file_names = list(filter(lambda f: is_csv(f), full_file_names))
-
-    if filter_names is not None:
-        full_file_names = list(filter(lambda f:
-                                      re.findall(filter_names, os.path.basename(f)),
-                                      full_file_names))
-
-    return full_file_names
-
-
 def read_local_audio_tracks_tags(track_file_names, add_extra_info=True):
     tracks = []
     for file_name in track_file_names:
@@ -137,7 +93,7 @@ def read_local_audio_tracks_tags(track_file_names, add_extra_info=True):
 def read_local_audio_track_tags(file_name, add_extra_info=True):
     track = {}
 
-    file_name=os.path.abspath(file_name)
+    file_name = os.path.abspath(file_name)
 
     if add_extra_info:
         dir = os.path.dirname(file_name)
@@ -174,152 +130,25 @@ def read_local_audio_track_tags(file_name, add_extra_info=True):
     return track
 
 
-def collect_playlist_from_files(playlist_file_name, track_file_names, overwrite=False):
-    log.info(f'Exporting playlist (tracks:{len(track_file_names)}, file name: {playlist_file_name})')
-
-    if os.path.isfile(playlist_file_name) and not overwrite:
-        time.sleep(0.2)  # waiting progressbar updating
-        if not click.confirm(f'\nFile "{playlist_file_name}" already exist. Overwrite?'):
-            log.info(f'Canceled by user (file already exist)')
-            return None
-
-    tracks = read_local_audio_tracks_tags(track_file_names)
-
-    write_tracks_to_csv_file(tracks, playlist_file_name)
-    #
-    # log.success(f'Playlist {playlist_id} exported (file: "{file_name}")')
-    #
-    return tracks
-
-
-
-def write_tracks_to_csv_file(tracks, playlist_file_name, append=False):
-    # collect all keys
-    keys = []
-    for track in tracks:
-        for key, value in track.items():
-            if not key in keys:
-                keys.append(key)
-
-    keys = spoty.utils.reorder_tag_keys(keys)
-
-    # write missing keys to all tracks
-    for track in tracks:
-        for key in keys:
-            if not key in track:
-                track[key] = ""
-
-    os.makedirs(os.path.dirname(playlist_file_name), exist_ok=True)
-
-    method = 'w'
-    if append:
-        if os.path.isfile(playlist_file_name):
-            with open(playlist_file_name, newline='', encoding='utf-8-sig') as file:
-                reader = csv.reader(file)
-                if sum(1 for row in reader) != 0:  # file is not empty
-                    method = 'a'
-
-    with open(playlist_file_name, method, encoding='utf-8-sig', newline='') as file:
-        writer = csv.writer(file)
-
-        if method == 'w': # write header to new file
-            writer.writerow(keys)
-
-        for track in tracks:
-            values = [track[key] for key in keys]
-            writer.writerow(values)
-
-
-def read_tracks_from_csv_file(playlist_file_name, add_playlist_info=False):
-    tracks = []
-
-    with open(playlist_file_name, newline='', encoding='utf-8-sig') as file:
-        reader = csv.reader(file)
-        if sum(1 for row in reader) == 0:
-            raise CSVFileEmpty()
-
-    with open(playlist_file_name, newline='', encoding='utf-8-sig') as file:
-        header = []
-        reader = csv.reader(file)
-
-        for i, row in enumerate(reader):
-            # read header
-            if (i == 0):
-                header = row
-                if len(header) == 0:
-                    raise CSVFileInvalidHeader()
-                continue
-
-            # read track
-            if len(row) == 0:
-                continue
-
-            track = {}
-
-            if (add_playlist_info):
-                track['SPOTY_PLAYLIST_NAME'] = playlist_file_name
-                track['SPOTY_PLAYLIST_INDEX'] = i - 1
-
-            for h, key in enumerate(header):
-                if len(row[h]) > 0:
-                    track[key] = row[h]
-
-            tracks.append(track)
-
-    return tracks
-
-
-def find_duplicates_in_tag_tracks(all_tracks, tags_to_compare):
-    if len(tags_to_compare) == 0:
-        return
-
-    duplicates = {}
-    pattern = ""
-    for tag in tags_to_compare:
-        pattern += "%" + tag + "%,"
-    pattern = pattern[:-1]
-
-    groupped_tracks = spoty.utils.group_tracks_by_pattern(pattern, all_tracks, "Unknown")
-
-    for tags, tracks in groupped_tracks.items():
-        if tags == "Unknown":
-            continue
-        if len(tracks) > 1:
-            if not tags in duplicates:
-                duplicates[tags] = []
-            duplicates[tags].extend(tracks)
-
-    skipped_tracks = groupped_tracks['Unknown'] if 'Unknown' in groupped_tracks else []
-
-    return duplicates, all_tracks, skipped_tracks
-
-
-def find_duplicates_in_playlists(path, tags_to_compare, recursive=True, filter_names=None):
-    all_tracks = []
-
-    playlists = spoty.local.get_all_playlists_in_path(path, recursive, filter_names)
-    for file_name in playlists:
-        tracks = spoty.local.read_tracks_from_csv_file(file_name, True)
-        all_tracks.extend(tracks)
-
-    duplicates, all_tracks, skipped_tracks = find_duplicates_in_tag_tracks(all_tracks, tags_to_compare)
-
-    return duplicates, all_tracks, skipped_tracks
-
-
 def find_duplicates_in_tracks(path,
                               tags_to_compare,
                               recursive=True,
                               filter_names=None,
-                              filter_have_tags=[],
-                              filter_have_no_tags=[]):
+                              filter_have_tags=None,
+                              filter_have_no_tags=None):
     if len(tags_to_compare) == 0:
         return
+
+    if filter_have_tags is None:
+        filter_have_tags = []
+
+    if filter_have_no_tags is None:
+        filter_have_no_tags = []
 
     full_file_names = spoty.local.get_local_tracks_file_names_old(path, recursive, filter_names, filter_have_tags,
                                                                   filter_have_no_tags)
     all_tracks = read_local_audio_tracks_tags(full_file_names, True)
-    duplicates, all_tracks, skipped_tracks = find_duplicates_in_tag_tracks(all_tracks, tags_to_compare)
+    duplicates, all_tracks, skipped_tracks = spoty.utils.find_duplicates_in_tag_tracks(all_tracks, tags_to_compare)
 
     return duplicates, all_tracks, skipped_tracks
 

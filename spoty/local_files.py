@@ -1,6 +1,7 @@
 import spoty.local
 import os
 
+
 def get_tracks_from_local_path(source_paths, no_recursive, filter_tracks_tags, filter_tracks_no_tags):
     local_file_names = []
     local_tags = []
@@ -21,4 +22,3 @@ def get_tracks_from_local_path(source_paths, no_recursive, filter_tracks_tags, f
         local_tags.extend(tags)
 
     return local_file_names, local_tags
-

@@ -1,9 +1,8 @@
-from spoty import settings
 from spoty import log
-import spoty.like
+import spoty.spotify
+import spoty.csv_playlist
 import spoty.utils
 import spoty.local
-import spoty.playlist
 import click
 import os
 import time
@@ -168,7 +167,7 @@ def local_collect_playlists(tracks_path, export_path, filter_names, overwrite, t
                 playlist_name = os.path.basename(os.path.normpath(dir))
                 playlist_file_name = os.path.join(export_path, playlist_name + '.csv')
 
-                spoty.local.collect_playlist_from_files(playlist_file_name, tracks_file_names, overwrite)
+                spoty.csv_playlist.collect_playlist_from_files(playlist_file_name, tracks_file_names, overwrite)
 
                 all_track_file_names.extend(tracks_file_names)
                 playlist_names.append(playlist_name)
@@ -186,7 +185,7 @@ def local_collect_playlists(tracks_path, export_path, filter_names, overwrite, t
                 tags = spoty.local.read_local_audio_tracks_tags(tracks_file_names)
                 all_track_tags.extend(tags)
 
-        grouped_tracks = spoty.local.group_tracks_by_pattern(naming_pattern, all_track_tags)
+        grouped_tracks = spoty.utils.group_tracks_by_pattern(naming_pattern, all_track_tags)
         for key, value in grouped_tracks.items():
             playlist_name = key
             playlist_name = spoty.utils.slugify_file_pah(playlist_name)
@@ -197,7 +196,7 @@ def local_collect_playlists(tracks_path, export_path, filter_names, overwrite, t
                 if not click.confirm(f'\nFile "{playlist_file_name}" already exist. Overwrite?'):
                     continue
 
-            spoty.local.write_tracks_to_csv_file(value, playlist_file_name)
+            spoty.csv_playlist.write_tracks_to_csv_file(value, playlist_file_name)
 
             playlist_names.append(playlist_name)
             playlist_file_names.append(playlist_file_name)
@@ -235,19 +234,19 @@ def local_count_tracks_in_playlists(path, filter_names, recursive, have_tags, ha
 
     all_tracks = []
 
-    playlists = spoty.local.get_all_playlists_in_path(path, recursive, filter_names)
+    playlists = spoty.csv_playlist.get_all_playlists_in_path(path, recursive, filter_names)
     for file_name in playlists:
-        tracks = spoty.local.read_tracks_from_csv_file(file_name)
+        tracks = spoty.csv_playlist.read_tracks_from_csv_file(file_name)
 
         for track in tracks:
             if have_tags is not None:
                 have_tags_arr = have_tags.upper().split(',')
-                if not spoty.local.check_track_have_all_tags(track, have_tags_arr):
+                if not spoty.utils.check_track_have_all_tags(track, have_tags_arr):
                     continue
 
             if have_no_tags is not None:
                 have__no_tags_arr = have_no_tags.upper().split(',')
-                if spoty.local.check_track_have_all_tags(track, have__no_tags_arr):
+                if spoty.utils.check_track_have_all_tags(track, have__no_tags_arr):
                     continue
 
             all_tracks.append(track)
@@ -264,7 +263,7 @@ def print_duplicates_in_playlist(tags, duplicates_dic):
         click.echo("-----------------------------------------------------")
         for track in duplicates:
             click.echo(f'Track {track["SPOTY_PLAYLIST_INDEX"]} in playlist "{track["SPOTY_PLAYLIST_NAME"]}"')
-            spoty.local.print_track_main_tags(track)
+            spoty.utils.print_track_main_tags(track)
 
 
 def print_duplicates_in_tracks(tags, duplicates_dic):
@@ -276,7 +275,7 @@ def print_duplicates_in_tracks(tags, duplicates_dic):
         click.echo("-----------------------------------------------------")
         for track in duplicates:
             click.echo(f'Track {track["SPOTY_FILE_NAME"]}"')
-            spoty.local.print_track_main_tags(track)
+            spoty.utils.print_track_main_tags(track)
 
 
 def duplicates_from_dict_to_array(duplicates_dic):
@@ -315,7 +314,7 @@ def local_list_duplicates_in_playlists(tags, path, filter_names, recursive):
 
     path = os.path.abspath(path)
     tags_arr = tags.upper().split(',') if tags is not None else []
-    duplicates_dic, all_tracks, skipped_tracks = spoty.local.find_duplicates_in_playlists(path, tags_arr, recursive,
+    duplicates_dic, all_tracks, skipped_tracks = spoty.csv_playlist.find_duplicates_in_playlists(path, tags_arr, recursive,
                                                                                           filter_names)
     print_duplicates_in_playlist(tags_arr, duplicates_dic)
 
@@ -391,12 +390,12 @@ def local_collect_duplicates_in_playlists(tags, import_path, export_file_name, f
     export_file_name = os.path.abspath(export_file_name)
 
     tags_arr = tags.upper().split(',') if tags is not None else []
-    duplicates_dic, all_tracks, skipped_tracks = spoty.local.find_duplicates_in_playlists(import_path, tags_arr,
+    duplicates_dic, all_tracks, skipped_tracks = spoty.csv_playlist.find_duplicates_in_playlists(import_path, tags_arr,
                                                                                           recursive,
                                                                                           filter_names)
     duplicates = duplicates_from_dict_to_array(duplicates_dic)
 
-    spoty.local.write_tracks_to_csv_file(duplicates, export_file_name)
+    spoty.csv_playlist.write_tracks_to_csv_file(duplicates, export_file_name)
 
     click.echo(
         f'{len(duplicates_dic)} duplicates found in {len(all_tracks)} tracks ({len(skipped_tracks)} have no "{tags}" tags and skipped) exported to "{export_file_name}"')
@@ -444,7 +443,7 @@ def local_collect_duplicates_in_tracks(tags, import_path, export_file_name, filt
 
     duplicates = duplicates_from_dict_to_array(duplicates_dic)
 
-    spoty.local.write_tracks_to_csv_file(duplicates, export_file_name)
+    spoty.csv_playlist.write_tracks_to_csv_file(duplicates, export_file_name)
 
     click.echo(
         f'{len(duplicates_dic)} duplicates found in {len(all_tracks)} tracks ({len(skipped_tracks)} have no "{tags}" tags and skipped) exported to "{export_file_name}"')
@@ -486,7 +485,7 @@ def local_add_tags_from_spotify_library(export_path, recursive, compare_tags, fi
     have_no_tags_arr = have_no_tags.upper().split(',') if have_no_tags is not None else []
     compare_tags_arr = compare_tags.upper().split(',') if compare_tags is not None else []
 
-    import_tracks_tags = spoty.playlist.get_tags_from_spotify_library(filter_names, user_id)
+    import_tracks_tags = spoty.spotify.get_tags_from_spotify_library(filter_names, user_id)
     export_tracks_tags = spoty.local.get_tags_from_tracks(export_path, recursive, have_tags_arr, have_no_tags_arr)
     missing_tags = spoty.local.get_missing_tags_from_tracks(import_tracks_tags, export_tracks_tags, compare_tags_arr)
     for file_name, tags in missing_tags.items():
@@ -574,7 +573,7 @@ def local_list_tags_from_spotify_library(export_path, recursive, compare_tags, f
     have_no_tags_arr = have_no_tags.upper().split(',') if have_no_tags is not None else []
     compare_tags_arr = compare_tags.upper().split(',') if compare_tags is not None else []
 
-    import_tracks_tags = spoty.playlist.get_tags_from_spotify_library(filter_names, user_id)
+    import_tracks_tags = spoty.spotify.get_tags_from_spotify_library(filter_names, user_id)
     export_tracks_tags = spoty.local.get_tags_from_tracks(export_path, recursive, have_tags_arr, have_no_tags_arr)
     missing_tags = spoty.local.get_missing_tags_from_tracks(import_tracks_tags, export_tracks_tags, compare_tags_arr)
     for file_name, tags in missing_tags.items():

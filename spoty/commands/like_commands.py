@@ -1,7 +1,8 @@
 from spoty import settings
 from spoty import log
-import spoty.like
+import spoty.spotify
 import spoty.utils
+import spoty.csv_playlist
 import click
 import os
 import time
@@ -23,7 +24,7 @@ def like_count():
 
         spoty like count
     """
-    count = spoty.like.get_liked_tracks_count()
+    count = spoty.spotify.get_liked_tracks_count()
     click.echo(f'Liked tracks: {count}')
 
 
@@ -45,7 +46,7 @@ def like_add(track_ids):
     """
 
     track_ids = list(track_ids)
-    spoty.like.add_tracks_to_liked(track_ids)
+    spoty.spotify.add_tracks_to_liked(track_ids)
     click.echo(f'{len(track_ids)} tracks added to liked')
 
 
@@ -82,7 +83,7 @@ def like_export(path, file_name, overwrite, timestamp):
             log.info(f'Canceled by user (file already exist)')
             return
 
-    liked_tracks =spoty.like.export_liked_tracks_to_file(file_name)
+    liked_tracks =spoty.spotify.export_liked_tracks_to_file(file_name)
 
     click.echo(f'{len(liked_tracks)} liked tracks exported to file: "{file_name}"')
 
@@ -107,16 +108,16 @@ def like_import(file_names):
     with click.progressbar(file_names, label='Importing lied tracks') as bar:
         for file_name in bar:
             try:
-                tracks_in_file = spoty.like.import_likes_from_file(file_name)
+                tracks_in_file = spoty.spotify.import_likes_from_file(file_name)
                 all_tracks_in_file += tracks_in_file
             except FileNotFoundError:
                 time.sleep(0.2)  # waiting progressbar updating
                 click.echo(f'\nFile does not exist: "{file_name}"')
-            except spoty.playlist.CSVFileEmpty as e:
+            except spoty.csv_playlist.CSVFileEmpty as e:
                 time.sleep(0.2)  # waiting progressbar updating
                 log.warning(f'Cant import file "{file_name}". File is empty.')
                 click.echo(f'\nCant import file "{file_name}". File is empty.')
-            except spoty.playlist.CSVFileInvalidHeader as e:
+            except spoty.csv_playlist.CSVFileInvalidHeader as e:
                 time.sleep(0.2)  # waiting progressbar updating
                 mess = f'Cant import file "{file_name}". The header of csv table does not contain any of the required ' \
                        f'fields (isrc, spotify_track_id, title).'

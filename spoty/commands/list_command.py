@@ -3,6 +3,7 @@ from spoty import log
 import spoty.spotify
 import spoty.local_files
 import spoty.csv_playlist
+import spoty.utils
 import click
 import re
 import time
@@ -98,11 +99,11 @@ def list(sources,
     all_tags = []
 
     for source in sources:
-        if spoty.utils.check_is_playlist_URI(source):
+        if spoty.spotify.check_is_playlist_URI(source):
             source_spotify_playlist.append(source)
-        elif spoty.local.is_csv(source):
+        elif spoty.csv_playlist.is_csv(source):
             source_local_playlists.append(source)
-        elif spoty.local.is_valid_path(source):
+        elif spoty.utils.is_valid_path(source):
             source_local_files.append(source)
         else:
             click.echo(f'Cant recognize source: "{source}"', err=True)
