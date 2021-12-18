@@ -2,8 +2,8 @@ from spoty import log
 import spoty.spotify
 import spoty.csv_playlist
 import spoty.utils
-import spoty.local_files
-import spoty.local_files
+import spoty.audio_files
+import spoty.audio_files
 import click
 import os
 import time
@@ -45,19 +45,19 @@ def local_count_tracks_in_playlists(path, filter_names, recursive, have_tags, ha
 
     all_tracks = []
 
-    playlists = spoty.csv_playlist.get_all_csvs_in_path(path, recursive, filter_names)
+    playlists = spoty.csv_playlist.find_csvs_in_path(path, recursive, filter_names)
     for file_name in playlists:
         tracks = spoty.csv_playlist.read_tracks_from_csv(file_name)
 
         for track in tracks:
             if have_tags is not None:
                 have_tags_arr = have_tags.upper().split(',')
-                if not spoty.utils.check_track_have_all_tags(track, have_tags_arr):
+                if not spoty.utils.check_all_tags_exist(track, have_tags_arr):
                     continue
 
             if have_no_tags is not None:
                 have__no_tags_arr = have_no_tags.upper().split(',')
-                if spoty.utils.check_track_have_all_tags(track, have__no_tags_arr):
+                if spoty.utils.check_all_tags_exist(track, have__no_tags_arr):
                     continue
 
             all_tracks.append(track)
@@ -165,8 +165,8 @@ def local_list_duplicates_in_tracks(tags, path, filter_names, recursive, have_ta
     have_no_tags_arr = have_no_tags.upper().split(',') if have_no_tags is not None else []
 
     duplicates_dic, all_tracks, skipped_tracks \
-        = spoty.local_files.find_duplicates_in_tracks(path, tags_arr, recursive, filter_names, have_tags_arr,
-                                                have_no_tags_arr)
+        = spoty.local_files.find_duplicates_in_audio_files(path, tags_arr, recursive, filter_names, have_tags_arr,
+                                                           have_no_tags_arr)
     print_duplicates_in_tracks(tags_arr, duplicates_dic)
 
     click.echo(
@@ -249,8 +249,9 @@ def local_collect_duplicates_in_tracks(tags, import_path, export_file_name, filt
     have_no_tags_arr = have_no_tags.upper().split(',') if have_no_tags is not None else []
 
     duplicates_dic, all_tracks, skipped_tracks \
-        = spoty.local_files.find_duplicates_in_tracks(import_path, tags_arr, recursive, filter_names, have_tags_arr,
-                                                have_no_tags_arr)
+        = spoty.local_files.find_duplicates_in_audio_files(import_path, tags_arr, recursive, filter_names,
+                                                           have_tags_arr,
+                                                           have_no_tags_arr)
 
     duplicates = duplicates_from_dict_to_array(duplicates_dic)
 
@@ -297,10 +298,13 @@ def local_add_tags_from_spotify_library(export_path, recursive, compare_tags, fi
     compare_tags_arr = compare_tags.upper().split(',') if compare_tags is not None else []
 
     import_tracks_tags = spoty.spotify.get_tags_from_spotify_library(filter_names, user_id)
-    export_tracks_tags = spoty.local_files.get_tags_from_tracks(export_path, recursive, have_tags_arr, have_no_tags_arr)
-    missing_tags = spoty.local_files.get_missing_tags_from_tracks(import_tracks_tags, export_tracks_tags, compare_tags_arr)
+    audio_files_names = spoty.local_files.find_audio_files_in_path(
+        export_path, recursive, have_tags_arr, have_no_tags_arr)
+    export_tracks_tags = spoty.local_files.read_audio_files_tags(audio_files_names)
+    missing_tags = spoty.local_files.get_missing_tags_from_source_to_dest_audio_files(
+        import_tracks_tags, export_tracks_tags, compare_tags_arr)
     for file_name, tags in missing_tags.items():
-        spoty.local_files.write_tags(file_name, tags)
+        spoty.local_files.write_audio_file_tags(file_name, tags)
 
     click.echo(f'Edited tracks: {len(missing_tags)}/{len(export_tracks_tags)}')
 
@@ -339,11 +343,18 @@ def local_add_tags_from_tracks(import_path, export_path, recursive, compare_tags
     have_no_tags_arr = have_no_tags.upper().split(',') if have_no_tags is not None else []
     compare_tags_arr = compare_tags.upper().split(',') if compare_tags is not None else []
 
-    import_tracks_tags = spoty.local_files.get_tags_from_tracks(import_path, recursive, have_tags_arr, have_no_tags_arr)
-    export_tracks_tags = spoty.local_files.get_tags_from_tracks(export_path, recursive, have_tags_arr, have_no_tags_arr)
-    missing_tags = spoty.local_files.get_missing_tags_from_tracks(import_tracks_tags, export_tracks_tags, compare_tags_arr)
+    audio_files_names = spoty.local_files.find_audio_files_in_path(import_path, recursive, have_tags_arr,
+                                                                   have_no_tags_arr)
+    import_tracks_tags = spoty.local_files.read_audio_files_tags(audio_files_names)
+    audio_files_names = spoty.local_files.find_audio_files_in_path(export_path, recursive, have_tags_arr,
+                                                                   have_no_tags_arr)
+    export_tracks_tags = spoty.local_files.read_audio_files_tags(audio_files_names)
+
+    missing_tags = spoty.local_files.get_missing_tags_from_source_to_dest_audio_files(import_tracks_tags,
+                                                                                      export_tracks_tags,
+                                                                                      compare_tags_arr)
     for file_name, tags in missing_tags.items():
-        spoty.local_files.write_tags(file_name, tags)
+        spoty.local_files.write_audio_file_tags(file_name, tags)
 
     click.echo(f'Edited tracks: {len(missing_tags)}/{len(export_tracks_tags)}')
 
@@ -385,8 +396,12 @@ def local_list_tags_from_spotify_library(export_path, recursive, compare_tags, f
     compare_tags_arr = compare_tags.upper().split(',') if compare_tags is not None else []
 
     import_tracks_tags = spoty.spotify.get_tags_from_spotify_library(filter_names, user_id)
-    export_tracks_tags = spoty.local_files.get_tags_from_tracks(export_path, recursive, have_tags_arr, have_no_tags_arr)
-    missing_tags = spoty.local_files.get_missing_tags_from_tracks(import_tracks_tags, export_tracks_tags, compare_tags_arr)
+    audio_files_names = spoty.local_files.find_audio_files_in_path(export_path, recursive, have_tags_arr,
+                                                                   have_no_tags_arr)
+    export_tracks_tags = spoty.local_files.read_audio_files_tags(audio_files_names)
+    missing_tags = spoty.local_files.get_missing_tags_from_source_to_dest_audio_files(import_tracks_tags,
+                                                                                      export_tracks_tags,
+                                                                                      compare_tags_arr)
     for file_name, tags in missing_tags.items():
         click.echo(f'----------------------------------------------------')
         click.echo(f'Tags missing in "{file_name}":')
@@ -431,9 +446,15 @@ def local_list_tags_from_tracks(import_path, export_path, recursive, compare_tag
     have_no_tags_arr = have_no_tags.upper().split(',') if have_no_tags is not None else []
     compare_tags_arr = compare_tags.upper().split(',') if compare_tags is not None else []
 
-    import_tracks_tags = spoty.local_files.get_tags_from_tracks(import_path, recursive, have_tags_arr, have_no_tags_arr)
-    export_tracks_tags = spoty.local_files.get_tags_from_tracks(export_path, recursive, have_tags_arr, have_no_tags_arr)
-    missing_tags = spoty.local_files.get_missing_tags_from_tracks(import_tracks_tags, export_tracks_tags, compare_tags_arr)
+    audio_files_names = spoty.local_files.find_audio_files_in_path(import_path, recursive, have_tags_arr,
+                                                                   have_no_tags_arr)
+    import_tracks_tags = spoty.local_files.read_audio_files_tags(audio_files_names)
+    audio_files_names = spoty.local_files.find_audio_files_in_path(export_path, recursive, have_tags_arr,
+                                                                   have_no_tags_arr)
+    export_tracks_tags = spoty.local_files.read_audio_files_tags(audio_files_names)
+    missing_tags = spoty.local_files.get_missing_tags_from_source_to_dest_audio_files(import_tracks_tags,
+                                                                                      export_tracks_tags,
+                                                                                      compare_tags_arr)
     for file_name, tags in missing_tags.items():
         click.echo(f'----------------------------------------------------')
         click.echo(f'Tags missing in "{file_name}":')
@@ -446,9 +467,9 @@ def local_list_tags_from_tracks(import_path, export_path, recursive, compare_tag
 
 @local.command("fix-invalid-track-tags")
 @click.argument('path')
-@click.option('--have-tags',  default=None,
+@click.option('--have-tags', default=None,
               help='Include only files that have all of the specified tags.')
-@click.option('--have-no-tags',  default=None,
+@click.option('--have-no-tags', default=None,
               help='Include only files that do not have any of the listed tags.')
 @click.option('--recursive', '-r', type=bool, is_flag=True, default=False,
               help='Search local files in subfolders.')
@@ -469,6 +490,7 @@ def local_fix_invalid_track_tags(path, recursive, have_tags, have_no_tags):
     have_tags_arr = have_tags.upper().split(',') if have_tags is not None else []
     have_no_tags_arr = have_no_tags.upper().split(',') if have_no_tags is not None else []
 
-    edited_files, all_files = spoty.local_files.fix_invalid_track_tags(path, recursive, have_tags_arr, have_no_tags_arr)
+    edited_files, all_files = spoty.local_files.fix_invalid_audio_file_tags(path, recursive, have_tags_arr,
+                                                                            have_no_tags_arr)
 
     click.echo(f'Fixed tracks: {len(edited_files)}/{len(all_files)}')

@@ -74,6 +74,12 @@ additional_tags = \
         'WRITER',
     ]
 
+def is_valid_path(path):
+    return os.path.isdir(path)
+
+
+def is_valid_file(path):
+    return os.path.isfile(path)
 
 def slugify_file_pah(text):
     # valid_chars = "-_.()=!@#$%%^&+ %s%s" % (string.ascii_letters, string.digits)
@@ -102,7 +108,7 @@ def remove_duplicates(arr):
     return good, dup
 
 
-def compare_two_tag_tracks(old_track, new_track, compare_tags, allow_missing=False):
+def compare_two_tags_list(old_track, new_track, compare_tags, allow_missing=False):
     for tag in compare_tags:
 
         if not tag in old_track or not tag in new_track:
@@ -155,13 +161,13 @@ def compare_two_tag_tracks(old_track, new_track, compare_tags, allow_missing=Fal
     return True
 
 
-def find_duplicates_in_tag_tracks(all_tracks, tags_to_compare):
-    if len(tags_to_compare) == 0:
+def find_duplicates_in_tags(all_tracks, compare_tags):
+    if len(compare_tags) == 0:
         return
 
     duplicates = {}
     pattern = ""
-    for tag in tags_to_compare:
+    for tag in compare_tags:
         pattern += "%" + tag + "%,"
     pattern = pattern[:-1]
 
@@ -177,7 +183,7 @@ def find_duplicates_in_tag_tracks(all_tracks, tags_to_compare):
 
     skipped_tracks = groupped_tracks['Unknown'] if 'Unknown' in groupped_tracks else []
 
-    return duplicates, all_tracks, skipped_tracks
+    return duplicates, skipped_tracks
 
 
 def print_track_main_tags(track, include_playlist_info=False):
@@ -222,7 +228,7 @@ def print_track_tags(track, tags_to_print):
 def filter_tracks_which_have_all_tags(track_tags, filter_tags):
     filtered = []
     for track in track_tags:
-        if check_track_have_all_tags(track, filter_tags):
+        if check_all_tags_exist(track, filter_tags):
             filtered.append(track)
     return filtered
 
@@ -230,12 +236,12 @@ def filter_tracks_which_have_all_tags(track_tags, filter_tags):
 def filter_tracks_which_not_have_any_of_tags(track_tags, filter_tags):
     filtered = []
     for track in track_tags:
-        if not check_track_have_all_tags(track, filter_tags):
+        if not check_all_tags_exist(track, filter_tags):
             filtered.append(track)
     return filtered
 
 
-def check_track_have_all_tags(track, tags):
+def check_all_tags_exist(track, tags):
     for tag in tags:
         if not tag.upper() in track:
             return False
@@ -292,9 +298,29 @@ def reorder_tag_keys(keys):
     return res
 
 
-def is_valid_path(path):
-    return os.path.isdir(path)
 
+def get_missing_tags(exist_tags, new_tags):
+    missing_tags = {}
 
-def is_valid_file(path):
-    return os.path.isfile(path)
+    for key, value in new_tags.items():
+        if key == 'LENGTH':
+            continue
+
+        if key in spoty_tags:
+            continue
+
+        if key in exist_tags:
+            continue
+
+        found = False
+        for aliases in tag_allies:
+            if key in aliases:
+                for al in aliases:
+                    if al in exist_tags:
+                        found = True
+        if found:
+            continue
+
+        missing_tags[key] = value
+
+    return missing_tags

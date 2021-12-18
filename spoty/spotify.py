@@ -773,7 +773,7 @@ def filter_spotify_tracks_which_have_all_tags(spotify_track, filter_tags):
     filtered = []
     for track in spotify_track:
         tags = read_tags_from_spotify_track(track)
-        if spoty.utils.check_track_have_all_tags(tags, filter_tags):
+        if spoty.utils.check_all_tags_exist(tags, filter_tags):
             filtered.append(track)
     return filtered
 
@@ -782,6 +782,6 @@ def filter_spotify_tracks_which_not_have_any_of_tags(spotify_track, filter_tags)
     filtered = []
     for track in spotify_track:
         tags = read_tags_from_spotify_track(track)
-        if not spoty.utils.check_track_have_all_tags(tags, filter_tags):
+        if not spoty.utils.check_all_tags_exist(tags, filter_tags):
             filtered.append(track)
     return filtered

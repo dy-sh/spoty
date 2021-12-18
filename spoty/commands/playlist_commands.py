@@ -1,7 +1,7 @@
 from spoty import settings
 from spoty import log
 import spoty.spotify
-import spoty.local_files
+import spoty.audio_files
 import spoty.csv_playlist
 import click
 import re

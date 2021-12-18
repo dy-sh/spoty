@@ -1,5 +1,5 @@
 import spoty.spotify
-import spoty.local_files
+import spoty.audio_files
 import click
 import spoty.utils
 

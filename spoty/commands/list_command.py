@@ -1,7 +1,7 @@
 from spoty import settings
 from spoty import log
 import spoty.spotify
-import spoty.local_files
+import spoty.audio_files
 import spoty.csv_playlist
 import spoty.utils
 import click
@@ -132,12 +132,12 @@ def list(sources,
 
     file_names = spoty.local_files.find_audio_files_in_paths(
         source_local_files, not no_recursive, filter_tracks_tags, filter_tracks_no_tags)
-    tags = spoty.local_files.read_local_audio_tracks_tags(file_names)
+    tags = spoty.local_files.read_audio_files_tags(file_names)
     all_tags.extend(tags)
 
-    playlists, tags = spoty.csv_playlist.get_tracks_from_local_paths(
-        source_local_playlists, not no_recursive, filter_tracks_tags, filter_tracks_no_tags)
-    all_tags.extend(tags)
+    # playlists, tags = spoty.csv_playlist.get_tracks_from_local_paths(
+    #     source_local_playlists, not no_recursive, filter_tracks_tags, filter_tracks_no_tags)
+    # all_tags.extend(tags)
 
     if print_to_console:
         spoty.utils.print_tracks(all_tags, print_tags)

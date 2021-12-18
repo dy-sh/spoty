@@ -1,6 +1,6 @@
 from spoty import log
 import spoty.utils
-import spoty.local_files
+import spoty.audio_files
 import click
 import os
 import csv
@@ -26,30 +26,6 @@ class CSVFileInvalidHeader(CSVImportException):
 def is_csv(file_name):
     return file_name.upper().endswith('.CSV')
 
-
-def get_tracks_from_local_paths(playlists_paths, recursive, filter_tracks_tags, filter_tracks_no_tags):
-    all_file_names = []
-
-    for path in playlists_paths:
-        file_names = get_tracks_from_local_path(path, recursive, filter_tracks_tags, filter_tracks_no_tags)
-        all_file_names.extend(file_names)
-
-    return all_file_names
-
-
-def get_tracks_from_local_path(playlists_path, recursive, filter_tracks_tags=None, filter_tracks_no_tags=None):
-    path = os.path.abspath(playlists_path)
-    file_names = get_all_csvs_in_path(path, recursive)
-
-
-
-    if len(filter_tracks_tags) > 0:
-        file_names = filter_tracks_which_have_all_tags(file_names, filter_tracks_tags)
-
-    if len(filter_tracks_no_tags) > 0:
-        file_names = filter_tracks_which_not_have_any_of_tags(file_names, filter_tracks_no_tags)
-
-    return file_names
 
 
 def create_csvs_from_tags(tags, export_path, csvs_naming_pattern, overwrite):
@@ -86,7 +62,7 @@ def create_csvs_from_tags(tags, export_path, csvs_naming_pattern, overwrite):
     return exported_playlists_file_names, exported_playlists_names, exported_tracks
 
 
-def get_all_csvs_in_path(path, recursive=True):
+def find_csvs_in_path(path, recursive=True, filter_have_tags=None, filter_have_no_tags=None):
     full_file_names = []
     if recursive:
         full_file_names = [os.path.join(dp, f) for dp, dn, filenames in os.walk(path) for f in filenames if
@@ -94,6 +70,8 @@ def get_all_csvs_in_path(path, recursive=True):
     else:
         full_file_names = [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
         full_file_names = list(filter(lambda f: is_csv(f), full_file_names))
+
+    
 
     return full_file_names
 
@@ -183,7 +161,7 @@ def create_csv_from_audio_files(playlist_file_name, track_file_names, overwrite=
             log.info(f'Canceled by user (file already exist)')
             return None
 
-    tracks = spoty.local_files.read_local_audio_tracks_tags(track_file_names)
+    tracks = spoty.local_files.read_audio_files_tags(track_file_names)
 
     write_tracks_to_csv(tracks, playlist_file_name)
     #
@@ -192,14 +170,14 @@ def create_csv_from_audio_files(playlist_file_name, track_file_names, overwrite=
     return tracks
 
 
-def find_duplicates_in_csvs(path, tags_to_compare, recursive=True, filter_names=None):
+def find_duplicates_in_csvs(path, compare_tags, recursive=True, filter_names=None):
     all_tracks = []
 
-    playlists = spoty.csv_playlist.get_all_csvs_in_path(path, recursive, filter_names)
+    playlists = spoty.csv_playlist.find_csvs_in_path(path, recursive, filter_names)
     for file_name in playlists:
         tracks = spoty.csv_playlist.read_tracks_from_csv(file_name, True)
         all_tracks.extend(tracks)
 
-    duplicates, all_tracks, skipped_tracks = spoty.utils.find_duplicates_in_tag_tracks(all_tracks, tags_to_compare)
+    duplicates, skipped_tracks = spoty.utils.find_duplicates_in_tags(all_tracks, compare_tags)
 
     return duplicates, all_tracks, skipped_tracks
