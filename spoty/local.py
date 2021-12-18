@@ -120,8 +120,6 @@ def is_valid_file(path):
     return os.path.isfile(path)
 
 
-
-
 def filter_tracks_which_have_all_tags(file_names, tags):
     filtered = []
     for file_name in file_names:
@@ -283,36 +281,7 @@ def reorder_tag_keys(keys):
     return res
 
 
-def group_tracks_by_pattern(pattern, tracks, not_found_tag_name="Unknown"):
-    groups = {}
-
-    for track in tracks:
-        group_name = ""
-        tag_name = ""
-        building_tag = False
-        for c in pattern:
-            if c == "%":
-                building_tag = not building_tag
-                if not building_tag:
-                    tag = track[tag_name] if tag_name in track else not_found_tag_name
-                    group_name += tag
-                    tag_name = ""
-            else:
-                if building_tag:
-                    tag_name += c
-                    tag_name = tag_name.upper()
-                else:
-                    group_name += c
-
-        if not group_name in groups:
-            groups[group_name] = []
-
-        groups[group_name].append(track)
-
-    return groups
-
-
-def write_tracks_to_csv_file(tracks, playlist_file_name):
+def write_tracks_to_csv_file(tracks, playlist_file_name, append=False):
     # collect all keys
     keys = []
     for track in tracks:
@@ -329,9 +298,20 @@ def write_tracks_to_csv_file(tracks, playlist_file_name):
                 track[key] = ""
 
     os.makedirs(os.path.dirname(playlist_file_name), exist_ok=True)
-    with open(playlist_file_name, 'w', encoding='utf-8-sig', newline='') as file:
+
+    method = 'w'
+    if append:
+        if os.path.isfile(playlist_file_name):
+            with open(playlist_file_name, newline='', encoding='utf-8-sig') as file:
+                reader = csv.reader(file)
+                if sum(1 for row in reader) != 0:  # file is not empty
+                    method = 'a'
+
+    with open(playlist_file_name, method, encoding='utf-8-sig', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow(keys)
+
+        if method == 'w': # write header to new file
+            writer.writerow(keys)
 
         for track in tracks:
             values = [track[key] for key in keys]

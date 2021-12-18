@@ -267,3 +267,32 @@ def check_track_have_all_tags(track, tags):
         if not tag.upper() in track:
             return False
     return True
+
+
+def group_tracks_by_pattern(pattern, tracks, not_found_tag_name="Unknown"):
+    groups = {}
+
+    for track in tracks:
+        group_name = ""
+        tag_name = ""
+        building_tag = False
+        for c in pattern:
+            if c == "%":
+                building_tag = not building_tag
+                if not building_tag:
+                    tag = track[tag_name] if tag_name in track else not_found_tag_name
+                    group_name += str(tag)
+                    tag_name = ""
+            else:
+                if building_tag:
+                    tag_name += c
+                    tag_name = tag_name.upper()
+                else:
+                    group_name += c
+
+        if not group_name in groups:
+            groups[group_name] = []
+
+        groups[group_name].append(track)
+
+    return groups

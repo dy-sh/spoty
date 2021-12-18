@@ -39,8 +39,8 @@ from datetime import datetime
               help='Print a list of read tracks to console.')
 @click.option('--export-path', '--ep',
               help='Export a list of read tracks to csv playlists in specified path.')
-@click.option('--merged-export-filename', '--mef',
-              help='Export a list of read tracks to one merged csv playlist with specified name.')
+@click.option('--export-naming-pattern', '--enp', default='%playlist_name%',
+              help='Exported playlists will be named according to this pattern.')
 @click.option('--overwrite', '-o', is_flag=True,
               help='Overwrite existing csv playlists without asking')
 @click.option('--timestamp', '-t', is_flag=True,
@@ -59,7 +59,7 @@ def list(sources,
          count,
          print_to_console,
          export_path,
-         merged_export_filename,
+         export_naming_pattern,
          overwrite,
          timestamp
          ):
@@ -79,6 +79,13 @@ def list(sources,
 
     """
 
+    if export_path == None and not print_to_console and not count:
+        click.echo("Please, specify what to do with the read files:\n"+
+                   "-p, to printing the list to the console.\n"+
+                   "--ep [PATH], to export the list to the csv files.\n"
+                   "-c, to count the number of tracks and print to the console.")
+        exit()
+
     source_spotify_playlist = to_list(source_spotify_playlist)
     source_spotify_user = to_list(source_spotify_user)
     source_deezer_playlist = to_list(source_deezer_playlist)
@@ -88,6 +95,8 @@ def list(sources,
     filter_playlists_names = to_list(filter_playlists_names)
     filter_tracks_tags = to_list(filter_tracks_tags)
     filter_tracks_no_tags = to_list(filter_tracks_no_tags)
+
+
 
     all_source_tracks_tags = []
 
@@ -147,17 +156,40 @@ def list(sources,
         source_local_tracks_tags.extend(tags)
         all_source_tracks_tags.extend(tags)
 
+    exported_playlists_file_names=[]
+    exported_playlists_names=[]
+    exported_tracks=[]
+    if export_path is not None:
+        if len(all_source_tracks_tags)>0:
+
+            grouped_tracks = spoty.utils.group_tracks_by_pattern(export_naming_pattern, all_source_tracks_tags)
+
+            for group, tracks in grouped_tracks.items():
+                playlist_name = group
+                playlist_name = spoty.utils.slugify_file_pah(playlist_name)
+                playlist_file_name = os.path.join(export_path, playlist_name + '.csv')
+
+                if playlist_file_name in exported_playlists_file_names:
+                    spoty.local.write_tracks_to_csv_file(tracks, playlist_file_name, True)
+                else:
+                    if os.path.isfile(playlist_file_name) and not overwrite:
+                        if not click.confirm(f'File "{playlist_file_name}" already exist. Overwrite?'):
+                            continue
+
+                    spoty.local.write_tracks_to_csv_file(tracks, playlist_file_name, False)
 
 
 
-    # click.echo(f'Local tracks:')
-    # for full_file in full_file_names:
-    #     click.echo(full_file)
+                exported_playlists_names.append(playlist_name)
+                exported_playlists_file_names.append(playlist_file_name)
+                exported_tracks.extend(tracks)
 
-    if count:
-        click.echo(f'Total tracks: {len(all_source_tracks_tags)}')
+            mess = f'{len(exported_tracks)} tracks exported to {len(exported_playlists_file_names)} playlists in path: "{export_path}"'
+            click.echo(mess)
 
-    if print:
+
+
+    if print_to_console:
         for i, track in enumerate(source_spotify_tracks_tags):
             click.echo(
                 f'--------------------- SPOTIFY TRACK {i + 1} / {len(source_spotify_tracks_tags)} ---------------------')
@@ -167,6 +199,11 @@ def list(sources,
                 f'--------------------- LOCAL TRACK {i + 1} / {len(source_local_tracks_tags)} ---------------------')
             spoty.utils.print_track_main_tags(track)
 
+        if len(all_source_tracks_tags)>0:
+            click.echo("-------------------------------------------------------------------------------------")
+
+    if count:
+        click.echo(f'Total tracks: {len(all_source_tracks_tags)}')
 
 def to_list(some_tuple):
     l = []
