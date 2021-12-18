@@ -15,7 +15,7 @@ from datetime import datetime
 @click.argument('sources', nargs=-1)
 @click.option('--source-spotify-playlist', '--ssp', multiple=True,
               help='Read tracks in specified spotify playlist.')
-@click.option('--source-spotify-user', '--ssu', multiple=True,
+@click.option('--source-spotify-user', '--ssu', multiple=True, is_flag=False, flag_value="me",
               help='Read tracks in this spotify user library. If no user ID is specified, the current user will be used.')
 @click.option('--source-deezer-playlist', '--sdp', multiple=True,
               help='Read tracks in specified deezer playlist.')
@@ -47,9 +47,9 @@ from datetime import datetime
               help='Create a new subfolder with the current date and time for saved csv playlists')
 def list(sources,
          source_spotify_playlist,
+         source_spotify_user,
          source_deezer_playlist,
          source_deezer_user,
-         source_spotify_user,
          source_local_files,
          source_local_playlists,
          filter_playlists_names,
@@ -110,13 +110,18 @@ def list(sources,
 
     spotify_tracks, spotify_tags = spoty.spotify.get_tracks_from_spotify_playlists(
         source_spotify_playlist, filter_playlists_names, filter_tracks_tags, filter_tracks_no_tags)
-
     all_tags.extend(spotify_tags)
+
+    spotify__user_tracks, spotify_user_tags = spoty.spotify.get_tracks_of_spotify_user(
+        source_spotify_user, filter_playlists_names, filter_tracks_tags, filter_tracks_no_tags)
+    all_tags.extend(spotify_user_tags)
+
 
     local_file_names, local_tags = spoty.local_files.get_tracks_from_local_path(
         source_local_files, no_recursive, filter_tracks_tags, filter_tracks_no_tags)
-
     all_tags.extend(local_tags)
+
+
 
     if print_to_console:
         for i, track in enumerate(spotify_tags):

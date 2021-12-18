@@ -9,14 +9,14 @@ import time
 import re
 
 
-def get_tracks_from_spotify_playlists(source_spotify_playlists, filter_playlists_names, filter_tracks_tags,
+def get_tracks_from_spotify_playlists(playlist_ids, filter_playlists_names, filter_tracks_tags,
                                       filter_tracks_no_tags):
     spotify_tracks = []
     source_tags = []
 
-    if len(source_spotify_playlists) > 0:
+    if len(playlist_ids) > 0:
         playlists = []
-        with click.progressbar(source_spotify_playlists, label='Reading spotify playlists') as bar:
+        with click.progressbar(playlist_ids, label=f'Reading {len(playlist_ids)} spotify playlists') as bar:
             for playlist_id in bar:
                 playlist = get_playlist(playlist_id)
                 playlists.append(playlist)
@@ -24,23 +24,75 @@ def get_tracks_from_spotify_playlists(source_spotify_playlists, filter_playlists
         if len(filter_playlists_names) > 0:
             playlists = list(filter(lambda pl: re.findall(filter_playlists_names, pl['name']), playlists))
 
-        with click.progressbar(playlists, label='Reading spotify tracks') as bar:
-            for playlist in bar:
+        spotify_tracks, source_tags = get_tracks_from_playlists(playlists, filter_tracks_tags, filter_tracks_no_tags)
 
-                tracks = get_tracks_of_playlist(playlist['id'])
-                for track in tracks:
-                    track['track']['SPOTY_PLAYLIST_NAME'] = playlist['name']
+    return spotify_tracks, source_tags
 
-                if len(filter_tracks_tags) > 0:
-                    tracks = filter_spotify_tracks_which_have_all_tags(tracks, filter_tracks_tags)
 
-                if len(filter_tracks_no_tags) > 0:
-                    tracks = filter_spotify_tracks_which_not_have_any_of_tags(tracks, filter_tracks_no_tags)
+def get_tracks_of_spotify_user(user_ids, filter_playlists_names, filter_tracks_tags,
+                               filter_tracks_no_tags):
+    all_tracks = []
+    all_tags = []
+    all_playlists = []
 
-                tags = read_tags_from_spotify_tracks(tracks)
+    for user_id in user_ids:
+        if user_id == 'me':
+            playlists = get_list_of_playlists()
+            click.echo(f'You have {len(playlists)} playlists in spotify library')
+        else:
+            playlists = get_list_of_user_playlists(user_id)
+            click.echo(f'User {user_id} has {len(playlists)} playlists in spotify library')
 
-                spotify_tracks.extend(tracks)
-                source_tags.extend(tags)
+        if len(filter_playlists_names) > 0:
+            playlists = list(filter(lambda pl: re.findall(filter_playlists_names, pl['name']), playlists))
+
+        # remove already requested playlists
+        new_playlists = playlists.copy()
+        for pl in playlists:
+            if pl in all_playlists:
+                click.echo(f'Spotify playlist {pl["id"]} ({pl["name"]}) requested twice. In will be skipped.')
+                new_playlists.remove(pl)
+        playlists = new_playlists
+        if len(playlists) == 0:
+            continue
+
+        all_playlists.extend(playlists)
+
+        tracks, tags = get_tracks_from_playlists(playlists, filter_tracks_tags, filter_tracks_no_tags)
+        all_tracks.extend(tracks)
+        all_tags.extend(tags)
+
+    return all_tracks, all_tags
+
+
+def get_tracks_from_playlists(playlists, filter_tracks_tags, filter_tracks_no_tags):
+    spotify_tracks = []
+    source_tags = []
+    requested_playlists = []
+
+    with click.progressbar(playlists, label=f'Reading tracks in {len(playlists)} spotify playlists') as bar:
+        for playlist in bar:
+
+            # remove already requested playlists
+            if playlist in requested_playlists:
+                click.echo(f'Spotify playlist {playlist["id"]} ({playlist["name"]}) requested twice. In will be skipped.')
+                continue
+            requested_playlists.append(playlist)
+
+            tracks = get_tracks_of_playlist(playlist['id'])
+            for track in tracks:
+                track['track']['SPOTY_PLAYLIST_NAME'] = playlist['name']
+
+            if len(filter_tracks_tags) > 0:
+                tracks = filter_spotify_tracks_which_have_all_tags(tracks, filter_tracks_tags)
+
+            if len(filter_tracks_no_tags) > 0:
+                tracks = filter_spotify_tracks_which_not_have_any_of_tags(tracks, filter_tracks_no_tags)
+
+            tags = read_tags_from_spotify_tracks(tracks)
+
+            spotify_tracks.extend(tracks)
+            source_tags.extend(tags)
 
     return spotify_tracks, source_tags
 
@@ -172,14 +224,14 @@ def get_list_of_playlists(only_owned_by_user=True):
 
     log.info(f'Collecting playlists for current user')
 
-    with click.progressbar(length=100, label='Collecting playlists') as bar:
+    with click.progressbar(length=100, label='Reading current user spotify playlists') as bar:
 
         # load first 50 playlists
         result = sp.current_user_playlists(limit=50)
         playlists.extend(result['items'])
         total_playlists = result['total']
 
-        log.debug(f'Collected {len(playlists)}/{total_playlists} for current user')
+        log.debug(f'Read {len(playlists)}/{total_playlists} for current user')
 
         bar.length = total_playlists
         bar.update(len(playlists))
@@ -190,7 +242,7 @@ def get_list_of_playlists(only_owned_by_user=True):
             playlists.extend(result['items'])
             bar.update(len(playlists))
 
-            log.debug(f'Collected {len(playlists)}/{total_playlists} for current user')
+            log.debug(f'Read {len(playlists)}/{total_playlists} for current user')
 
     if (only_owned_by_user):
         playlists = list(filter(lambda pl: pl['owner']['id'] == user_id, playlists))
@@ -206,7 +258,7 @@ def find_playlist_by_name(name, only_owned_by_user=True):
 def get_list_of_user_playlists(user_id: str):
     log.info(f'Collecting playlists for user {user_id}')
 
-    with click.progressbar(length=100, label='Collecting playlists') as bar:
+    with click.progressbar(length=100, label=f'Reading user {user_id} spotify playlists') as bar:
         # load first 50 playlists
         playlists = []
         result = sp.user_playlists(user=user_id, limit=50)
