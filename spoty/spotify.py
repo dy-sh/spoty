@@ -40,10 +40,10 @@ def get_tracks_of_spotify_user(user_ids, filter_playlists_names=None, filter_hav
         user_id = parse_user_id(user_id)
         if user_id == 'me':
             playlists = get_list_of_playlists()
-            click.echo(f'You have {len(playlists)} playlists in spotify library')
+            click.echo(f'You have {len(playlists)} playlists in Spotify library')
         else:
             playlists = get_list_of_user_playlists(user_id)
-            click.echo(f'User {user_id} has {len(playlists)} playlists in spotify library')
+            click.echo(f'User {user_id} has {len(playlists)} playlists in Spotify library')
 
         if filter_playlists_names is not None:
             playlists = list(filter(lambda pl: re.findall(filter_playlists_names, pl['name']), playlists))
@@ -213,14 +213,19 @@ def get_playlist_with_full_list_of_tracks(playlist_id):
     return playlist
 
 
-def delete_playlist(playlist_id):
-    playlist_id = parse_playlist_id(playlist_id)
+def delete_playlist(playlist_id, confirm=False):
+    playlist = get_playlist(playlist_id)
+    if playlist is None:
+        return False
 
-    log.info(f'Requesting playlist {playlist_id}')
+    if not confirm:
+        if not click.confirm(f'Do you want to delete playlist {playlist["id"]} ("{playlist["name"]}")'):
+            return False
 
-    playlist = sp.playlist(playlist_id)
+    sp.current_user_unfollow_playlist(playlist_id)
 
-    return playlist
+    return True
+
 
 
 def get_list_of_playlists(only_owned_by_user=True):
@@ -497,7 +502,7 @@ def export_playlist_to_file(playlist_id, path, overwrite=False, avoid_filenames=
     return file_name
 
 
-def import_playlists_from_tags_list(tags_list, grouping_pattern, append_if_exist=False, allow_duplicates=False):
+def import_playlists_from_tags_list(tags_list, grouping_pattern, overwrite_if_exist=False, append_if_exist=False, allow_duplicates=False):
     all_playlist_ids = []
     all_tracks_added = []
     all_import_duplicates = []
@@ -506,7 +511,7 @@ def import_playlists_from_tags_list(tags_list, grouping_pattern, append_if_exist
 
     for group_name, g_tags_list in grouped_tags.items():
         playlist_id, tracks_added, import_duplicates, already_exist \
-            = import_playlist_from_tags_list(group_name, g_tags_list, append_if_exist, allow_duplicates)
+            = import_playlist_from_tags_list(group_name, g_tags_list, overwrite_if_exist, append_if_exist, allow_duplicates)
 
         all_playlist_ids.append(playlist_id)
         all_tracks_added.extend(tracks_added)
@@ -516,21 +521,36 @@ def import_playlists_from_tags_list(tags_list, grouping_pattern, append_if_exist
     return all_playlist_ids, all_tracks_added, all_import_duplicates, all_already_exist
 
 
-def import_playlist_from_tags_list(playlist_name, tags_list, append_if_exist=False, allow_duplicates=False):
+def import_playlist_from_tags_list(playlist_name, tags_list, overwrite_if_exist, append_if_exist=False, allow_duplicates=False):
     log.info(f'Importing playlist "{playlist_name}"')
     tracks_added = []
 
     playlist_id = None
 
-    if append_if_exist:
+    overwrite_playlist_id=None
+
+    if overwrite_if_exist or append_if_exist:
         found_playlists = find_playlist_by_name(playlist_name)
+
         if len(found_playlists) > 0:
-            if len(found_playlists) > 1:
-                if not click.confirm(
-                        f'\n{len(found_playlists)} playlists found with name "{playlist_name}". Choose the first one and continue?'):
-                    log.info(f'Canceled by user (more than one playlists found with name "{playlist_name})"')
-                    return 0
-            playlist_id = found_playlists[0]['id']
+            if overwrite_if_exist:
+                if len(found_playlists) > 1:
+                    if not click.confirm(
+                            f'\n{len(found_playlists)} playlists with name "{playlist_name}" found in Spotify library. Choose the first one and overwrite it?'):
+                        log.info(f'Canceled by user (more than one playlists found with name "{playlist_name})"')
+                        click.echo("\nCanceled")
+                        return [],[],[],[]
+                else:
+                    if not click.confirm(
+                            f'\nPlaylist "{playlist_name}" exist in Spotify library. Overwrite it?'):
+                        log.info(f'Canceled by user (playlist found with name "{playlist_name})"')
+                        click.echo("\nCanceled")
+                        return [], [], [], []
+
+                overwrite_playlist_id = found_playlists[0]['id']
+
+            if append_if_exist:
+                playlist_id = found_playlists[0]['id']
 
     if playlist_id is None:
         playlist_id = create_playlist(playlist_name)
@@ -543,6 +563,8 @@ def import_playlist_from_tags_list(playlist_name, tags_list, append_if_exist=Fal
     if len(found_ids) > 0:
         tracks_added, import_duplicates, already_exist = add_tracks_to_playlist(playlist_id, found_ids,
                                                                                 allow_duplicates)
+    if overwrite_playlist_id is not None:
+        delete_playlist(overwrite_playlist_id, True)
 
     log.success(f'Playlist imported (new tracks: "{len(tracks_added)}")  id: {playlist_id} name: "{playlist_name}"')
 
@@ -583,7 +605,7 @@ def get_tags_from_spotify_library(filter_names, user_id):
         exit()
 
     all_tracks_tags = []
-    with click.progressbar(playlists, label='Reading tracks from spotify library') as bar:
+    with click.progressbar(playlists, label='Reading tracks from Spotify library') as bar:
         for playlist in bar:
             tracks = get_tracks_of_playlist(playlist['id'])
             tag_tracks = read_tags_from_spotify_tracks(tracks)

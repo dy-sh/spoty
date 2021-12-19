@@ -35,27 +35,27 @@ from datetime import datetime
               help='Get only tracks that do not have any of the listed tags.')
 @click.option('--dest-print', '-P', is_flag=True,
               help='Print a list of read tracks to console.')
-@click.option('--dest-print-pattern', '--dpp', show_default=True,
-              default='%SPOTY_PLAYLIST_INDEX%: %SPOTY_TRACK_ID% %ARTIST% - %TITLE%',
-              help='Print a list of tracks according to this formatting pattern.')
 @click.option('--dest-csv', '-C', is_flag=True,
               help='Export a list of read tracks to csv playlists on disk.')
-@click.option('--dest-csv-path', '--dcp', show_default=True,
+@click.option('--dest-spotify', '-S', is_flag=True,
+              help='Export a list of read tracks to playlist library.')
+@click.option('--dest-option-grouping-pattern', '--dogp', show_default=True,
+              default='%SPOTY_PLAYLIST_NAME%',
+              help='Exported playlists/files will be named according to this pattern.')
+@click.option('--dest-option-duplicates', '-d', type=bool, is_flag=True, default=False,
+              help='Prevent duplicates (do not add tracks that are already exist in the playlist).')
+@click.option('--dest-option-append', '-a', is_flag=True,
+              help='Add tracks to an existing playlist/file if already exists. If this option is not specified, a new playlist/file will always be created.')
+@click.option('--dest-option-overwrite', '-o', is_flag=True,
+              help='Overwrite existing playlist/file')
+@click.option('--dest-option-path', '--dop', show_default=True,
               default="./PLAYLISTS",
               help='The path on disk where to export csv playlists.')
-@click.option('--dest-csv-overwrite', '-o', is_flag=True,
-              help='Overwrite existing csv playlists without asking')
-@click.option('--dest-csv-timestamp', '-t', is_flag=True,
+@click.option('--dest-option-timestamp', '-t', is_flag=True,
               help='Create a new subfolder with the current date and time for saved csv playlists')
-@click.option('--dest-spotify', '-S', is_flag=True,
-              help='Export a list of read tracks to csv playlists on disk.')
-@click.option('--dest-spotify-append', '-a', is_flag=True,
-              help='Add tracks to an existing playlist if already exists. If this option is not specified, a new playlist will always be created.')
-@click.option('--dest-spotify-duplicates', '-d', type=bool, is_flag=True, default=False,
-              help='Do not add tracks that are already exist in the playlist.')
-@click.option('--dest-grouping-pattern', '--dgp', show_default=True,
-              default='%SPOTY_PLAYLIST_NAME%',
-              help='Exported playlists will be named according to this pattern.')
+@click.option('--dest-option-print-pattern', '--dopp', show_default=True,
+              default='%SPOTY_PLAYLIST_INDEX%: %SPOTY_TRACK_ID% %ARTIST% - %TITLE%',
+              help='Print a list of tracks according to this formatting pattern.')
 @click.option('--yes-all', '-y', is_flag=True,
               help='Confirm all questions with a positive answer automatically.')
 def transfer(sources,
@@ -72,15 +72,15 @@ def transfer(sources,
              filter_have_no_tags,
 
              dest_print,
-             dest_print_pattern,
              dest_csv,
-             dest_csv_path,
-             dest_csv_overwrite,
-             dest_csv_timestamp,
              dest_spotify,
-             dest_spotify_append,
-             dest_spotify_duplicates,
-             dest_grouping_pattern,
+             dest_option_grouping_pattern,
+             dest_option_duplicates,
+             dest_option_append,
+             dest_option_overwrite,
+             dest_option_path,
+             dest_option_timestamp,
+             dest_option_print_pattern,
              yes_all,
              ):
     """
@@ -225,6 +225,12 @@ Examples of using:
     filter_have_tags = to_list(filter_have_tags)
     filter_have_no_tags = to_list(filter_have_no_tags)
 
+    # check input parameters
+
+    if dest_option_append and dest_option_overwrite:
+        click.echo(f'Simultaneous use of "--dest-option-append" and "--dest-option-overwrite" is not possible', err=True)
+        exit()
+
     # check sources argument
 
     source_csv_files = []
@@ -283,25 +289,25 @@ Examples of using:
     # export to destination
 
     if dest_print:
-        spoty.utils.print_tags_list(all_tags, dest_print_pattern, dest_grouping_pattern)
+        spoty.utils.print_tags_list(all_tags, dest_option_print_pattern, dest_option_grouping_pattern)
 
     if dest_csv:
-        dest_csv_path = os.path.abspath(dest_csv_path)
+        dest_option_path = os.path.abspath(dest_option_path)
 
-        if dest_csv_timestamp:
+        if dest_option_timestamp:
             now = datetime.now()
             date_time_str = now.strftime("%Y_%m_%d-%H_%M_%S")
-            dest_csv_path = os.path.join(dest_csv_path, date_time_str)
+            dest_option_path = os.path.join(dest_option_path, date_time_str)
 
         exported_playlists_file_names, exported_playlists_names, exported_tracks = \
-            spoty.csv_playlist.create_csvs(all_tags, dest_csv_path, dest_grouping_pattern, dest_csv_overwrite)
+            spoty.csv_playlist.create_csvs(all_tags, dest_option_path, dest_option_grouping_pattern, dest_option_overwrite)
 
-        mess = f'\n{len(exported_tracks)} tracks exported to {len(exported_playlists_file_names)} playlists in path: "{dest_csv_path}"'
+        mess = f'\n{len(exported_tracks)} tracks exported to {len(exported_playlists_file_names)} playlists in path: "{dest_option_path}"'
         click.echo(mess)
 
     if dest_spotify:
         click.echo('Next playlists will be imported to Spotify library:')
-        grouped_tags = spoty.utils.group_tags_by_pattern(all_tags, dest_grouping_pattern)
+        grouped_tags = spoty.utils.group_tags_by_pattern(all_tags, dest_option_grouping_pattern)
         for group_name, g_tags_list in grouped_tags.items():
             click.echo(group_name)
         click.echo(f'Total {len(all_tags)} tracks in {len(grouped_tags)} playlists.')
@@ -316,7 +322,7 @@ Examples of using:
         if cont:
             playlist_ids, tracks_added, import_duplicates, already_exist = \
                 spoty.spotify.import_playlists_from_tags_list(
-                    all_tags, dest_grouping_pattern, dest_spotify_append, not dest_spotify_duplicates)
+                    all_tags, dest_option_grouping_pattern, dest_option_overwrite, dest_option_append, not dest_option_duplicates)
 
             mess = f'Imported {len(tracks_added)} tracks in {len(playlist_ids)} Spotify playlists.'
             if len(import_duplicates) > 0:
