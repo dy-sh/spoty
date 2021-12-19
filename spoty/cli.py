@@ -1,4 +1,6 @@
 import click
+
+import spoty.utils
 from spoty.commands import playlist_commands
 from spoty.commands import like_commands
 from spoty.commands import local_commands

@@ -122,8 +122,40 @@ def remove_exist(exist_arr, new_arr):
     return good, dup
 
 
-def compare_tags(src_tags, dest_tags, compare_tags, allow_missing=False):
-    for tag in compare_tags:
+def remove_tags_duplicates(tags_list, tags_to_compare, allow_missing=False):
+    good = []
+    dup = []
+    for new_tags in tags_list:
+        found = False
+        for exist_tags in good:
+            if compare_tags(exist_tags, new_tags, tags_to_compare, allow_missing):
+                dup.append(new_tags)
+                found = True
+                break
+        if not found:
+            good.append(new_tags)
+
+    return good, dup
+
+
+def remove_exist_tags(exist_tags_list, new_tags_list, tags_to_compare, allow_missing=False):
+    good = []
+    dup = []
+    for new_tags in new_tags_list:
+        found = False
+        for exist_tags in exist_tags_list:
+            if compare_tags(exist_tags, new_tags, tags_to_compare, allow_missing):
+                dup.append(new_tags)
+                found = True
+                break
+        if not found:
+            good.append(new_tags)
+
+    return good, dup
+
+
+def compare_tags(src_tags, dest_tags, tags_to_compare, allow_missing=False):
+    for tag in tags_to_compare:
 
         if not tag in src_tags or not tag in dest_tags:
             if allow_missing:
@@ -377,3 +409,21 @@ def get_missing_tags(exist_tags, new_tags):
         missing_tags[key] = value
 
     return missing_tags
+
+
+def find_empty_file_name(exist_file_name):
+    exist_file_name = os.path.abspath(exist_file_name)
+
+    if not os.path.isfile(exist_file_name):
+        return exist_file_name
+
+    base_name = os.path.basename(exist_file_name)
+    ext = os.path.splitext(base_name)[1]
+    base_name = os.path.splitext(base_name)[0]
+    dir_name = os.path.dirname(exist_file_name)
+    i = 1
+    while True:
+        i += 1
+        new_file_name = os.path.join(dir_name, base_name + f' {i}' + ext)
+        if not os.path.isfile(new_file_name):
+            return new_file_name

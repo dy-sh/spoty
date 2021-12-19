@@ -56,6 +56,9 @@ from datetime import datetime
 @click.option('--dest-option-print-pattern', '--dopp', show_default=True,
               default='%SPOTY_PLAYLIST_INDEX%: %SPOTY_TRACK_ID% %ARTIST% - %TITLE%',
               help='Print a list of tracks according to this formatting pattern.')
+@click.option('--dest-option-compare-tags', '--sost', show_default=True,
+              default='ISRC,ARTIST,TITLE,LENGTH',
+              help='Compare duplicates by this tags.')
 @click.option('--yes-all', '-y', is_flag=True,
               help='Confirm all questions with a positive answer automatically.')
 def transfer(sources,
@@ -81,6 +84,7 @@ def transfer(sources,
              dest_option_path,
              dest_option_timestamp,
              dest_option_print_pattern,
+             dest_option_compare_tags,
              yes_all,
              ):
     """
@@ -236,6 +240,7 @@ Examples of using:
     source_csv = to_list(source_csv)
     filter_have_tags = to_list(filter_have_tags)
     filter_have_no_tags = to_list(filter_have_no_tags)
+    dest_option_compare_tags = dest_option_compare_tags.split(',')
 
     # check input parameters
 
@@ -316,7 +321,7 @@ Examples of using:
         csv_created_file_names, csv_created_names, csv_added_tracks, csv_import_duplicates, csv_already_exist \
             = spoty.csv_playlist.create_csvs(all_tags, dest_option_path, dest_option_grouping_pattern,
                                              dest_option_overwrite, dest_option_append,
-                                             not dest_option_duplicates, yes_all)
+                                             not dest_option_duplicates, yes_all, dest_option_compare_tags)
 
         import_to_csv = True
 

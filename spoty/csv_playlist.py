@@ -28,8 +28,11 @@ def is_csv(file_name):
 
 
 def create_csvs(tags_list, path, grouping_pattern, overwrite=False, append=False, allow_duplicates=True,
-                yes_all=False):
+                confirm=False, compare_duplicates_tags=None):
     path = os.path.abspath(path)
+
+    if compare_duplicates_tags is None:
+        compare_duplicates_tags = []
 
     all_created_csv_file_names = []
     all_created_csv_names = []
@@ -44,23 +47,36 @@ def create_csvs(tags_list, path, grouping_pattern, overwrite=False, append=False
             csv_name = spoty.utils.slugify_file_pah(group)
             csv_file_name = os.path.join(path, csv_name + '.csv')
 
-            if csv_file_name in all_created_csv_file_names:
-                write_tags_to_csv(tags_l, csv_file_name, True)
-            else:
-                if os.path.isfile(csv_file_name) and not overwrite:
-                    if not click.confirm(f'File "{csv_file_name}" already exist. Overwrite?'):
-                        click.echo("\nCanceled")
-                        continue
-                    click.echo("")  # for new line
+            create_new_file = True
+            if os.path.isfile(csv_file_name):
+                if append:
+                    create_new_file = False
+                elif overwrite:
+                    if not confirm:
+                        if not click.confirm(f'File "{csv_file_name}" already exist. Overwrite?'):
+                            click.echo("\nCanceled")
+                            continue
+                        click.echo("")  # for new line
+                else:
+                    csv_file_name = spoty.utils.find_empty_file_name(csv_file_name)
 
-                write_tags_to_csv(tags_l, csv_file_name, False)
+
+            if not allow_duplicates:
+                tags_l, import_duplicates = spoty.utils.remove_tags_duplicates(tags_l, compare_duplicates_tags)
+                if len(import_duplicates) > 0:
+                    log.debug(f'{len(import_duplicates)} duplicates found when adding tracks. It will be skipped.')
+                if not create_new_file:
+                    exist_tags_list = read_tags_from_csv(csv_file_name)
+                    tags_l, exist_tags = spoty.utils.remove_exist_tags(exist_tags_list, tags_l, compare_duplicates_tags)
+                    all_already_exist.extend(exist_tags)
+
+            write_tags_to_csv(tags_l, csv_file_name, not create_new_file)
 
             all_created_csv_names.append(csv_name)
             all_created_csv_file_names.append(csv_file_name)
             all_added_tags.extend(tags_l)
 
     return all_created_csv_file_names, all_created_csv_names, all_added_tags, all_import_duplicates, all_already_exist
-
 
 
 def find_csvs_in_paths(paths, recursive=True):
