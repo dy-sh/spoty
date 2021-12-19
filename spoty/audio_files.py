@@ -18,6 +18,11 @@ def is_mp3(file_name):
 
 
 def find_audio_files_in_paths(paths, recursive=True, filter_have_tags=None, filter_have_no_tags=None):
+    if filter_have_tags == None:
+        filter_have_tags = []
+    if filter_have_no_tags == None:
+        filter_have_no_tags = []
+
     all_file_names = []
 
     for path in paths:
@@ -28,6 +33,11 @@ def find_audio_files_in_paths(paths, recursive=True, filter_have_tags=None, filt
 
 
 def find_audio_files_in_path(path, recursive=True, filter_have_tags=None, filter_have_no_tags=None):
+    if filter_have_tags == None:
+        filter_have_tags = []
+    if filter_have_no_tags == None:
+        filter_have_no_tags = []
+
     path = os.path.abspath(path)
 
     if not spoty.utils.is_valid_path(path):
@@ -160,6 +170,11 @@ def write_missing_tags_to_audio_files(source_tags_list, dest_tags_list, compare_
 
 
 def fix_invalid_audio_file_tags(path, recursive=True, filter_have_tags=None, filter_have_no_tags=None):
+    if filter_have_tags == None:
+        filter_have_tags = []
+    if filter_have_no_tags == None:
+        filter_have_no_tags = []
+
     file_names = find_audio_files_in_paths(path, recursive)
     tags_list = read_audio_files_tags(file_names)
 
@@ -191,6 +206,11 @@ def fix_invalid_audio_file_tags(path, recursive=True, filter_have_tags=None, fil
 
 
 def find_duplicates_in_audio_files(path, compare_tags, recursive=True, filter_have_tags=None, filter_have_no_tags=None):
+    if filter_have_tags == None:
+        filter_have_tags = []
+    if filter_have_no_tags == None:
+        filter_have_no_tags = []
+
     if len(compare_tags) == 0:
         return
 

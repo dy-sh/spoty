@@ -378,7 +378,12 @@ Examples of using:
         click.echo(f'Total tracks found: {len(all_tags)}')
 
     if import_to_csv:
-        mess = f'{len(csv_added_tracks)} tracks exported to {len(csv_created_file_names)} playlists in path: "{dest_option_path}"'
+        mess = f'{len(csv_added_tracks)} tracks written to {len(csv_created_file_names)} csv playlists.'
+        if len(csv_import_duplicates) > 0:
+            mess += f' {len(csv_import_duplicates)} duplicates in sources skipped.'
+        if len(csv_already_exist) > 0:
+            mess += f' {len(csv_already_exist)} tracks already exist in csv playlists and skipped.'
+        mess += f' Path: "{dest_option_path}"'
         click.echo(mess)
 
     if import_to_spotify:

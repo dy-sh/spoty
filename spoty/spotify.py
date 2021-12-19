@@ -10,6 +10,13 @@ import re
 
 def get_tracks_from_spotify_playlists(playlist_ids, filter_playlists_names=None, filter_have_tags=None,
                                       filter_have_no_tags=None):
+    if filter_playlists_names == None:
+        filter_playlists_names = []
+    if filter_have_tags == None:
+        filter_have_tags = []
+    if filter_have_no_tags == None:
+        filter_have_no_tags = []
+
     spotify_tracks = []
     source_tags = []
     r_playlists = []
@@ -32,6 +39,13 @@ def get_tracks_from_spotify_playlists(playlist_ids, filter_playlists_names=None,
 
 def get_tracks_of_spotify_user(user_ids, filter_playlists_names=None, filter_have_tags=None,
                                filter_have_no_tags=None):
+    if filter_playlists_names == None:
+        filter_playlists_names = []
+    if filter_have_tags == None:
+        filter_have_tags = []
+    if filter_have_no_tags == None:
+        filter_have_no_tags = []
+
     all_tracks = []
     all_tags = []
     all_playlists = []

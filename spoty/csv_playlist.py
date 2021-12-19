@@ -60,9 +60,9 @@ def create_csvs(tags_list, path, grouping_pattern, overwrite=False, append=False
                 else:
                     csv_file_name = spoty.utils.find_empty_file_name(csv_file_name)
 
-
             if not allow_duplicates:
                 tags_l, import_duplicates = spoty.utils.remove_tags_duplicates(tags_l, compare_duplicates_tags)
+                all_import_duplicates.extend(import_duplicates)
                 if len(import_duplicates) > 0:
                     log.debug(f'{len(import_duplicates)} duplicates found when adding tracks. It will be skipped.')
                 if not create_new_file:
@@ -144,6 +144,11 @@ def write_tags_to_csv(tags_list, csv_file_name, append=False):
 
 
 def read_tags_from_csvs(csv_file_names, filter_have_tags=None, filter_have_no_tags=None, add_spoty_tags=True):
+    if filter_have_tags == None:
+        filter_have_tags = []
+    if filter_have_no_tags == None:
+        filter_have_no_tags = []
+
     all_tags_lists = []
     for csv_file_name in csv_file_names:
         tags_list = read_tags_from_csv(csv_file_name, filter_have_tags, filter_have_no_tags, add_spoty_tags)
@@ -153,6 +158,11 @@ def read_tags_from_csvs(csv_file_names, filter_have_tags=None, filter_have_no_ta
 
 
 def read_tags_from_csv(csv_file_name, filter_have_tags=None, filter_have_no_tags=None, add_spoty_tags=True):
+    if filter_have_tags == None:
+        filter_have_tags = []
+    if filter_have_no_tags == None:
+        filter_have_no_tags = []
+
     csv_file_name = os.path.abspath(csv_file_name)
     tags_list = []
 
