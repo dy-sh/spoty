@@ -14,9 +14,9 @@ from datetime import datetime
 @click.command("transfer")
 @click.argument('sources', nargs=-1)
 @click.option('--source-spotify-playlist', '--ssp', multiple=True,
-              help='Read tracks in specified spotify playlist (playlist URI or ID).')
+              help='Read tracks in specified Spotify playlist (playlist URI or ID).')
 @click.option('--source-spotify-user', '--ssu', multiple=True, is_flag=False, flag_value="me",
-              help='Read tracks in this spotify user library (user URI or ID). To request a list for the current user, leave this option empty, or use "me" as ID.')
+              help='Read tracks in this Spotify user library (user URI or ID). To request a list for the current user, leave this option empty, or use "me" as ID.')
 # @click.option('--source-deezer-playlist', '--sdp', multiple=True,
 #               help='Read tracks in specified deezer playlist.')
 # @click.option('--source-deezer-user', '--sdu', multiple=True,
@@ -49,9 +49,15 @@ from datetime import datetime
               help='Create a new subfolder with the current date and time for saved csv playlists')
 @click.option('--dest-spotify', '-S', is_flag=True,
               help='Export a list of read tracks to csv playlists on disk.')
+@click.option('--dest-spotify-append', '-a', is_flag=True,
+              help='Add tracks to an existing playlist if already exists. If this option is not specified, a new playlist will always be created.')
+@click.option('--dest-spotify-duplicates', '-d', type=bool, is_flag=True, default=False,
+              help='Do not add tracks that are already exist in the playlist.')
 @click.option('--dest-grouping-pattern', '--dgp', show_default=True,
-              default='%SPOTY_PLAYLIST_SOURCE% %SPOTY_PLAYLIST_ID% - %SPOTY_PLAYLIST_NAME%',
+              default='%SPOTY_PLAYLIST_NAME%',
               help='Exported playlists will be named according to this pattern.')
+@click.option('--yes-all', '-y', is_flag=True,
+              help='Confirm all questions with a positive answer automatically.')
 def transfer(sources,
              source_spotify_playlist,
              source_spotify_user,
@@ -72,7 +78,10 @@ def transfer(sources,
              dest_csv_overwrite,
              dest_csv_timestamp,
              dest_spotify,
+             dest_spotify_append,
+             dest_spotify_duplicates,
              dest_grouping_pattern,
+             yes_all,
              ):
     """
 Transfer tracks from sources to destination.
@@ -187,6 +196,9 @@ Examples of using:
     Note that if you specify a path as an argument without specifying that it is audio or a playlist (--sa or --sc), then both audio and playlists will be searched in this path:
     spoty transfer -P SOME_FOLDER
 
+\b
+    Display all tracks in spotify library with detailed playlist info:
+    spoty transfer --ssu -P --dgp "%SPOTY_PLAYLIST_SOURCE% %SPOTY_PLAYLIST_ID% - %SPOTY_PLAYLIST_NAME%"
 
 
 
@@ -243,6 +255,7 @@ Examples of using:
             source_csv_paths.append(source)
         else:
             click.echo(f'Cant recognize source: "{source}"', err=True)
+            exit()
 
     # read sources
 
@@ -286,21 +299,47 @@ Examples of using:
         mess = f'\n{len(exported_tracks)} tracks exported to {len(exported_playlists_file_names)} playlists in path: "{dest_csv_path}"'
         click.echo(mess)
 
+    if dest_spotify:
+        click.echo('Next playlists will be imported to Spotify library:')
+        grouped_tags = spoty.utils.group_tags_by_pattern(all_tags, dest_grouping_pattern)
+        for group_name, g_tags_list in grouped_tags.items():
+            click.echo(group_name)
+        click.echo(f'Total {len(all_tags)} tracks in {len(grouped_tags)} playlists.')
+
+        cont = True
+        if not yes_all:
+            if click.confirm(f'Do you want to continue?'):
+                click.echo("")
+            else:
+                click.echo("Canceled.")
+                cont = False
+        if cont:
+            playlist_ids, tracks_added, import_duplicates, already_exist = \
+                spoty.spotify.import_playlists_from_tags_list(
+                    all_tags, dest_grouping_pattern, dest_spotify_append, not dest_spotify_duplicates)
+
+            mess = f'Imported {len(tracks_added)} tracks in {len(playlist_ids)} Spotify playlists.'
+            if len(import_duplicates) > 0:
+                mess += f' {len(import_duplicates)} duplicates in sources skipped.'
+            if len(already_exist) > 0:
+                mess += f' {len(already_exist)} tracks already exist in playlist and skipped.'
+            click.echo(mess)
+
     # print summery
 
     click.echo('\n-------------------------------------------------------------------------------------')
     print_total = False
     if len(spotify_playlists_tracks) > 0:
-        click.echo(f'{len(spotify_playlists_tracks)} tracks found in {len(spotify_playlists)} spotify playlists.')
+        click.echo(f'{len(spotify_playlists_tracks)} tracks found in {len(spotify_playlists)} Spotify playlists.')
         if len(spotify_playlists_tracks) != len(all_tags):
             print_total = True
     if len(spotify_user_tracks) > 0:
         if len(source_spotify_user) == 1:
             click.echo(
-                f'{len(spotify_user_tracks)} tracks found in {len(spotify_user_playlists)} playlists in spotify user library.')
+                f'{len(spotify_user_tracks)} tracks found in {len(spotify_user_playlists)} playlists in Spotify user library.')
         else:
             click.echo(
-                f'{len(spotify_user_tracks)} tracks found in {len(spotify_user_playlists)} playlists in libraries of {len(source_spotify_user)} spotify users.')
+                f'{len(spotify_user_tracks)} tracks found in {len(spotify_user_playlists)} playlists in libraries of {len(source_spotify_user)} Spotify users.')
         if len(spotify_user_tracks) != len(all_tags):
             print_total = True
     if len(audio_file_names) > 0:

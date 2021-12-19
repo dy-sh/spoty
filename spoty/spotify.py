@@ -12,7 +12,7 @@ def get_tracks_from_spotify_playlists(playlist_ids, filter_playlists_names=None,
                                       filter_have_no_tags=None):
     spotify_tracks = []
     source_tags = []
-    r_playlists=[]
+    r_playlists = []
 
     if len(playlist_ids) > 0:
         playlists = []
@@ -24,7 +24,8 @@ def get_tracks_from_spotify_playlists(playlist_ids, filter_playlists_names=None,
         if filter_playlists_names is not None:
             playlists = list(filter(lambda pl: re.findall(filter_playlists_names, pl['name']), playlists))
 
-        spotify_tracks, source_tags, r_playlists = get_tracks_from_playlists(playlists, filter_have_tags, filter_have_no_tags)
+        spotify_tracks, source_tags, r_playlists = get_tracks_from_playlists(playlists, filter_have_tags,
+                                                                             filter_have_no_tags)
 
     return spotify_tracks, source_tags, r_playlists
 
@@ -307,7 +308,7 @@ def copy_playlist(playlist_id):
 
     ids = get_track_ids(tracks)
     new_playlist_id = create_playlist(playlist['name'])
-    tracks_added = add_tracks_to_playlist(new_playlist_id, ids, True)
+    tracks_added, import_duplicates, already_exist = add_tracks_to_playlist(new_playlist_id, ids, True)
 
     log.success(f"Playlist {playlist_id} copy completed ({len(tracks_added)} tracks added).")
 
@@ -379,18 +380,26 @@ def get_tracks_of_playlist(playlist_id, add_playlist_info=True):
 def add_tracks_to_playlist(playlist_id, track_ids, allow_duplicates=False):
     playlist_id = parse_playlist_id(playlist_id)
 
+    import_duplicates = []
+
+    if not allow_duplicates:
+        track_ids, import_duplicates = spoty.utils.remove_duplicates(track_ids)
+        if len(import_duplicates) > 0:
+            log.debug(f'{len(import_duplicates)} duplicates found when adding tracks. It will be skipped.')
+
     for i in range(len(track_ids)):
         track_ids[i] = parse_track_id(track_ids[i])
 
     log.info(f'Adding {len(track_ids)} tracks to playlist {playlist_id}')
 
+    already_exist = []
+
     if not allow_duplicates:
         tracks = get_tracks_of_playlist(playlist_id)
-        existing_ids = get_track_ids(tracks)
-        new_ids = spoty.utils.filter_duplicates(existing_ids, track_ids)
-        if len(track_ids) != len(new_ids):
-            log.debug(f'{len(track_ids) - len(new_ids)}/{len(track_ids)} tracks already exist and will be skipped.')
-            track_ids = new_ids
+        ids_in_playlist = get_track_ids(tracks)
+        track_ids, already_exist = spoty.utils.remove_exist(ids_in_playlist, track_ids)
+        if len(already_exist) > 0:
+            log.debug(f'{len(already_exist)} tracks already exist and will be skipped.')
 
     tracks_added = []
 
@@ -407,7 +416,7 @@ def add_tracks_to_playlist(playlist_id, track_ids, allow_duplicates=False):
 
     log.success(f'Adding tracks to playlist {playlist_id} complete (tracks added: {len(next_tracks)}')
 
-    return tracks_added
+    return tracks_added, import_duplicates, already_exist
 
 
 def remove_tracks_from_paylist(playlist_id, track_ids):
@@ -488,13 +497,30 @@ def export_playlist_to_file(playlist_id, path, overwrite=False, avoid_filenames=
     return file_name
 
 
-def import_playlist_from_file(file_name, append_if_exist=False, allow_duplicates=False):
-    log.info(f'Importing playlist from file "{file_name}"')
+def import_playlists_from_tags_list(tags_list, grouping_pattern, append_if_exist=False, allow_duplicates=False):
+    all_playlist_ids = []
+    all_tracks_added = []
+    all_import_duplicates = []
+    all_already_exist= []
+    grouped_tags = spoty.utils.group_tags_by_pattern(tags_list, grouping_pattern)
+
+    for group_name, g_tags_list in grouped_tags.items():
+        playlist_id, tracks_added, import_duplicates, already_exist \
+            = import_playlist_from_tags_list(group_name, g_tags_list, append_if_exist, allow_duplicates)
+
+        all_playlist_ids.append(playlist_id)
+        all_tracks_added.extend(tracks_added)
+        all_import_duplicates.extend(import_duplicates)
+        all_already_exist.extend(already_exist)
+
+    return all_playlist_ids, all_tracks_added, all_import_duplicates, all_already_exist
+
+
+def import_playlist_from_tags_list(playlist_name, tags_list, append_if_exist=False, allow_duplicates=False):
+    log.info(f'Importing playlist "{playlist_name}"')
     tracks_added = []
 
     playlist_id = None
-    base = os.path.basename(file_name)
-    playlist_name = os.path.splitext(base)[0]
 
     if append_if_exist:
         found_playlists = find_playlist_by_name(playlist_name)
@@ -509,15 +535,18 @@ def import_playlist_from_file(file_name, append_if_exist=False, allow_duplicates
     if playlist_id is None:
         playlist_id = create_playlist(playlist_name)
 
-    tag_tracks = spoty.csv_playlist.read_tags_from_csv(file_name)
-    found_ids = find_tracks_from_tags(tag_tracks)
+    found_ids = find_tracks_from_tags(tags_list)
+
+    import_duplicates = []
+    already_exist = []
 
     if len(found_ids) > 0:
-        tracks_added = add_tracks_to_playlist(playlist_id, found_ids, allow_duplicates)
+        tracks_added, import_duplicates, already_exist = add_tracks_to_playlist(playlist_id, found_ids,
+                                                                                allow_duplicates)
 
-    log.success(f'Playlist imported (new tracks: "{len(tracks_added)}") from file "{file_name}"')
+    log.success(f'Playlist imported (new tracks: "{len(tracks_added)}")  id: {playlist_id} name: "{playlist_name}"')
 
-    return playlist_id, tracks_added, tag_tracks
+    return playlist_id, tracks_added, import_duplicates, already_exist
 
 
 def like_all_tracks_in_playlist(playlist_id):

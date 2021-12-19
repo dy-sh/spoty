@@ -122,7 +122,7 @@ def playlist_add_tracks(playlist_id, track_ids, allow_duplicates):
 
     """
     track_ids = list(track_ids)
-    tracks_added = spoty.spotify.add_tracks_to_playlist(playlist_id, track_ids, allow_duplicates)
+    tracks_added, import_duplicates, already_exist = spoty.spotify.add_tracks_to_playlist(playlist_id, track_ids, allow_duplicates)
     click.echo(f'{len(tracks_added)} tracks added to playlist {playlist_id}')
 
 

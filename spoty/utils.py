@@ -103,8 +103,19 @@ def filter_duplicates(src_arr, dest_arr):
 def remove_duplicates(arr):
     good = []
     dup = []
-    for item in enumerate(arr):
+    for item in arr:
         if item in good:
+            dup.append(item)
+        else:
+            good.append(item)
+    return good, dup
+
+
+def remove_exist(exist_arr, new_arr):
+    good = []
+    dup = []
+    for item in new_arr:
+        if item in exist_arr:
             dup.append(item)
         else:
             good.append(item)

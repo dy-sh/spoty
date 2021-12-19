@@ -21,7 +21,7 @@ cli.add_command(transfer_command.transfer)
 if __name__ == '__main__':
     # cli()
     cli(['transfer',
-         '-p',
+         # '-P',
          # '--ssu',
          # '--ssu', 'me',
          # '--dgp','%SPOTY_PLAYLIST_SOURCE% %SPOTY_PLAYLIST_ID% - %SPOTY_PLAYLIST_NAME%',
@@ -31,9 +31,10 @@ if __name__ == '__main__':
          # '--ssp', 'https://open.spotify.com/playlist/7E6SNhIGjSqEmzHISqnMrJ',
          # 'https://open.spotify.com/playlist/7E6SNhIGjSqEmzHISqnMrJ',
          # r'.\music\Pop Nutral',
-         # r'.\music\Techno Nutral'
-         # r'.\PLAYLISTS'
+         # r'.\music\Techno Nutral',
+         r'.\PLAYLISTS',
          # '--fpn', '^BES',
+         '-Syda'
          ])
 
 
