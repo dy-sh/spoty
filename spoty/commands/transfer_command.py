@@ -12,12 +12,11 @@ from datetime import datetime
 
 
 @click.command("transfer")
-
 @click.argument('sources', nargs=-1)
 @click.option('--source-spotify-playlist', '--ssp', multiple=True,
-              help='Read tracks in specified spotify playlist.')
+              help='Read tracks in specified spotify playlist (playlist URI or ID).')
 @click.option('--source-spotify-user', '--ssu', multiple=True, is_flag=False, flag_value="me",
-              help='Read tracks in this spotify user library. To request a list for the current user, leave this option empty, or use "me" as ID.')
+              help='Read tracks in this spotify user library (user URI or ID). To request a list for the current user, leave this option empty, or use "me" as ID.')
 # @click.option('--source-deezer-playlist', '--sdp', multiple=True,
 #               help='Read tracks in specified deezer playlist.')
 # @click.option('--source-deezer-user', '--sdu', multiple=True,
@@ -28,22 +27,18 @@ from datetime import datetime
               help='Read tracks from csv playlists located in specified local path. You can specify the scv filename as well.')
 @click.option('--source-no-recursive', '-r', is_flag=True,
               help='Do not search in subdirectories from the specified path.')
-
-
 @click.option('--filter-playlist-names', '--fpn',
               help='Read only playlists whose names matches this regex filter')
 @click.option('--filter-have-tags', '--fht', multiple=True,
               help='Get only tracks that have all of the specified tags.')
 @click.option('--filter-have-no-tags', '--fhnt', multiple=True,
               help='Get only tracks that do not have any of the listed tags.')
-
-
-@click.option('--dest-print', '-p', is_flag=True,
+@click.option('--dest-print', '-P', is_flag=True,
               help='Print a list of read tracks to console.')
 @click.option('--dest-print-pattern', '--dpp', show_default=True,
               default='%SPOTY_PLAYLIST_INDEX%: %SPOTY_TRACK_ID% %ARTIST% - %TITLE%',
               help='Print a list of tracks according to this formatting pattern.')
-@click.option('--dest-csv', '-c', is_flag=True,
+@click.option('--dest-csv', '-C', is_flag=True,
               help='Export a list of read tracks to csv playlists on disk.')
 @click.option('--dest-csv-path', '--dcp', show_default=True,
               default="./PLAYLISTS",
@@ -52,10 +47,11 @@ from datetime import datetime
               help='Overwrite existing csv playlists without asking')
 @click.option('--dest-csv-timestamp', '-t', is_flag=True,
               help='Create a new subfolder with the current date and time for saved csv playlists')
+@click.option('--dest-spotify', '-S', is_flag=True,
+              help='Export a list of read tracks to csv playlists on disk.')
 @click.option('--dest-grouping-pattern', '--dgp', show_default=True,
               default='%SPOTY_PLAYLIST_SOURCE% %SPOTY_PLAYLIST_ID% - %SPOTY_PLAYLIST_NAME%',
               help='Exported playlists will be named according to this pattern.')
-
 def transfer(sources,
              source_spotify_playlist,
              source_spotify_user,
@@ -75,10 +71,13 @@ def transfer(sources,
              dest_csv_path,
              dest_csv_overwrite,
              dest_csv_timestamp,
+             dest_spotify,
              dest_grouping_pattern,
              ):
     """
 Transfer tracks from sources to destination.
+
+You should specify the sources (where to read the tracks) and the destination (where to add/write/print the tracks)
 
 \b
 SOURCES - List of sources where tracks will be read.
@@ -91,7 +90,26 @@ SOURCES - List of sources where tracks will be read.
     SOURCES argument is optional. Instead, you can pass parameters as --source options.
     For example, --source-spotify-playlist (--ssp) can take not only URI but also playlist ID (part of URI)
 
+\b
+Some notes on how to memorize options.
+All sources are named with "--source-" and short name "--s" (example: "--source-audio" or "--sa")
+All destinations are named with "--dest-" and short name with one capital letter  (example: "--dest-spotify" or "-S")
+All single-letter options are switches. They can be combined and do not take any parameter. (example: "-PCo" or -P -C -o)
+
+\b
+The option with two dashes (--ssu for example) must be followed by a parameter value.
+In some options it is possible not to pass parameter, then the default value will be used.
+However, if you leave the parameter blank, you must not pass SOURCE next (otherwise, it will be treated as a parameter).
 Examples:
+    Correct:
+        spoty transfer -P --ssu "me" "./LOCAL_PATH"
+        spoty transfer -P "./LOCAL_PATH" --ssu "me"
+        spoty transfer -P "./LOCAL_PATH" --ssu
+    Wrong:
+        spoty transfer -P --ssu "./LOCAL_PATH"
+To avoid confusion, better to stick to a simple rule: pass the SOURCES before options.
+
+Examples of using:
 
 \b
     Display the number of tracks in the playlists of the current Spotify user:
@@ -99,35 +117,35 @@ Examples:
 
 \b
     Displaying all tracks in the playlists of the current Spotify user:
-    spoty transfer --ssu -p
+    spoty transfer --ssu -P
 
 \b
     Export all tracks of the current Spotify user to csv playlists in the default (./PLAYLISTS) path (dest_csv_overwrite files if they already exist):
-    spoty transfer --ssu -eo
+    spoty transfer --ssu -Co
 
 \b
     Combination of the two commands above:
-    spoty transfer --ssu -peo
+    spoty transfer --ssu -PCo
 
 \b
     Displaying all tracks in the playlists whose names start with "BEST":
-    spoty transfer -p --ssu --fpn "^BEST"
+    spoty transfer -P --ssu --fpn "^BEST"
 
 \b
     Export all tracks of the current Spotify user to csv playlists. Playlists will be named by the names of the playlists in Spotify. You can use any tags for the pattern.
-    spoty transfer --ssu -e --enp "%SPOTY_PLAYLIST_NAME%"
+    spoty transfer --ssu -C --enp "%SPOTY_PLAYLIST_NAME%"
 
 \b
     Same as above, but playlists will be named by the artist and album:
-    spoty transfer --ssu -e --enp "%ARTIST% - %ALBUM%"
+    spoty transfer --ssu -C --enp "%ARTIST% - %ALBUM%"
 
 \b
     Display all tracks in two Spotify playlists:
-    spoty transfer -p --ssp 37i9dQZF1DX12G1GAEuIuj --ssp 37i9dQZEVXbNG2KDcFcKOF
+    spoty transfer -P --ssp 37i9dQZF1DX12G1GAEuIuj --ssp 37i9dQZEVXbNG2KDcFcKOF
 
 \b
     Same as above command:
-    spoty transfer -p https://open.spotify.com/playlist/37i9dQZF1DX12G1GAEuIuj https://open.spotify.com/playlist/37i9dQZEVXbNG2KDcFcKOF
+    spoty transfer -P https://open.spotify.com/playlist/37i9dQZF1DX12G1GAEuIuj https://open.spotify.com/playlist/37i9dQZEVXbNG2KDcFcKOF
 
 \b
     Display the number of tracks in Spotify playlist:
@@ -135,44 +153,45 @@ Examples:
 
 \b
     Display all tracks in two local paths:
-    spoty transfer -p ./music ./music2
+    spoty transfer -P ./music ./music2
 
 \b
     Display all tracks in local paths. The specified tags will be displayed:
-    spoty transfer ./music -p --pt TITLE,ARTIST,DATE
+    spoty transfer ./music -P --dpp "%TITLE% - %ARTIST% (%DATE%)"
 
 \b
     Export all tracks from local paths to csv playlist:
-    spoty transfer -pe ./music
+    spoty transfer -PC ./music
 
 \b
     Display all tracks in local paths that have the specified tags:
-    spoty transfer ./music -p --fht "ISRC" --fht "BARCORE"
+    spoty transfer ./music -P --fht "ISRC" --fht "DATE"
 
 \b
     Display all tracks in local paths that do not have the specified tags:
-    spoty transfer ./music -p --fhnt "TITLE"
+    spoty transfer ./music -P --fhnt "TITLE"
 
 \b
     Export all tracks from local paths to csv playlist in the specified path:
-    spoty transfer -pe music --ep "./music playlists"
+    spoty transfer -C music --dcp "./music playlists"
 
 \b
     Display all tracks from csv playlists found in path "./PLAYLISTS":
-    spoty transfer -p --sc "./PLAYLISTS"
+    spoty transfer -P --sc "./PLAYLISTS"
 
 \b
     Display all tracks from csv playlist:
-    spoty transfer -p PLAYLISTS/BEST.csv
+    spoty transfer -P PLAYLISTS/BEST.csv
 
 \b
     Note that if you specify a path as an argument without specifying that it is audio or a playlist (--sa or --sc), then both audio and playlists will be searched in this path:
-    spoty transfer -p SOME_FOLDER
+    spoty transfer -P SOME_FOLDER
 
 
 
 
     """
+
     # if no sources - print help
 
     if len(source_spotify_user) == 0 \
@@ -196,8 +215,8 @@ Examples:
 
     # check sources argument
 
-    source_csv_files=[]
-    source_csv_paths=[]
+    source_csv_files = []
+    source_csv_paths = []
     for source in source_csv:
         if spoty.csv_playlist.is_csv(source):
             source_csv_files.append(source)
@@ -270,30 +289,30 @@ Examples:
     # print summery
 
     click.echo('\n-------------------------------------------------------------------------------------')
-    print_total=False
+    print_total = False
     if len(spotify_playlists_tracks) > 0:
         click.echo(f'{len(spotify_playlists_tracks)} tracks found in {len(spotify_playlists)} spotify playlists.')
-        if len(spotify_playlists_tracks)!=len(all_tags):
-            print_total=True
+        if len(spotify_playlists_tracks) != len(all_tags):
+            print_total = True
     if len(spotify_user_tracks) > 0:
-        if len(source_spotify_user)==1:
-            click.echo(f'{len(spotify_user_tracks)} tracks found in {len(spotify_user_playlists)} playlists in spotify user library.')
+        if len(source_spotify_user) == 1:
+            click.echo(
+                f'{len(spotify_user_tracks)} tracks found in {len(spotify_user_playlists)} playlists in spotify user library.')
         else:
-            click.echo(f'{len(spotify_user_tracks)} tracks found in {len(spotify_user_playlists)} playlists in libraries of {len(source_spotify_user)} spotify users.')
-        if len(spotify_user_tracks)!=len(all_tags):
-            print_total=True
+            click.echo(
+                f'{len(spotify_user_tracks)} tracks found in {len(spotify_user_playlists)} playlists in libraries of {len(source_spotify_user)} spotify users.')
+        if len(spotify_user_tracks) != len(all_tags):
+            print_total = True
     if len(audio_file_names) > 0:
         click.echo(f'{len(audio_file_names)} audio files found in {len(source_audio)} local paths.')
-        if len(audio_file_names)!=len(all_tags):
-            print_total=True
+        if len(audio_file_names) != len(all_tags):
+            print_total = True
     if len(csv_tags_list) > 0:
         click.echo(f'{len(csv_tags_list)} tracks found in {len(csv_file_names)} csv playlists.')
-        if len(csv_tags_list)!=len(all_tags):
-            print_total=True
+        if len(csv_tags_list) != len(all_tags):
+            print_total = True
     if print_total:
         click.echo(f'Total tracks found: {len(all_tags)}')
-
-
 
 
 def to_list(some_tuple):
