@@ -17,54 +17,6 @@ def local():
     pass
 
 
-@local.command("count-in-playlists")
-@click.argument('path')
-@click.option('--filter-names', default=None,
-              help='Read only playlists whose names matches this regex filter')
-@click.option('--recursive', '-r', type=bool, is_flag=True, default=False,
-              help='Search in subfolders.')
-@click.option('--have-tags', default=None,
-              help='Count only tracks that have all of the specified tags.')
-@click.option('--have-no-tags', default=None,
-              help='Count only tracks that do not have any of the listed tags.')
-def local_count_tracks_in_playlists(path, filter_names, recursive, have_tags, have_no_tags):
-    r"""Displays the number of tracks found in local playlists.
-
-    PATH - Path to search files
-
-    Examples:
-
-        spoty local count-in-playlists "C:\Users\User\Downloads\music"
-
-        spoty local count-in-playlists -r "C:\Users\User\Downloads\music"
-
-        spoty local count-in-playlists --filter-names "^awesome" "C:\Users\User\Downloads\music"
-    """
-
-    path = os.path.abspath(path)
-
-    all_tracks = []
-
-    playlists = spoty.csv_playlist.find_csvs_in_path(path, recursive, filter_names)
-    for file_name in playlists:
-        tracks = spoty.csv_playlist.read_tags_from_csv(file_name)
-
-        for track in tracks:
-            if have_tags is not None:
-                have_tags_arr = have_tags.upper().split(',')
-                if not spoty.utils.check_all_tags_exist(track, have_tags_arr):
-                    continue
-
-            if have_no_tags is not None:
-                have__no_tags_arr = have_no_tags.upper().split(',')
-                if spoty.utils.check_all_tags_exist(track, have__no_tags_arr):
-                    continue
-
-            all_tracks.append(track)
-
-    click.echo(f'Found {len(all_tracks)} tracks in {len(playlists)} playlistss')
-
-
 def print_duplicates_in_playlist(tags, duplicates_dic):
     i = 0
     for isrc, duplicates in duplicates_dic.items():
