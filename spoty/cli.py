@@ -35,7 +35,7 @@ if __name__ == '__main__':
          # r'.\PLAYLISTS',
          r'.\music',
          # '--fpn', '^BES',
-         '-S'
+         '-C'
          ])
 
 

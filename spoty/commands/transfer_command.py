@@ -313,9 +313,10 @@ Examples of using:
             date_time_str = now.strftime("%Y_%m_%d-%H_%M_%S")
             dest_option_path = os.path.join(dest_option_path, date_time_str)
 
-        exported_playlists_file_names, exported_playlists_names, exported_tracks = \
-            spoty.csv_playlist.create_csvs(all_tags, dest_option_path, dest_option_grouping_pattern,
-                                           dest_option_overwrite)
+        csv_created_file_names, csv_created_names, csv_added_tracks, csv_import_duplicates, csv_already_exist \
+            = spoty.csv_playlist.create_csvs(all_tags, dest_option_path, dest_option_grouping_pattern,
+                                             dest_option_overwrite, dest_option_append,
+                                             not dest_option_duplicates, yes_all)
 
         import_to_csv = True
 
@@ -335,7 +336,7 @@ Examples of using:
                 click.echo("\nCanceled.")
                 import_to_spotify = False
         if import_to_spotify:
-            spotify_imported_playlist_ids, spotify_tracks_imported, spotify_import_duplicates, spotify_already_exist, \
+            spotify_imported_playlist_ids, spotify_imported_tracks, spotify_import_duplicates, spotify_already_exist, \
             spotify_not_found = spoty.spotify.import_playlists_from_tags_list(
                 all_tags, dest_option_grouping_pattern, dest_option_overwrite, dest_option_append,
                 not dest_option_duplicates, yes_all)
@@ -372,11 +373,11 @@ Examples of using:
         click.echo(f'Total tracks found: {len(all_tags)}')
 
     if import_to_csv:
-        mess = f'{len(exported_tracks)} tracks exported to {len(exported_playlists_file_names)} playlists in path: "{dest_option_path}"'
+        mess = f'{len(csv_added_tracks)} tracks exported to {len(csv_created_file_names)} playlists in path: "{dest_option_path}"'
         click.echo(mess)
 
     if import_to_spotify:
-        mess = f'{len(spotify_tracks_imported)} tracks imported in {len(spotify_imported_playlist_ids)} Spotify playlists.'
+        mess = f'{len(spotify_imported_tracks)} tracks imported in {len(spotify_imported_playlist_ids)} Spotify playlists.'
         if len(spotify_import_duplicates) > 0:
             mess += f' {len(spotify_import_duplicates)} duplicates in sources skipped.'
         if len(spotify_already_exist) > 0:

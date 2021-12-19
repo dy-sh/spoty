@@ -525,7 +525,7 @@ def export_playlist_to_file(playlist_id, path, overwrite=False, avoid_filenames=
 
 
 def import_playlists_from_tags_list(tags_list, grouping_pattern, overwrite_if_exist=False, append_if_exist=False,
-                                    allow_duplicates=False, confirm=False):
+                                    allow_duplicates=True, confirm=False):
     all_playlist_ids = []
     all_tracks_added = []
     all_import_duplicates = []
@@ -548,7 +548,7 @@ def import_playlists_from_tags_list(tags_list, grouping_pattern, overwrite_if_ex
 
 
 def import_playlist_from_tags_list(playlist_name, tags_list, overwrite_if_exist=False, append_if_exist=False,
-                                   allow_duplicates=False, confirm=False):
+                                   allow_duplicates=True, confirm=False):
     log.info(f'Importing playlist "{playlist_name}"')
     tracks_added = []
 

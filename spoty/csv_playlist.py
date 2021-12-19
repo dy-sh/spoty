@@ -27,22 +27,24 @@ def is_csv(file_name):
     return file_name.upper().endswith('.CSV')
 
 
-def create_csvs(tags_list, export_path, grouping_pattern, overwrite):
-    export_path = os.path.abspath(export_path)
+def create_csvs(tags_list, path, grouping_pattern, overwrite=False, append=False, allow_duplicates=True,
+                yes_all=False):
+    path = os.path.abspath(path)
 
-    exported_csv_file_names = []
-    exported_csv_names = []
-    exported_tags = []
+    all_created_csv_file_names = []
+    all_created_csv_names = []
+    all_added_tags = []
+    all_import_duplicates = []
+    all_already_exist = []
 
     if len(tags_list) > 0:
         grouped_tags = spoty.utils.group_tags_by_pattern(tags_list, grouping_pattern)
 
         for group, tags_l in grouped_tags.items():
-            csv_name = group
-            csv_name = spoty.utils.slugify_file_pah(csv_name)
-            csv_file_name = os.path.join(export_path, csv_name + '.csv')
+            csv_name = spoty.utils.slugify_file_pah(group)
+            csv_file_name = os.path.join(path, csv_name + '.csv')
 
-            if csv_file_name in exported_csv_file_names:
+            if csv_file_name in all_created_csv_file_names:
                 write_tags_to_csv(tags_l, csv_file_name, True)
             else:
                 if os.path.isfile(csv_file_name) and not overwrite:
@@ -53,11 +55,12 @@ def create_csvs(tags_list, export_path, grouping_pattern, overwrite):
 
                 write_tags_to_csv(tags_l, csv_file_name, False)
 
-            exported_csv_names.append(csv_name)
-            exported_csv_file_names.append(csv_file_name)
-            exported_tags.extend(tags_l)
+            all_created_csv_names.append(csv_name)
+            all_created_csv_file_names.append(csv_file_name)
+            all_added_tags.extend(tags_l)
 
-    return exported_csv_file_names, exported_csv_names, exported_tags
+    return all_created_csv_file_names, all_created_csv_names, all_added_tags, all_import_duplicates, all_already_exist
+
 
 
 def find_csvs_in_paths(paths, recursive=True):
@@ -74,7 +77,7 @@ def find_csvs_in_path(path, recursive=True):
     path = os.path.abspath(path)
 
     if not spoty.utils.is_valid_path(path):
-        raise Exception("Path is not valid: "+path)
+        raise Exception("Path is not valid: " + path)
 
     full_file_names = []
     if recursive:
@@ -134,7 +137,7 @@ def read_tags_from_csvs(csv_file_names, filter_have_tags=None, filter_have_no_ta
 
 
 def read_tags_from_csv(csv_file_name, filter_have_tags=None, filter_have_no_tags=None, add_spoty_tags=True):
-    csv_file_name=os.path.abspath(csv_file_name)
+    csv_file_name = os.path.abspath(csv_file_name)
     tags_list = []
 
     with open(csv_file_name, newline='', encoding='utf-8-sig') as file:
