@@ -8,8 +8,8 @@ import time
 import re
 
 
-def get_tracks_from_spotify_playlists(playlist_ids, filter_playlists_names, filter_have_tags,
-                                      filter_have_no_tags):
+def get_tracks_from_spotify_playlists(playlist_ids, filter_playlists_names=None, filter_have_tags=None,
+                                      filter_have_no_tags=None):
     spotify_tracks = []
     source_tags = []
 
@@ -20,7 +20,7 @@ def get_tracks_from_spotify_playlists(playlist_ids, filter_playlists_names, filt
                 playlist = get_playlist(playlist_id)
                 playlists.append(playlist)
 
-        if len(filter_playlists_names) > 0:
+        if filter_playlists_names is not None:
             playlists = list(filter(lambda pl: re.findall(filter_playlists_names, pl['name']), playlists))
 
         spotify_tracks, source_tags = get_tracks_from_playlists(playlists, filter_have_tags, filter_have_no_tags)
@@ -28,8 +28,8 @@ def get_tracks_from_spotify_playlists(playlist_ids, filter_playlists_names, filt
     return spotify_tracks, source_tags
 
 
-def get_tracks_of_spotify_user(user_ids, filter_playlists_names, filter_have_tags,
-                               filter_have_no_tags):
+def get_tracks_of_spotify_user(user_ids, filter_playlists_names=None, filter_have_tags=None,
+                               filter_have_no_tags=None):
     all_tracks = []
     all_tags = []
     all_playlists = []
@@ -43,7 +43,7 @@ def get_tracks_of_spotify_user(user_ids, filter_playlists_names, filter_have_tag
             playlists = get_list_of_user_playlists(user_id)
             click.echo(f'User {user_id} has {len(playlists)} playlists in spotify library')
 
-        if len(filter_playlists_names) > 0:
+        if filter_playlists_names is not None:
             playlists = list(filter(lambda pl: re.findall(filter_playlists_names, pl['name']), playlists))
 
         # remove already requested playlists

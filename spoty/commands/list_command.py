@@ -25,7 +25,7 @@ from datetime import datetime
               help='Read tracks from audio files located in specified local path.')
 @click.option('--source-csv', '--sc', multiple=True,
               help='Read tracks from csv playlists located in specified local path. You can specify the scv filename as well.')
-@click.option('--filter-playlists-names', '--fpn',
+@click.option('--filter-playlist-names', '--fpn',
               help='Read only playlists whose names matches this regex filter')
 @click.option('--filter-have-tags', '--fht', multiple=True,
               help='Get only tracks that have all of the specified tags.')
@@ -37,10 +37,10 @@ from datetime import datetime
               help='Print a list of read tracks to console.')
 @click.option('--print-tags', '--pt', default='ISRC,ARTIST,TITLE',
               help='Print this track tags. Specify tags separated by commas.')
-@click.option('--export-csv-playlists', '-e', is_flag=True,
-              help='Export a list of read tracks to csv playlists.')
+@click.option('--export-csv', '-e', is_flag=True,
+              help='Export a list of read tracks to csv playlists on disk.')
 @click.option('--export-path', '--ep', default="./PLAYLISTS",
-              help='The path on disk where to export csv-playlists.')
+              help='The path on disk where to export csv playlists.')
 @click.option('--export-naming-pattern', '--enp', default='%SPOTY_PLAYLIST_NAME%',
               help='Exported playlists will be named according to this pattern.')
 @click.option('--overwrite', '-o', is_flag=True,
@@ -54,13 +54,13 @@ def list(sources,
          # source_deezer_user,
          source_audio,
          source_csv,
-         filter_playlists_names,
+         filter_playlist_names,
          filter_have_tags,
          filter_have_no_tags,
          no_recursive,
          print_to_console,
          print_tags,
-         export_csv_playlists,
+         export_csv,
          export_path,
          export_naming_pattern,
          overwrite,
@@ -101,6 +101,14 @@ Examples:
 \b
     Displaying all tracks in the playlists whose names start with "BEST":
     spoty list -p --ssu --fpn "^BEST"
+
+\b
+    Export all tracks of the current Spotify user to csv playlists. Playlists will be named by the names of the playlists in Spotify. You can use any tags for the pattern.
+    spoty list --ssu -e --enp "%SPOTY_PLAYLIST_NAME%"
+
+\b
+    Same as above, but playlists will be named by the artist and album.
+    spoty list --ssu -e --enp "%ARTIST% - %ALBUM%"
 
 \b
     Display all tracks in two Spotify playlists:
@@ -149,6 +157,7 @@ Examples:
 \b
     Note that if you specify a path as an argument without specifying that it is audio or a playlist (--sa or --sc), then both audio and playlists will be searched in this path:
     spoty list -p SOME_FOLDER
+
 
 
 
@@ -206,11 +215,11 @@ Examples:
     all_tags = []
 
     spotify_playlists_tracks, tags = spoty.spotify.get_tracks_from_spotify_playlists(
-        source_spotify_playlist, filter_playlists_names, filter_have_tags, filter_have_no_tags)
+        source_spotify_playlist, filter_playlist_names, filter_have_tags, filter_have_no_tags)
     all_tags.extend(tags)
 
     spotify_user_tracks, tags, spotify_user_playlists = spoty.spotify.get_tracks_of_spotify_user(
-        source_spotify_user, filter_playlists_names, filter_have_tags, filter_have_no_tags)
+        source_spotify_user, filter_playlist_names, filter_have_tags, filter_have_no_tags)
     all_tags.extend(tags)
 
     audio_file_names = spoty.audio_files.find_audio_files_in_paths(
@@ -251,7 +260,7 @@ Examples:
     if print_total:
         click.echo(f'Total tracks found: {len(all_tags)}')
 
-    if export_csv_playlists:
+    if export_csv:
         if timestamp:
             now = datetime.now()
             date_time_str = now.strftime("%Y_%m_%d-%H_%M_%S")

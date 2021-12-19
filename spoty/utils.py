@@ -278,8 +278,11 @@ def group_tags_by_pattern(tags_list, pattern, not_found_tag_name="Unknown"):
             if c == "%":
                 building_tag = not building_tag
                 if not building_tag:
-                    tag = tags[tag_name] if tag_name in tags else not_found_tag_name
-                    group_name += str(tag)
+                    allies = get_tag_allies(tag_name, True)
+                    for a in allies:
+                        if a in tags:
+                            tag = tags[a]
+                            group_name += str(tag)
                     tag_name = ""
             else:
                 if building_tag:
