@@ -147,7 +147,7 @@ def playlist_remove_tracks(playlist_id, track_ids):
 
     """
     track_ids = list(track_ids)
-    spoty.spotify.remove_tracks_from_paylist(playlist_id, track_ids)
+    spoty.spotify.remove_tracks_from_playlist(playlist_id, track_ids)
     click.echo(f'Tracks removed from playlist {playlist_id}')
 
 

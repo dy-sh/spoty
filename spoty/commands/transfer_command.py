@@ -200,6 +200,9 @@ Examples of using:
     Display all tracks in spotify library with detailed playlist info:
     spoty transfer --ssu -P --dgp "%SPOTY_PLAYLIST_SOURCE% %SPOTY_PLAYLIST_ID% - %SPOTY_PLAYLIST_NAME%"
 
+\b
+    Collect playlists from local audio files and import it to Spotify library:
+    spoty transfer ".\music" -S
 
 
     """
@@ -315,21 +318,15 @@ Examples of using:
         cont = True
         if not yes_all:
             if click.confirm(f'Do you want to continue?'):
-                click.echo("")
+                click.echo("") # for new line
             else:
-                click.echo("Canceled.")
+                click.echo("\nCanceled.")
                 cont = False
         if cont:
-            playlist_ids, tracks_added, import_duplicates, already_exist = \
+            spotify_imported_playlist_ids, spotify_tracks_imported, spotify_import_duplicates, spotify_already_exist = \
                 spoty.spotify.import_playlists_from_tags_list(
-                    all_tags, dest_option_grouping_pattern, dest_option_overwrite, dest_option_append, not dest_option_duplicates)
-
-            mess = f'Imported {len(tracks_added)} tracks in {len(playlist_ids)} Spotify playlists.'
-            if len(import_duplicates) > 0:
-                mess += f' {len(import_duplicates)} duplicates in sources skipped.'
-            if len(already_exist) > 0:
-                mess += f' {len(already_exist)} tracks already exist in playlist and skipped.'
-            click.echo(mess)
+                    all_tags, dest_option_grouping_pattern, dest_option_overwrite, dest_option_append,
+                    not dest_option_duplicates, yes_all)
 
     # print summery
 
@@ -358,6 +355,13 @@ Examples of using:
             print_total = True
     if print_total:
         click.echo(f'Total tracks found: {len(all_tags)}')
+
+    mess = f'{len(spotify_tracks_imported)} tracks imported in {len(spotify_imported_playlist_ids)} Spotify playlists.'
+    if len(spotify_import_duplicates) > 0:
+        mess += f' {len(spotify_import_duplicates)} duplicates in sources skipped.'
+    if len(spotify_already_exist) > 0:
+        mess += f' {len(spotify_already_exist)} tracks already exist in playlists and skipped.'
+    click.echo(mess)
 
 
 def to_list(some_tuple):

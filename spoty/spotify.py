@@ -220,12 +220,13 @@ def delete_playlist(playlist_id, confirm=False):
 
     if not confirm:
         if not click.confirm(f'Do you want to delete playlist {playlist["id"]} ("{playlist["name"]}")'):
+            click.echo("\nCanceled")
             return False
+        click.echo() # for new line
 
     sp.current_user_unfollow_playlist(playlist_id)
 
     return True
-
 
 
 def get_list_of_playlists(only_owned_by_user=True):
@@ -424,7 +425,25 @@ def add_tracks_to_playlist(playlist_id, track_ids, allow_duplicates=False):
     return tracks_added, import_duplicates, already_exist
 
 
-def remove_tracks_from_paylist(playlist_id, track_ids):
+def remove_all_tracks_from_playlist(playlist_id, confirm=False):
+    playlist_id = parse_playlist_id(playlist_id)
+    tracks = get_tracks_of_playlist(playlist_id)
+
+    if len(tracks) == 0:
+        return False
+
+    if not confirm:
+        if not click.confirm(f'Do you want to remove all tracks from playlist {playlist_id}?'):
+            click.echo("\nCanceled")
+            return False
+        click.echo() # for new line
+
+    ids = get_track_ids(tracks)
+    remove_tracks_from_playlist(playlist_id, ids)
+    return True
+
+
+def remove_tracks_from_playlist(playlist_id, track_ids):
     playlist_id = parse_playlist_id(playlist_id)
 
     log.info(f'Removing {len(track_ids)} tracks from playlist {playlist_id}')
@@ -450,7 +469,7 @@ def remove_liked_tracks_in_playlist(playlist_id):
     tracks = get_tracks_of_playlist(playlist_id)
     ids = get_track_ids(tracks)
     liked_track_ids = get_liked_track_ids(ids)
-    remove_tracks_from_paylist(playlist_id, liked_track_ids)
+    remove_tracks_from_playlist(playlist_id, liked_track_ids)
 
     log.success(f'{len(liked_track_ids)} liked tracks removed from playlist {playlist_id}.')
 
@@ -489,8 +508,10 @@ def export_playlist_to_file(playlist_id, path, overwrite=False, avoid_filenames=
     if os.path.isfile(file_name) and not overwrite:
         time.sleep(0.2)  # waiting progressbar updating
         if not click.confirm(f'\nFile "{file_name}" already exist. Overwrite?'):
+            click.echo("\nCanceled")
             log.info(f'Canceled by user (file already exist)')
             return None
+        click.echo()  # for new line
 
     tracks = playlist["tracks"]["items"]
 
@@ -502,16 +523,19 @@ def export_playlist_to_file(playlist_id, path, overwrite=False, avoid_filenames=
     return file_name
 
 
-def import_playlists_from_tags_list(tags_list, grouping_pattern, overwrite_if_exist=False, append_if_exist=False, allow_duplicates=False):
+def import_playlists_from_tags_list(tags_list, grouping_pattern, overwrite_if_exist=False, append_if_exist=False,
+                                    allow_duplicates=False, confirm=False):
     all_playlist_ids = []
     all_tracks_added = []
     all_import_duplicates = []
-    all_already_exist= []
+    all_already_exist = []
+    all_not_found = []
     grouped_tags = spoty.utils.group_tags_by_pattern(tags_list, grouping_pattern)
 
     for group_name, g_tags_list in grouped_tags.items():
         playlist_id, tracks_added, import_duplicates, already_exist \
-            = import_playlist_from_tags_list(group_name, g_tags_list, overwrite_if_exist, append_if_exist, allow_duplicates)
+            = import_playlist_from_tags_list(group_name, g_tags_list, overwrite_if_exist, append_if_exist,
+                                             allow_duplicates, confirm)
 
         all_playlist_ids.append(playlist_id)
         all_tracks_added.extend(tracks_added)
@@ -521,36 +545,53 @@ def import_playlists_from_tags_list(tags_list, grouping_pattern, overwrite_if_ex
     return all_playlist_ids, all_tracks_added, all_import_duplicates, all_already_exist
 
 
-def import_playlist_from_tags_list(playlist_name, tags_list, overwrite_if_exist, append_if_exist=False, allow_duplicates=False):
+def import_playlist_from_tags_list(playlist_name, tags_list, overwrite_if_exist=False, append_if_exist=False,
+                                   allow_duplicates=False, confirm=False):
     log.info(f'Importing playlist "{playlist_name}"')
     tracks_added = []
 
     playlist_id = None
 
-    overwrite_playlist_id=None
-
     if overwrite_if_exist or append_if_exist:
         found_playlists = find_playlist_by_name(playlist_name)
 
         if len(found_playlists) > 0:
+            if append_if_exist:
+                if len(found_playlists) > 1:
+                    if confirm:
+                        click.echo(f'\n{len(found_playlists)} playlists with name "{playlist_name}" found in Spotify library. Choosing the first one and appending it.')
+                    else:
+                        if not click.confirm(
+                            f'\n{len(found_playlists)} playlists with name "{playlist_name}" found in Spotify library. Choose the first one and append it?'):
+                            click.echo("\nCanceled")
+                            log.info(f'Canceled by user (more than one playlists found with name "{playlist_name})"')
+                            return [], [], [], []
+                        click.echo() # for new line
             if overwrite_if_exist:
                 if len(found_playlists) > 1:
-                    if not click.confirm(
+                    if confirm:
+                        click.echo(                            f'\n{len(found_playlists)} playlists with name "{playlist_name}" found in Spotify library. Choosing the first one and overwriting it.')
+                    else:
+                        if not click.confirm(
                             f'\n{len(found_playlists)} playlists with name "{playlist_name}" found in Spotify library. Choose the first one and overwrite it?'):
-                        log.info(f'Canceled by user (more than one playlists found with name "{playlist_name})"')
-                        click.echo("\nCanceled")
-                        return [],[],[],[]
+                            click.echo("\nCanceled")
+                            log.info(f'Canceled by user (more than one playlists found with name "{playlist_name})"')
+                            return [], [], [], []
+                        click.echo() # for new line
                 else:
-                    if not click.confirm(
+                    if confirm:
+                        click.echo(f'\nPlaylist "{playlist_name}" exist in Spotify library. Overwriting it.')
+                    else:
+                        if not click.confirm(
                             f'\nPlaylist "{playlist_name}" exist in Spotify library. Overwrite it?'):
-                        log.info(f'Canceled by user (playlist found with name "{playlist_name})"')
-                        click.echo("\nCanceled")
-                        return [], [], [], []
+                            click.echo("\nCanceled")
+                            log.info(f'Canceled by user (playlist found with name "{playlist_name})"')
+                            return [], [], [], []
+                        click.echo() # for new line
 
-                overwrite_playlist_id = found_playlists[0]['id']
+                remove_all_tracks_from_playlist(found_playlists[0]['id'], True)
 
-            if append_if_exist:
-                playlist_id = found_playlists[0]['id']
+            playlist_id = found_playlists[0]['id']
 
     if playlist_id is None:
         playlist_id = create_playlist(playlist_name)
@@ -563,9 +604,6 @@ def import_playlist_from_tags_list(playlist_name, tags_list, overwrite_if_exist,
     if len(found_ids) > 0:
         tracks_added, import_duplicates, already_exist = add_tracks_to_playlist(playlist_id, found_ids,
                                                                                 allow_duplicates)
-    if overwrite_playlist_id is not None:
-        delete_playlist(overwrite_playlist_id, True)
-
     log.success(f'Playlist imported (new tracks: "{len(tracks_added)}")  id: {playlist_id} name: "{playlist_name}"')
 
     return playlist_id, tracks_added, import_duplicates, already_exist

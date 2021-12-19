@@ -47,7 +47,9 @@ def create_csvs(tags_list, export_path, grouping_pattern, overwrite):
             else:
                 if os.path.isfile(csv_file_name) and not overwrite:
                     if not click.confirm(f'File "{csv_file_name}" already exist. Overwrite?'):
+                        click.echo("\nCanceled")
                         continue
+                    click.echo("")  # for new line
 
                 write_tags_to_csv(tags_l, csv_file_name, False)
 
@@ -191,8 +193,10 @@ def create_csv_from_audio_files(csv_file_name, audio_file_names, overwrite=False
     if os.path.isfile(csv_file_name) and not overwrite:
         time.sleep(0.2)  # waiting progressbar updating
         if not click.confirm(f'\nFile "{csv_file_name}" already exist. Overwrite?'):
+            click.echo("\nCanceled")
             log.info(f'Canceled by user (file already exist)')
             return None
+        click.echo("")  # for new line
 
     tags_list = spoty.audio_files.read_audio_files_tags(audio_file_names)
 
