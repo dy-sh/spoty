@@ -29,6 +29,10 @@ def find_audio_files_in_paths(paths, recursive=True, filter_have_tags=None, filt
 
 def find_audio_files_in_path(path, recursive=True, filter_have_tags=None, filter_have_no_tags=None):
     path = os.path.abspath(path)
+
+    if not spoty.utils.is_valid_path(path):
+        raise Exception("Path is not valid: "+path)
+
     file_names = []
 
     if recursive:

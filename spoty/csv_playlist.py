@@ -58,7 +58,22 @@ def create_csvs(tags, export_path, csvs_naming_pattern, overwrite):
     return exported_csv_file_names, exported_csv_names, exported_tags
 
 
+def find_csvs_in_paths(paths, recursive=True):
+    all_csvs = []
+
+    for path in paths:
+        file_names = find_csvs_in_path(path, recursive)
+        all_csvs.extend(file_names)
+
+    return all_csvs
+
+
 def find_csvs_in_path(path, recursive=True):
+    path = os.path.abspath(path)
+
+    if not spoty.utils.is_valid_path(path):
+        raise Exception("Path is not valid: "+path)
+
     full_file_names = []
     if recursive:
         full_file_names = [os.path.join(dp, f) for dp, dn, filenames in os.walk(path) for f in filenames if
@@ -107,16 +122,17 @@ def write_tags_to_csv(tags_list, csv_file_name, append=False):
             writer.writerow(values)
 
 
-def read_tags_from_csvs(csv_file_names, add_spoty_tags=True, filter_have_tags=None, filter_have_no_tags=None):
+def read_tags_from_csvs(csv_file_names, filter_have_tags=None, filter_have_no_tags=None, add_spoty_tags=True):
     all_tags_lists = []
     for csv_file_name in csv_file_names:
-        tags_list = read_tags_from_csv(csv_file_names, add_spoty_tags, filter_have_tags, filter_have_no_tags)
+        tags_list = read_tags_from_csv(csv_file_name, filter_have_tags, filter_have_no_tags, add_spoty_tags)
         all_tags_lists.extend(tags_list)
 
     return all_tags_lists
 
 
-def read_tags_from_csv(csv_file_name, add_spoty_tags=True, filter_have_tags=None, filter_have_no_tags=None):
+def read_tags_from_csv(csv_file_name, filter_have_tags=None, filter_have_no_tags=None, add_spoty_tags=True):
+    csv_file_name=os.path.abspath(csv_file_name)
     tags_list = []
 
     with open(csv_file_name, newline='', encoding='utf-8-sig') as file:
@@ -130,6 +146,7 @@ def read_tags_from_csv(csv_file_name, add_spoty_tags=True, filter_have_tags=None
 
         for i, row in enumerate(reader):
             # read header
+
             if (i == 0):
                 header = row
                 if len(header) == 0:
@@ -137,24 +154,31 @@ def read_tags_from_csv(csv_file_name, add_spoty_tags=True, filter_have_tags=None
                 continue
 
             # read tags
-            if len(row) == 0:
+
+            if len(row) == 0:  # skip empty lines
                 continue
 
             tags = {}
-
-            if (add_spoty_tags):
-                tags['SPOTY_PLAYLIST_NAME'] = csv_file_name
-                tags['SPOTY_PLAYLIST_INDEX'] = i - 1
 
             for h, key in enumerate(header):
                 if len(row[h]) > 0:
                     tags[key] = row[h]
 
-            if not spoty.utils.check_all_tags_exist(tags, filter_have_tags):
-                continue
+            if len(filter_have_tags) > 0:
+                if not spoty.utils.check_all_tags_exist(tags, filter_have_tags):
+                    continue
 
-            if spoty.utils.check_all_tags_exist(tags, filter_have_no_tags):
-                continue
+            if len(filter_have_no_tags) > 0:
+                if spoty.utils.check_all_tags_exist(tags, filter_have_no_tags):
+                    continue
+
+            if (add_spoty_tags):
+                playlist_name = os.path.basename(csv_file_name)
+                if playlist_name.upper().endswith('.CSV'):
+                    playlist_name = playlist_name[:-4]
+                tags['SPOTY_PLAYLIST_SOURCE'] = 'CSV'
+                tags['SPOTY_PLAYLIST_NAME'] = playlist_name
+                tags['SPOTY_PLAYLIST_INDEX'] = i - 1
 
             tags_list.append(tags)
 
@@ -182,7 +206,7 @@ def find_duplicates_in_csvs(path, compare_tags, recursive=True, filter_names=Non
 
     file_names = find_csvs_in_path(path, recursive, filter_names)
     for file_name in file_names:
-        tags = read_tags_from_csv(file_name, True)
+        tags = read_tags_from_csv(file_name)
         tags_list.extend(tags)
 
     duplicates, skipped_tags = spoty.utils.find_duplicates_in_tags(tags_list, compare_tags)

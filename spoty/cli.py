@@ -20,7 +20,7 @@ cli.add_command(list_command.list)
 
 if __name__ == '__main__':
     # cli()
-    # cli(['list','-c', '--ssp', '0yRgrCdkntJG83mFbFvrBP', '--ssp',
+    # cli(['list','--ssp', '0yRgrCdkntJG83mFbFvrBP', '--ssp',
     #      'https://open.spotify.com/playlist/7E6SNhIGjSqEmzHISqnMrJ'])
 
     # cli(['list',
@@ -36,14 +36,20 @@ if __name__ == '__main__':
     #      r'C:\Users\Derwish\Downloads\music\Pop Nutral',
     #      r'C:\Users\Derwish\Downloads\music\Techno Nutral'])
 
-    cli(['list',
-         '-p',
-         r'C:\Users\Derwish\Downloads\music\Pop Nutral',
-         'https://open.spotify.com/playlist/0yRgrCdkntJG83mFbFvrBP',
-         r'C:\Users\Derwish\Downloads\music\Techno Nutral'])
+    # cli(['list',
+    #      '-p',
+    #      r'C:\Users\Derwish\Downloads\music\Pop Nutral',
+    #      '--slp','PLAYLISTS',
+    #      'https://open.spotify.com/playlist/0yRgrCdkntJG83mFbFvrBP',
+    #      r'C:\Users\Derwish\Downloads\music\Techno Nutral'])
 
-    # cli(['list','-p', '-c',
-    #      '--ep','./export',
+    cli(['list',
+         '--ssu',
+         '--fpn', '^ BES',
+        ])
+
+    # cli(['list','-p',
+    #      '--ssu','me',
     #      '--ssu','me',
     #      # '--ssu','me',
     #      # '--ssu',

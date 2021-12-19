@@ -35,6 +35,7 @@ def get_tracks_of_spotify_user(user_ids, filter_playlists_names, filter_have_tag
     all_playlists = []
 
     for user_id in user_ids:
+        user_id = parse_user_id(user_id)
         if user_id == 'me':
             playlists = get_list_of_playlists()
             click.echo(f'You have {len(playlists)} playlists in spotify library')
@@ -61,7 +62,7 @@ def get_tracks_of_spotify_user(user_ids, filter_playlists_names, filter_have_tag
         all_tracks.extend(tracks)
         all_tags.extend(tags)
 
-    return all_tracks, all_tags
+    return all_tracks, all_tags, all_playlists
 
 
 def get_tracks_from_playlists(playlists, filter_have_tags, filter_have_no_tags):
@@ -677,20 +678,27 @@ def get_track_ids(tracks):
 def check_is_playlist_URI(uri):
     return uri.startswith("https://open.spotify.com/playlist/")
 
+def check_is_user_URI(uri):
+    return uri.startswith("https://open.spotify.com/user/")
 
-def parse_playlist_id(id_or_url):
-    if (id_or_url.startswith("https://open.spotify.com/playlist/")):
-        id_or_url = id_or_url.split('/playlist/')[1]
-        id_or_url = id_or_url.split('?')[0]
-    return id_or_url
+def parse_playlist_id(id_or_uri):
+    if (id_or_uri.startswith("https://open.spotify.com/playlist/")):
+        id_or_uri = id_or_uri.split('/playlist/')[1]
+        id_or_uri = id_or_uri.split('?')[0]
+    return id_or_uri
 
 
-def parse_track_id(id_or_url):
-    if (id_or_url.startswith("https://open.spotify.com/track/")):
-        id_or_url = id_or_url.split('/track/')[1]
-        id_or_url = id_or_url.split('?')[0]
-    return id_or_url
+def parse_track_id(id_or_uri):
+    if (id_or_uri.startswith("https://open.spotify.com/track/")):
+        id_or_uri = id_or_uri.split('/track/')[1]
+        id_or_uri = id_or_uri.split('?')[0]
+    return id_or_uri
 
+def parse_user_id(id_or_uri):
+    if (id_or_uri.startswith("https://open.spotify.com/user/")):
+        id_or_uri = id_or_uri.split('/user/')[1]
+        id_or_uri = id_or_uri.split('?')[0]
+    return id_or_uri
 
 def get_playlist_file_name(playlist_name, playlist_id, path, avoid_filenames):
     playlist_name = spoty.utils.slugify_file_pah(playlist_name)

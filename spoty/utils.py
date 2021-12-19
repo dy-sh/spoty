@@ -212,14 +212,36 @@ def print_tags_list(tags_list, tags_to_print):
             f'--------------------- TRACK {i + 1} / {len(tags_list)} ---------------------')
         print_tags(tags, tags_to_print)
 
-    if len(tags_list) > 0:
-        print("-------------------------------------------------------------------------------------")
+
+def check_tag_has_allies(tag):
+    for allies in tag_allies:
+        if tag in allies:
+            return True
+    return False
+
+
+def get_tag_allies(tag, include_source_tag=True):
+    res = []
+    for allies in tag_allies:
+        if tag in allies:
+            res = allies.copy()
+
+    if tag in res:
+        res.remove(tag)
+
+    if include_source_tag:
+        res.append(tag)
+    return res
 
 
 def print_tags(tags, tags_to_print):
     for tag in tags_to_print:
-        if tag.upper() in tags:
-            print(f'{tag}: {tags[tag]}')
+        allies = get_tag_allies(tag,True)
+        for a in allies:
+            if a.upper() in tags:
+                print(f'{a}: {tags[a]}')
+
+
 
 
 def filter_tags_list_have_tags(tags_list, filter_tags):
