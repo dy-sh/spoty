@@ -231,7 +231,8 @@ Examples of using:
     # check input parameters
 
     if dest_option_append and dest_option_overwrite:
-        click.echo(f'Simultaneous use of "--dest-option-append" and "--dest-option-overwrite" is not possible', err=True)
+        click.echo(f'Simultaneous use of "--dest-option-append" and "--dest-option-overwrite" is not possible',
+                   err=True)
         exit()
 
     # check sources argument
@@ -303,7 +304,8 @@ Examples of using:
             dest_option_path = os.path.join(dest_option_path, date_time_str)
 
         exported_playlists_file_names, exported_playlists_names, exported_tracks = \
-            spoty.csv_playlist.create_csvs(all_tags, dest_option_path, dest_option_grouping_pattern, dest_option_overwrite)
+            spoty.csv_playlist.create_csvs(all_tags, dest_option_path, dest_option_grouping_pattern,
+                                           dest_option_overwrite)
 
         mess = f'\n{len(exported_tracks)} tracks exported to {len(exported_playlists_file_names)} playlists in path: "{dest_option_path}"'
         click.echo(mess)
@@ -318,15 +320,15 @@ Examples of using:
         cont = True
         if not yes_all:
             if click.confirm(f'Do you want to continue?'):
-                click.echo("") # for new line
+                click.echo("")  # for new line
             else:
                 click.echo("\nCanceled.")
                 cont = False
         if cont:
-            spotify_imported_playlist_ids, spotify_tracks_imported, spotify_import_duplicates, spotify_already_exist = \
-                spoty.spotify.import_playlists_from_tags_list(
-                    all_tags, dest_option_grouping_pattern, dest_option_overwrite, dest_option_append,
-                    not dest_option_duplicates, yes_all)
+            spotify_imported_playlist_ids, spotify_tracks_imported, spotify_import_duplicates, spotify_already_exist, \
+            spotify_not_found = spoty.spotify.import_playlists_from_tags_list(
+                all_tags, dest_option_grouping_pattern, dest_option_overwrite, dest_option_append,
+                not dest_option_duplicates, yes_all)
 
     # print summery
 
@@ -361,6 +363,8 @@ Examples of using:
         mess += f' {len(spotify_import_duplicates)} duplicates in sources skipped.'
     if len(spotify_already_exist) > 0:
         mess += f' {len(spotify_already_exist)} tracks already exist in playlists and skipped.'
+    if len(spotify_not_found) > 0:
+        mess += f' {len(spotify_not_found)} tracks not found by tags.'
     click.echo(mess)
 
 

@@ -151,29 +151,30 @@ def find_track_id_by_artist_and_title(artist, title):
     return track['id'] if track is not None else None
 
 
-def find_tracks_from_tags(tag_tracks):
+def find_tracks_from_tags(tags_list):
     found_ids = []
     not_found_tracks = []
-    for tag_track in tag_tracks:
-        if "SPOTIFY_TRACK_ID" in tag_track:
-            found_ids.append(tag_track['SPOTIFY_TRACK_ID'])
+
+    for tags in tags_list:
+        if "SPOTIFY_TRACK_ID" in tags:
+            found_ids.append(tags['SPOTIFY_TRACK_ID'])
             continue
 
-        if "ISRC" in tag_track:
-            id = find_track_id_by_isrc(tag_track['ISRC'])
+        if "ISRC" in tags:
+            id = find_track_id_by_isrc(tags['ISRC'])
             if id is not None:
                 found_ids.append(id)
-            continue
+                continue
 
-        if "TITLE" in tag_track and "ARTIST" in tag_track:
-            id = find_track_id_by_artist_and_title(tag_track['ARTIST'], tag_track['TITLE'])
+        if "TITLE" in tags and "ARTIST" in tags:
+            id = find_track_id_by_artist_and_title(tags['ARTIST'], tags['TITLE'])
             if id is not None:
                 found_ids.append(id)
-            continue
+                continue
 
-        not_found_tracks += tag_track
+        not_found_tracks.append(tags)
 
-    return found_ids
+    return found_ids, not_found_tracks
 
 
 def get_playlist(playlist_id):
@@ -533,7 +534,7 @@ def import_playlists_from_tags_list(tags_list, grouping_pattern, overwrite_if_ex
     grouped_tags = spoty.utils.group_tags_by_pattern(tags_list, grouping_pattern)
 
     for group_name, g_tags_list in grouped_tags.items():
-        playlist_id, tracks_added, import_duplicates, already_exist \
+        playlist_id, tracks_added, import_duplicates, already_exist, not_found \
             = import_playlist_from_tags_list(group_name, g_tags_list, overwrite_if_exist, append_if_exist,
                                              allow_duplicates, confirm)
 
@@ -541,8 +542,9 @@ def import_playlists_from_tags_list(tags_list, grouping_pattern, overwrite_if_ex
         all_tracks_added.extend(tracks_added)
         all_import_duplicates.extend(import_duplicates)
         all_already_exist.extend(already_exist)
+        all_not_found.extend(not_found)
 
-    return all_playlist_ids, all_tracks_added, all_import_duplicates, all_already_exist
+    return all_playlist_ids, all_tracks_added, all_import_duplicates, all_already_exist, all_not_found
 
 
 def import_playlist_from_tags_list(playlist_name, tags_list, overwrite_if_exist=False, append_if_exist=False,
@@ -596,7 +598,7 @@ def import_playlist_from_tags_list(playlist_name, tags_list, overwrite_if_exist=
     if playlist_id is None:
         playlist_id = create_playlist(playlist_name)
 
-    found_ids = find_tracks_from_tags(tags_list)
+    found_ids, tracks_not_found = find_tracks_from_tags(tags_list)
 
     import_duplicates = []
     already_exist = []
@@ -606,7 +608,7 @@ def import_playlist_from_tags_list(playlist_name, tags_list, overwrite_if_exist=
                                                                                 allow_duplicates)
     log.success(f'Playlist imported (new tracks: "{len(tracks_added)}")  id: {playlist_id} name: "{playlist_name}"')
 
-    return playlist_id, tracks_added, import_duplicates, already_exist
+    return playlist_id, tracks_added, import_duplicates, already_exist, tracks_not_found
 
 
 def like_all_tracks_in_playlist(playlist_id):

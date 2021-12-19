@@ -32,9 +32,10 @@ if __name__ == '__main__':
          # 'https://open.spotify.com/playlist/7E6SNhIGjSqEmzHISqnMrJ',
          # r'.\music\Pop Nutral',
          # r'.\music\Techno Nutral',
-         r'.\PLAYLISTS',
+         # r'.\PLAYLISTS',
+         r'.\music',
          # '--fpn', '^BES',
-         '-Sady'
+         '-S'
          ])
 
 
