@@ -201,9 +201,18 @@ Examples of using:
     spoty transfer --ssu -P --dgp "%SPOTY_PLAYLIST_SOURCE% %SPOTY_PLAYLIST_ID% - %SPOTY_PLAYLIST_NAME%"
 
 \b
-    Collect playlists from local audio files and import it to Spotify library:
+    Collect playlists from local audio files and import them to Spotify library:
     spoty transfer ".\music" -S
 
+\b
+    Collect playlists from local audio files, save them to csv files, then read csvs from disk and import tracks to Spotify library:
+    spoty transfer --sa ".\music" --dop ".\EXPORT" -C
+    spoty transfer --sc ".\EXPORT" -S
+
+\b
+    Same as above, but use default path:
+    spoty transfer ".\music" -C
+    spoty transfer ".\PLAYLISTS" -S
 
     """
 
@@ -295,6 +304,7 @@ Examples of using:
     if dest_print:
         spoty.utils.print_tags_list(all_tags, dest_option_print_pattern, dest_option_grouping_pattern)
 
+    import_to_csv = False
     if dest_csv:
         dest_option_path = os.path.abspath(dest_option_path)
 
@@ -307,9 +317,9 @@ Examples of using:
             spoty.csv_playlist.create_csvs(all_tags, dest_option_path, dest_option_grouping_pattern,
                                            dest_option_overwrite)
 
-        mess = f'\n{len(exported_tracks)} tracks exported to {len(exported_playlists_file_names)} playlists in path: "{dest_option_path}"'
-        click.echo(mess)
+        import_to_csv = True
 
+    import_to_spotify = False
     if dest_spotify:
         click.echo('Next playlists will be imported to Spotify library:')
         grouped_tags = spoty.utils.group_tags_by_pattern(all_tags, dest_option_grouping_pattern)
@@ -317,14 +327,14 @@ Examples of using:
             click.echo(group_name)
         click.echo(f'Total {len(all_tags)} tracks in {len(grouped_tags)} playlists.')
 
-        cont = True
+        import_to_spotify = True
         if not yes_all:
             if click.confirm(f'Do you want to continue?'):
                 click.echo("")  # for new line
             else:
                 click.echo("\nCanceled.")
-                cont = False
-        if cont:
+                import_to_spotify = False
+        if import_to_spotify:
             spotify_imported_playlist_ids, spotify_tracks_imported, spotify_import_duplicates, spotify_already_exist, \
             spotify_not_found = spoty.spotify.import_playlists_from_tags_list(
                 all_tags, dest_option_grouping_pattern, dest_option_overwrite, dest_option_append,
@@ -347,8 +357,11 @@ Examples of using:
                 f'{len(spotify_user_tracks)} tracks found in {len(spotify_user_playlists)} playlists in libraries of {len(source_spotify_user)} Spotify users.')
         if len(spotify_user_tracks) != len(all_tags):
             print_total = True
-    if len(audio_file_names) > 0:
-        click.echo(f'{len(audio_file_names)} audio files found in {len(source_audio)} local paths.')
+    if len(source_audio) > 0:
+        if len(source_audio) == 1:
+            click.echo(f'{len(audio_file_names)} audio files found in local path.')
+        else:
+            click.echo(f'{len(audio_file_names)} audio files found in {len(source_audio)} local paths.')
         if len(audio_file_names) != len(all_tags):
             print_total = True
     if len(csv_tags_list) > 0:
@@ -358,14 +371,19 @@ Examples of using:
     if print_total:
         click.echo(f'Total tracks found: {len(all_tags)}')
 
-    mess = f'{len(spotify_tracks_imported)} tracks imported in {len(spotify_imported_playlist_ids)} Spotify playlists.'
-    if len(spotify_import_duplicates) > 0:
-        mess += f' {len(spotify_import_duplicates)} duplicates in sources skipped.'
-    if len(spotify_already_exist) > 0:
-        mess += f' {len(spotify_already_exist)} tracks already exist in playlists and skipped.'
-    if len(spotify_not_found) > 0:
-        mess += f' {len(spotify_not_found)} tracks not found by tags.'
-    click.echo(mess)
+    if import_to_csv:
+        mess = f'{len(exported_tracks)} tracks exported to {len(exported_playlists_file_names)} playlists in path: "{dest_option_path}"'
+        click.echo(mess)
+
+    if import_to_spotify:
+        mess = f'{len(spotify_tracks_imported)} tracks imported in {len(spotify_imported_playlist_ids)} Spotify playlists.'
+        if len(spotify_import_duplicates) > 0:
+            mess += f' {len(spotify_import_duplicates)} duplicates in sources skipped.'
+        if len(spotify_already_exist) > 0:
+            mess += f' {len(spotify_already_exist)} tracks already exist in playlists and skipped.'
+        if len(spotify_not_found) > 0:
+            mess += f' {len(spotify_not_found)} tracks not found by tags.'
+        click.echo(mess)
 
 
 def to_list(some_tuple):
