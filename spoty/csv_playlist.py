@@ -107,6 +107,12 @@ def find_csvs_in_path(path, recursive=True):
 
 
 def write_tags_to_csv(tags_list, csv_file_name, append=False):
+    if append:
+        if os.path.isfile(csv_file_name):
+            old_tags=read_tags_from_csv(csv_file_name)
+            old_tags.extend(tags_list)
+            tags_list=old_tags
+
     # collect all keys
     keys = []
     for tags in tags_list:
@@ -122,33 +128,22 @@ def write_tags_to_csv(tags_list, csv_file_name, append=False):
             if not key in tags:
                 tags[key] = ""
 
+
+    rows = []
+    rows.append(keys)  # header
+    for tags in tags_list:
+        row = [tags[key] for key in keys]
+        rows.append(row)
+
     os.makedirs(os.path.dirname(csv_file_name), exist_ok=True)
-
-    method = 'w'
-    if append:
-        if os.path.isfile(csv_file_name):
-            with open(csv_file_name, newline='', encoding='utf-8-sig') as file:
-                reader = csv.reader(file)
-                if sum(1 for row in reader) != 0:  # file is not empty
-                    method = 'a'
-
-    with open(csv_file_name, method, encoding='utf-8-sig', newline='') as file:
+    with open(csv_file_name, 'w', encoding='utf-8-sig', newline='') as file:
         writer = csv.writer(file)
+        writer.writerows(rows)
 
-        if method == 'w':  # write header to new file
-            writer.writerow(keys)
 
-        for tags in tags_list:
-            values = [tags[key] for key in keys]
-            writer.writerow(values)
 
 
 def read_tags_from_csvs(csv_file_names, filter_have_tags=None, filter_have_no_tags=None, add_spoty_tags=True):
-    if filter_have_tags == None:
-        filter_have_tags = []
-    if filter_have_no_tags == None:
-        filter_have_no_tags = []
-
     all_tags_lists = []
     for csv_file_name in csv_file_names:
         tags_list = read_tags_from_csv(csv_file_name, filter_have_tags, filter_have_no_tags, add_spoty_tags)

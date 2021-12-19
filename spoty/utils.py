@@ -102,56 +102,56 @@ def filter_duplicates(src_arr, dest_arr):
 
 def remove_duplicates(arr):
     good = []
-    dup = []
+    duplicates = []
     for item in arr:
         if item in good:
-            dup.append(item)
+            duplicates.append(item)
         else:
             good.append(item)
-    return good, dup
+    return good, duplicates
 
 
 def remove_exist(exist_arr, new_arr):
-    good = []
-    dup = []
+    new = []
+    exist = []
     for item in new_arr:
         if item in exist_arr:
-            dup.append(item)
+            exist.append(item)
         else:
-            good.append(item)
-    return good, dup
+            new.append(item)
+    return new, exist
 
 
 def remove_tags_duplicates(tags_list, tags_to_compare, allow_missing=False):
     good = []
-    dup = []
+    duplicates = []
     for new_tags in tags_list:
         found = False
         for exist_tags in good:
             if compare_tags(exist_tags, new_tags, tags_to_compare, allow_missing):
-                dup.append(new_tags)
+                duplicates.append(new_tags)
                 found = True
                 break
         if not found:
             good.append(new_tags)
 
-    return good, dup
+    return good, duplicates
 
 
 def remove_exist_tags(exist_tags_list, new_tags_list, tags_to_compare, allow_missing=False):
-    good = []
-    dup = []
+    new = []
+    exist = []
     for new_tags in new_tags_list:
         found = False
         for exist_tags in exist_tags_list:
             if compare_tags(exist_tags, new_tags, tags_to_compare, allow_missing):
-                dup.append(new_tags)
+                exist.append(new_tags)
                 found = True
                 break
         if not found:
-            good.append(new_tags)
+            new.append(new_tags)
 
-    return good, dup
+    return new, exist
 
 
 def compare_tags(src_tags, dest_tags, tags_to_compare, allow_missing=False):
