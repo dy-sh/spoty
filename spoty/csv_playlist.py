@@ -107,7 +107,16 @@ def write_tags_to_csv(tags_list, csv_file_name, append=False):
             writer.writerow(values)
 
 
-def read_tags_from_csv(csv_file_name, add_spoty_tags=False):
+def read_tags_from_csvs(csv_file_names, add_spoty_tags=True, filter_have_tags=None, filter_have_no_tags=None):
+    all_tags_lists = []
+    for csv_file_name in csv_file_names:
+        tags_list = read_tags_from_csv(csv_file_names, add_spoty_tags, filter_have_tags, filter_have_no_tags)
+        all_tags_lists.extend(tags_list)
+
+    return all_tags_lists
+
+
+def read_tags_from_csv(csv_file_name, add_spoty_tags=True, filter_have_tags=None, filter_have_no_tags=None):
     tags_list = []
 
     with open(csv_file_name, newline='', encoding='utf-8-sig') as file:
@@ -141,6 +150,12 @@ def read_tags_from_csv(csv_file_name, add_spoty_tags=False):
                 if len(row[h]) > 0:
                     tags[key] = row[h]
 
+            if not spoty.utils.check_all_tags_exist(tags, filter_have_tags):
+                continue
+
+            if spoty.utils.check_all_tags_exist(tags, filter_have_no_tags):
+                continue
+
             tags_list.append(tags)
 
     return tags_list
@@ -165,9 +180,9 @@ def create_csv_from_audio_files(csv_file_name, audio_file_names, overwrite=False
 def find_duplicates_in_csvs(path, compare_tags, recursive=True, filter_names=None):
     tags_list = []
 
-    file_names = spoty.csv_playlist.find_csvs_in_path(path, recursive, filter_names)
+    file_names = find_csvs_in_path(path, recursive, filter_names)
     for file_name in file_names:
-        tags = spoty.csv_playlist.read_tags_from_csv(file_name, True)
+        tags = read_tags_from_csv(file_name, True)
         tags_list.extend(tags)
 
     duplicates, skipped_tags = spoty.utils.find_duplicates_in_tags(tags_list, compare_tags)

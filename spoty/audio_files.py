@@ -49,20 +49,20 @@ def find_audio_files_in_path(path, recursive=True, filter_have_tags=None, filter
     return file_names
 
 
-def filter_audio_files_which_have_all_tags(file_names, tags):
+def filter_audio_files_which_have_all_tags(file_names, tags_to_check):
     filtered = []
     for file_name in file_names:
         file_tags = read_audio_file_tags(file_name)
-        if spoty.utils.check_all_tags_exist(file_tags, tags):
+        if spoty.utils.check_all_tags_exist(file_tags, tags_to_check):
             filtered.append(file_name)
     return filtered
 
 
-def filter_audio_files_which_not_have_any_of_tags(file_names, tags):
+def filter_audio_files_which_not_have_any_of_tags(file_names, tags_to_check):
     filtered = []
     for file_name in file_names:
         file_tags = read_audio_file_tags(file_name)
-        if not spoty.utils.check_all_tags_exist(file_tags, tags):
+        if not spoty.utils.check_all_tags_exist(file_tags, tags_to_check):
             filtered.append(file_name)
     return filtered
 

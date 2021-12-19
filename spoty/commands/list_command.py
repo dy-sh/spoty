@@ -55,8 +55,8 @@ def list(sources,
          source_local_files,
          source_local_playlists,
          filter_playlists_names,
-         filter_tracks_tags,
-         filter_tracks_no_tags,
+         filter_have_tags,
+         filter_have_no_tags,
          no_recursive,
          print_to_console,
          print_tags,
@@ -106,8 +106,8 @@ def list(sources,
     source_local_files = to_list(source_local_files)
     source_local_playlists = to_list(source_local_playlists)
     filter_playlists_names = to_list(filter_playlists_names)
-    filter_tracks_tags = to_list(filter_tracks_tags)
-    filter_tracks_no_tags = to_list(filter_tracks_no_tags)
+    filter_have_tags = to_list(filter_have_tags)
+    filter_have_no_tags = to_list(filter_have_no_tags)
     print_tags = print_tags.split(',')
 
     for source in sources:
@@ -123,21 +123,20 @@ def list(sources,
     all_tags = []
 
     tracks, tags = spoty.spotify.get_tracks_from_spotify_playlists(
-        source_spotify_playlist, filter_playlists_names, filter_tracks_tags, filter_tracks_no_tags)
+        source_spotify_playlist, filter_playlists_names, filter_have_tags, filter_have_no_tags)
     all_tags.extend(tags)
 
     tracks, tags = spoty.spotify.get_tracks_of_spotify_user(
-        source_spotify_user, filter_playlists_names, filter_tracks_tags, filter_tracks_no_tags)
+        source_spotify_user, filter_playlists_names, filter_have_tags, filter_have_no_tags)
     all_tags.extend(tags)
 
     file_names = spoty.audio_files.find_audio_files_in_paths(
-        source_local_files, not no_recursive, filter_tracks_tags, filter_tracks_no_tags)
+        source_local_files, not no_recursive, filter_have_tags, filter_have_no_tags)
     tags = spoty.audio_files.read_audio_files_tags(file_names)
     all_tags.extend(tags)
 
-    playlists = spoty.csv_playlist.find_csvs_in_path(
-        source_local_playlists, not no_recursive, filter_tracks_tags, filter_tracks_no_tags)
-    tags=spoty.csv_playlist.read_tags_from_csv()
+    csvs = spoty.csv_playlist.find_csvs_in_path(source_local_playlists, not no_recursive)
+    tags=spoty.csv_playlist.read_tags_from_csvs(filter_have_tags, filter_have_no_tags)
     all_tags.extend(tags)
 
     if print_to_console:

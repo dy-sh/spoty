@@ -8,8 +8,8 @@ import time
 import re
 
 
-def get_tracks_from_spotify_playlists(playlist_ids, filter_playlists_names, filter_tracks_tags,
-                                      filter_tracks_no_tags):
+def get_tracks_from_spotify_playlists(playlist_ids, filter_playlists_names, filter_have_tags,
+                                      filter_have_no_tags):
     spotify_tracks = []
     source_tags = []
 
@@ -23,13 +23,13 @@ def get_tracks_from_spotify_playlists(playlist_ids, filter_playlists_names, filt
         if len(filter_playlists_names) > 0:
             playlists = list(filter(lambda pl: re.findall(filter_playlists_names, pl['name']), playlists))
 
-        spotify_tracks, source_tags = get_tracks_from_playlists(playlists, filter_tracks_tags, filter_tracks_no_tags)
+        spotify_tracks, source_tags = get_tracks_from_playlists(playlists, filter_have_tags, filter_have_no_tags)
 
     return spotify_tracks, source_tags
 
 
-def get_tracks_of_spotify_user(user_ids, filter_playlists_names, filter_tracks_tags,
-                               filter_tracks_no_tags):
+def get_tracks_of_spotify_user(user_ids, filter_playlists_names, filter_have_tags,
+                               filter_have_no_tags):
     all_tracks = []
     all_tags = []
     all_playlists = []
@@ -57,14 +57,14 @@ def get_tracks_of_spotify_user(user_ids, filter_playlists_names, filter_tracks_t
 
         all_playlists.extend(playlists)
 
-        tracks, tags = get_tracks_from_playlists(playlists, filter_tracks_tags, filter_tracks_no_tags)
+        tracks, tags = get_tracks_from_playlists(playlists, filter_have_tags, filter_have_no_tags)
         all_tracks.extend(tracks)
         all_tags.extend(tags)
 
     return all_tracks, all_tags
 
 
-def get_tracks_from_playlists(playlists, filter_tracks_tags, filter_tracks_no_tags):
+def get_tracks_from_playlists(playlists, filter_have_tags, filter_have_no_tags):
     spotify_tracks = []
     source_tags = []
     requested_playlists = []
@@ -82,11 +82,11 @@ def get_tracks_from_playlists(playlists, filter_tracks_tags, filter_tracks_no_ta
             for track in tracks:
                 track['track']['SPOTY_PLAYLIST_NAME'] = playlist['name']
 
-            if len(filter_tracks_tags) > 0:
-                tracks = filter_spotify_tracks_which_have_all_tags(tracks, filter_tracks_tags)
+            if len(filter_have_tags) > 0:
+                tracks = filter_spotify_tracks_which_have_all_tags(tracks, filter_have_tags)
 
-            if len(filter_tracks_no_tags) > 0:
-                tracks = filter_spotify_tracks_which_not_have_any_of_tags(tracks, filter_tracks_no_tags)
+            if len(filter_have_no_tags) > 0:
+                tracks = filter_spotify_tracks_which_not_have_any_of_tags(tracks, filter_have_no_tags)
 
             tags = read_tags_from_spotify_tracks(tracks)
 
