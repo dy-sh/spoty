@@ -14,6 +14,7 @@ spoty_tags = \
         'SPOTY_PLAYLIST_ID',
         'SPOTY_PLAYLIST_INDEX',
         'SPOTY_FILE_NAME',
+        'SPOTY_TRACK_ID',
         'LENGTH'
 
     ]
@@ -206,11 +207,17 @@ def print_main_tags(tags):
     if 'YEAR' in tags: print(f'YEAR: {tags["YEAR"]}')
 
 
-def print_tags_list(tags_list, tags_to_print):
-    for i, tags in enumerate(tags_list):
-        print(
-            f'--------------------- TRACK {i + 1} / {len(tags_list)} ---------------------')
-        print_tags(tags, tags_to_print)
+def print_tags_list(tags_list, print_pattern, grouping_pattern):
+    if len(tags_list) == 0:
+        return
+
+    grouped_tags = group_tags_by_pattern(tags_list, grouping_pattern)
+
+    for group, tags_l in grouped_tags.items():
+        print(f'\n------------------------- {group}:')
+        for i, tags in enumerate(tags_l):
+            txt = parse_pattern(tags, print_pattern)
+            print(txt)
 
 
 def check_tag_has_allies(tag):
@@ -236,12 +243,20 @@ def get_tag_allies(tag, include_source_tag=True):
 
 def print_tags(tags, tags_to_print):
     for tag in tags_to_print:
-        allies = get_tag_allies(tag,True)
+        allies = get_tag_allies(tag, True)
         for a in allies:
             if a.upper() in tags:
                 print(f'{a}: {tags[a]}')
 
 
+def add_playlist_index_from_playlist_names(tags_list):
+    res = []
+    groups = group_tags_by_pattern(tags_list, "%SPOTY_PLAYLIST_NAME%")
+    for group, g_tags_list in groups.items():
+        for i, tags in enumerate(g_tags_list):
+            tags['SPOTY_PLAYLIST_INDEX'] = i + 1
+            res.append(tags)
+    return res
 
 
 def filter_tags_list_have_tags(tags_list, filter_tags):
@@ -271,25 +286,7 @@ def group_tags_by_pattern(tags_list, pattern, not_found_tag_name="Unknown"):
     groups = {}
 
     for tags in tags_list:
-        group_name = ""
-        tag_name = ""
-        building_tag = False
-        for c in pattern:
-            if c == "%":
-                building_tag = not building_tag
-                if not building_tag:
-                    allies = get_tag_allies(tag_name, True)
-                    for a in allies:
-                        if a in tags:
-                            tag = tags[a]
-                            group_name += str(tag)
-                    tag_name = ""
-            else:
-                if building_tag:
-                    tag_name += c
-                    tag_name = tag_name.upper()
-                else:
-                    group_name += c
+        group_name = parse_pattern(tags, pattern)
 
         if not group_name in groups:
             groups[group_name] = []
@@ -297,6 +294,30 @@ def group_tags_by_pattern(tags_list, pattern, not_found_tag_name="Unknown"):
         groups[group_name].append(tags)
 
     return groups
+
+
+def parse_pattern(tags, pattern):
+    result = ""
+    tag_name = ""
+    building_tag = False
+    for c in pattern:
+        if c == "%":
+            building_tag = not building_tag
+            if not building_tag:
+                allies = get_tag_allies(tag_name, True)
+                for a in allies:
+                    if a in tags:
+                        tag = tags[a]
+                        result += str(tag)
+                tag_name = ""
+        else:
+            if building_tag:
+                tag_name += c
+                tag_name = tag_name.upper()
+            else:
+                result += c
+
+    return result
 
 
 def reorder_tag_keys_main_first(keys):

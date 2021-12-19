@@ -3,7 +3,7 @@ from spoty.commands import playlist_commands
 from spoty.commands import like_commands
 from spoty.commands import local_commands
 from spoty.commands import track_commands
-from spoty.commands import list_command
+from spoty.commands import transfer_command
 
 
 @click.group()
@@ -16,46 +16,28 @@ cli.add_command(playlist_commands.playlist)
 cli.add_command(like_commands.like)
 cli.add_command(local_commands.local)
 cli.add_command(track_commands.track)
-cli.add_command(list_command.list)
+cli.add_command(transfer_command.transfer)
 
 if __name__ == '__main__':
     # cli()
-    # cli(['list','--ssp', '0yRgrCdkntJG83mFbFvrBP', '--ssp',
-    #      'https://open.spotify.com/playlist/7E6SNhIGjSqEmzHISqnMrJ'])
+    cli(['transfer',
+         '-p',
+         # '--ssu',
+         # '--ssu', 'me',
+         # '--dgp','%SPOTY_PLAYLIST_SOURCE% %SPOTY_PLAYLIST_ID% - %SPOTY_PLAYLIST_NAME%',
+         # '--ssp', '0yRgrCdkntJG83mFbFvrBP',
+         # '--ssp', '0yRgrCdkntJG83mFbFvrBP',
+         # '--ssp', '0yRgrCdkntJG83mFbFvrBP',
+         # '--ssp', 'https://open.spotify.com/playlist/7E6SNhIGjSqEmzHISqnMrJ',
+         # 'https://open.spotify.com/playlist/7E6SNhIGjSqEmzHISqnMrJ',
+         # r'.\music\Pop Nutral',
+         # r'.\music\Techno Nutral'
+         # r'.\PLAYLISTS'
+         # '--fpn', '^BES',
+         ])
 
-    # cli(['list',
-    #      '-p',
-    #      '--ssp', '0yRgrCdkntJG83mFbFvrBP',
-    #      '--ssp', '0yRgrCdkntJG83mFbFvrBP',
-    #      '--ssp', '0yRgrCdkntJG83mFbFvrBP',
-    #      'https://open.spotify.com/playlist/0yRgrCdkntJG83mFbFvrBP',
-    #      'https://open.spotify.com/playlist/7E6SNhIGjSqEmzHISqnMrJ'])
 
-    # cli(['list','-p',
-    #     '--ftnt','isrc',
-    #      r'C:\Users\Derwish\Downloads\music\Pop Nutral',
-    #      r'C:\Users\Derwish\Downloads\music\Techno Nutral'])
 
-    # cli(['list',
-    #      '-p',
-    #      r'C:\Users\Derwish\Downloads\music\Pop Nutral',
-    #      '--slp','PLAYLISTS',
-    #      'https://open.spotify.com/playlist/0yRgrCdkntJG83mFbFvrBP',
-    #      r'C:\Users\Derwish\Downloads\music\Techno Nutral'])
-
-    cli(['list',
-         '--ssu',
-         '--fpn', '^ BES',
-        ])
-
-    # cli(['list','-p',
-    #      '--ssu','me',
-    #      '--ssu','me',
-    #      # '--ssu','me',
-    #      # '--ssu',
-    #      # '--ssu','31z5libhdn4cabzlrq7fifdx73tq'
-    #      # '--fpn','^'
-    #      ])
 
     # cli(['like', 'count'])
     # cli(['like', 'add','3MH8ie02My2CNzSCH5Pme5', '3L8GYpi8HyhjeixHIlOyM9'])
@@ -65,7 +47,7 @@ if __name__ == '__main__':
     # cli(['playlist', 'export', 'https://open.spotify.com/playlist/4hkN9szbNaxVGmoSa2UHQ5?si=f951fbaa61d842e4'])
     # cli(['playlist', 'export-all', '-yo', "--path", r'C:\Users\Derwish\Documents\Develop\spoty\spoty\MUSIC LIBRARY'])
     # cli(['playlist', 'export-all', "--filter-names", '^='])
-    # cli(['playlist', 'export-all', '--timestamp'])
+    # cli(['playlist', 'export-all', '--dest_csv_timestamp'])
     # cli(['playlist', 'copy', 'https://open.spotify.com/playlist/37i9dQZF1DXe6bgV3TmZOL?si=cb91d11522a643f1'])
     # cli(['playlist', 'copy', '0jnEstbKP0nw8bZs7ilKQo', 'https://open.spotify.com/playlist/2uUxXZ6tmQFG8m0Z7stt4n?si=dd730bb4db90449a', '0jnEstbKP0nw8bZs7ilKQo'])
     # cli(['playlist', 'add-tracks', '0yRgrCdkntJG83mFbFvrBP', '3MH8ie02My2CNzSCH5Pme5', '3L8GYpi8HyhjeixHIlOyM9'])

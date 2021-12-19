@@ -12,6 +12,7 @@ def get_tracks_from_spotify_playlists(playlist_ids, filter_playlists_names=None,
                                       filter_have_no_tags=None):
     spotify_tracks = []
     source_tags = []
+    r_playlists=[]
 
     if len(playlist_ids) > 0:
         playlists = []
@@ -23,9 +24,9 @@ def get_tracks_from_spotify_playlists(playlist_ids, filter_playlists_names=None,
         if filter_playlists_names is not None:
             playlists = list(filter(lambda pl: re.findall(filter_playlists_names, pl['name']), playlists))
 
-        spotify_tracks, source_tags = get_tracks_from_playlists(playlists, filter_have_tags, filter_have_no_tags)
+        spotify_tracks, source_tags, r_playlists = get_tracks_from_playlists(playlists, filter_have_tags, filter_have_no_tags)
 
-    return spotify_tracks, source_tags
+    return spotify_tracks, source_tags, r_playlists
 
 
 def get_tracks_of_spotify_user(user_ids, filter_playlists_names=None, filter_have_tags=None,
@@ -58,7 +59,7 @@ def get_tracks_of_spotify_user(user_ids, filter_playlists_names=None, filter_hav
 
         all_playlists.extend(playlists)
 
-        tracks, tags = get_tracks_from_playlists(playlists, filter_have_tags, filter_have_no_tags)
+        tracks, tags, playlists = get_tracks_from_playlists(playlists, filter_have_tags, filter_have_no_tags)
         all_tracks.extend(tracks)
         all_tags.extend(tags)
 
@@ -69,13 +70,15 @@ def get_tracks_from_playlists(playlists, filter_have_tags, filter_have_no_tags):
     spotify_tracks = []
     source_tags = []
     requested_playlists = []
+    received_playlists = []
 
     with click.progressbar(playlists, label=f'Reading tracks in {len(playlists)} spotify playlists') as bar:
         for playlist in bar:
 
             # remove already requested playlists
             if playlist in requested_playlists:
-                click.echo(f'Spotify playlist {playlist["id"]} ({playlist["name"]}) requested twice. In will be skipped.')
+                click.echo(
+                    f'Spotify playlist {playlist["id"]} ({playlist["name"]}) requested twice. In will be skipped.')
                 continue
             requested_playlists.append(playlist)
 
@@ -93,8 +96,9 @@ def get_tracks_from_playlists(playlists, filter_have_tags, filter_have_no_tags):
 
             spotify_tracks.extend(tracks)
             source_tags.extend(tags)
+            received_playlists.append(playlist)
 
-    return spotify_tracks, source_tags
+    return spotify_tracks, source_tags, received_playlists
 
 
 def find_track_by_query(query):
@@ -324,8 +328,12 @@ def get_tracks_of_playlist(playlist_id, add_playlist_info=True):
     if (add_playlist_info):
         for track in new_tracks:
             track['track']['SPOTY_PLAYLIST_ID'] = playlist_id
-            track['track']['SPOTY_PLAYLIST_INDEX'] = i
+            track['track']['SPOTY_PLAYLIST_INDEX'] = i + 1
             track['track']['SPOTY_PLAYLIST_SOURCE'] = 'SPOTIFY'
+            try:
+                track['track']['SPOTY_TRACK_ID'] = track['track']['id']
+            except:
+                pass
             i += 1
 
     tracks.extend(new_tracks)
@@ -340,8 +348,12 @@ def get_tracks_of_playlist(playlist_id, add_playlist_info=True):
         if (add_playlist_info):
             for track in new_tracks:
                 track['track']['SPOTY_PLAYLIST_ID'] = playlist_id
-                track['track']['SPOTY_PLAYLIST_INDEX'] = i
+                track['track']['SPOTY_PLAYLIST_INDEX'] = i + 1
                 track['track']['SPOTY_PLAYLIST_SOURCE'] = 'SPOTIFY'
+                try:
+                    track['track']['SPOTY_TRACK_ID'] = track['track']['id']
+                except:
+                    pass
                 i += 1
 
         tracks.extend(new_tracks)
@@ -678,8 +690,10 @@ def get_track_ids(tracks):
 def check_is_playlist_URI(uri):
     return uri.startswith("https://open.spotify.com/playlist/")
 
+
 def check_is_user_URI(uri):
     return uri.startswith("https://open.spotify.com/user/")
+
 
 def parse_playlist_id(id_or_uri):
     if (id_or_uri.startswith("https://open.spotify.com/playlist/")):
@@ -694,11 +708,13 @@ def parse_track_id(id_or_uri):
         id_or_uri = id_or_uri.split('?')[0]
     return id_or_uri
 
+
 def parse_user_id(id_or_uri):
     if (id_or_uri.startswith("https://open.spotify.com/user/")):
         id_or_uri = id_or_uri.split('/user/')[1]
         id_or_uri = id_or_uri.split('?')[0]
     return id_or_uri
+
 
 def get_playlist_file_name(playlist_name, playlist_id, path, avoid_filenames):
     playlist_name = spoty.utils.slugify_file_pah(playlist_name)

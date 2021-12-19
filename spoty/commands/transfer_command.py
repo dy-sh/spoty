@@ -11,7 +11,8 @@ import os
 from datetime import datetime
 
 
-@click.command("list")
+@click.command("transfer")
+
 @click.argument('sources', nargs=-1)
 @click.option('--source-spotify-playlist', '--ssp', multiple=True,
               help='Read tracks in specified spotify playlist.')
@@ -25,49 +26,59 @@ from datetime import datetime
               help='Read tracks from audio files located in specified local path.')
 @click.option('--source-csv', '--sc', multiple=True,
               help='Read tracks from csv playlists located in specified local path. You can specify the scv filename as well.')
+@click.option('--source-no-recursive', '-r', is_flag=True,
+              help='Do not search in subdirectories from the specified path.')
+
+
 @click.option('--filter-playlist-names', '--fpn',
               help='Read only playlists whose names matches this regex filter')
 @click.option('--filter-have-tags', '--fht', multiple=True,
               help='Get only tracks that have all of the specified tags.')
 @click.option('--filter-have-no-tags', '--fhnt', multiple=True,
               help='Get only tracks that do not have any of the listed tags.')
-@click.option('--no-recursive', '-r', is_flag=True,
-              help='Do not search in subdirectories from the specified path.')
-@click.option('--print', '-p', 'print_to_console', is_flag=True,
+
+
+@click.option('--dest-print', '-p', is_flag=True,
               help='Print a list of read tracks to console.')
-@click.option('--print-tags', '--pt', default='ISRC,ARTIST,TITLE',
-              help='Print this track tags. Specify tags separated by commas.')
-@click.option('--export-csv', '-e', is_flag=True,
+@click.option('--dest-print-pattern', '--dpp', show_default=True,
+              default='%SPOTY_PLAYLIST_INDEX%: %SPOTY_TRACK_ID% %ARTIST% - %TITLE%',
+              help='Print a list of tracks according to this formatting pattern.')
+@click.option('--dest-csv', '-c', is_flag=True,
               help='Export a list of read tracks to csv playlists on disk.')
-@click.option('--export-path', '--ep', default="./PLAYLISTS",
+@click.option('--dest-csv-path', '--dcp', show_default=True,
+              default="./PLAYLISTS",
               help='The path on disk where to export csv playlists.')
-@click.option('--export-naming-pattern', '--enp', default='%SPOTY_PLAYLIST_NAME%',
-              help='Exported playlists will be named according to this pattern.')
-@click.option('--overwrite', '-o', is_flag=True,
+@click.option('--dest-csv-overwrite', '-o', is_flag=True,
               help='Overwrite existing csv playlists without asking')
-@click.option('--timestamp', '-t', is_flag=True,
+@click.option('--dest-csv-timestamp', '-t', is_flag=True,
               help='Create a new subfolder with the current date and time for saved csv playlists')
-def list(sources,
-         source_spotify_playlist,
-         source_spotify_user,
-         # source_deezer_playlist,
-         # source_deezer_user,
-         source_audio,
-         source_csv,
-         filter_playlist_names,
-         filter_have_tags,
-         filter_have_no_tags,
-         no_recursive,
-         print_to_console,
-         print_tags,
-         export_csv,
-         export_path,
-         export_naming_pattern,
-         overwrite,
-         timestamp
-         ):
+@click.option('--dest-grouping-pattern', '--dgp', show_default=True,
+              default='%SPOTY_PLAYLIST_SOURCE% %SPOTY_PLAYLIST_ID% - %SPOTY_PLAYLIST_NAME%',
+              help='Exported playlists will be named according to this pattern.')
+
+def transfer(sources,
+             source_spotify_playlist,
+             source_spotify_user,
+             # source_deezer_playlist,
+             # source_deezer_user,
+             source_audio,
+             source_csv,
+             source_no_recursive,
+
+             filter_playlist_names,
+             filter_have_tags,
+             filter_have_no_tags,
+
+             dest_print,
+             dest_print_pattern,
+             dest_csv,
+             dest_csv_path,
+             dest_csv_overwrite,
+             dest_csv_timestamp,
+             dest_grouping_pattern,
+             ):
     """
-List of tracks.
+Transfer tracks from sources to destination.
 
 \b
 SOURCES - List of sources where tracks will be read.
@@ -84,92 +95,95 @@ Examples:
 
 \b
     Display the number of tracks in the playlists of the current Spotify user:
-    spoty list --ssu
+    spoty transfer --ssu
 
 \b
     Displaying all tracks in the playlists of the current Spotify user:
-    spoty list --ssu -p
+    spoty transfer --ssu -p
 
 \b
-    Export all tracks of the current Spotify user to csv playlists in the default (./PLAYLISTS) path (overwrite files if they already exist):
-    spoty list --ssu -eo
+    Export all tracks of the current Spotify user to csv playlists in the default (./PLAYLISTS) path (dest_csv_overwrite files if they already exist):
+    spoty transfer --ssu -eo
 
 \b
     Combination of the two commands above:
-    spoty list --ssu -peo
+    spoty transfer --ssu -peo
 
 \b
     Displaying all tracks in the playlists whose names start with "BEST":
-    spoty list -p --ssu --fpn "^BEST"
+    spoty transfer -p --ssu --fpn "^BEST"
 
 \b
     Export all tracks of the current Spotify user to csv playlists. Playlists will be named by the names of the playlists in Spotify. You can use any tags for the pattern.
-    spoty list --ssu -e --enp "%SPOTY_PLAYLIST_NAME%"
+    spoty transfer --ssu -e --enp "%SPOTY_PLAYLIST_NAME%"
 
 \b
     Same as above, but playlists will be named by the artist and album:
-    spoty list --ssu -e --enp "%ARTIST% - %ALBUM%"
+    spoty transfer --ssu -e --enp "%ARTIST% - %ALBUM%"
 
 \b
     Display all tracks in two Spotify playlists:
-    spoty list -p --ssp 37i9dQZF1DX12G1GAEuIuj --ssp 37i9dQZEVXbNG2KDcFcKOF
+    spoty transfer -p --ssp 37i9dQZF1DX12G1GAEuIuj --ssp 37i9dQZEVXbNG2KDcFcKOF
 
 \b
     Same as above command:
-    spoty list -p https://open.spotify.com/playlist/37i9dQZF1DX12G1GAEuIuj https://open.spotify.com/playlist/37i9dQZEVXbNG2KDcFcKOF
+    spoty transfer -p https://open.spotify.com/playlist/37i9dQZF1DX12G1GAEuIuj https://open.spotify.com/playlist/37i9dQZEVXbNG2KDcFcKOF
 
 \b
     Display the number of tracks in Spotify playlist:
-    spoty list https://open.spotify.com/playlist/37i9dQZF1DX12G1GAEuIuj
+    spoty transfer https://open.spotify.com/playlist/37i9dQZF1DX12G1GAEuIuj
 
 \b
     Display all tracks in two local paths:
-    spoty list -p ./music ./music2
+    spoty transfer -p ./music ./music2
 
 \b
     Display all tracks in local paths. The specified tags will be displayed:
-    spoty list ./music -p --pt TITLE,ARTIST,DATE
+    spoty transfer ./music -p --pt TITLE,ARTIST,DATE
 
 \b
     Export all tracks from local paths to csv playlist:
-    spoty list -pe ./music
+    spoty transfer -pe ./music
 
 \b
     Display all tracks in local paths that have the specified tags:
-    spoty list ./music -p --fht "ISRC" --fht "BARCORE"
+    spoty transfer ./music -p --fht "ISRC" --fht "BARCORE"
 
 \b
     Display all tracks in local paths that do not have the specified tags:
-    spoty list ./music -p --fhnt "TITLE"
+    spoty transfer ./music -p --fhnt "TITLE"
 
 \b
     Export all tracks from local paths to csv playlist in the specified path:
-    spoty list -pe music --ep "./music playlists"
+    spoty transfer -pe music --ep "./music playlists"
 
 \b
     Display all tracks from csv playlists found in path "./PLAYLISTS":
-    spoty list -p --sc "./PLAYLISTS"
+    spoty transfer -p --sc "./PLAYLISTS"
 
 \b
     Display all tracks from csv playlist:
-    spoty list -p PLAYLISTS/BEST.csv
+    spoty transfer -p PLAYLISTS/BEST.csv
 
 \b
     Note that if you specify a path as an argument without specifying that it is audio or a playlist (--sa or --sc), then both audio and playlists will be searched in this path:
-    spoty list -p SOME_FOLDER
+    spoty transfer -p SOME_FOLDER
 
 
 
 
     """
+    # if no sources - print help
 
     if len(source_spotify_user) == 0 \
             and len(source_spotify_playlist) == 0 \
             and len(source_audio) == 0 \
             and len(source_csv) == 0 \
             and len(sources) == 0:
-        list(['list', '--help'])
+        transfer(['transfer', '--help'])
         exit()
+
+    # convert tuples to lists
 
     source_spotify_playlist = to_list(source_spotify_playlist)
     source_spotify_user = to_list(source_spotify_user)
@@ -179,9 +193,8 @@ Examples:
     source_csv = to_list(source_csv)
     filter_have_tags = to_list(filter_have_tags)
     filter_have_no_tags = to_list(filter_have_no_tags)
-    print_tags = print_tags.split(',')
 
-    # check sources
+    # check sources argument
 
     source_csv_files=[]
     source_csv_paths=[]
@@ -202,7 +215,7 @@ Examples:
     for source in sources:
         if spoty.spotify.check_is_playlist_URI(source):
             source_spotify_playlist.append(source)
-        if spoty.spotify.check_is_playlist_URI(source):
+        elif spoty.spotify.check_is_user_URI(source):
             source_spotify_user.append(source)
         elif spoty.csv_playlist.is_csv(source):
             source_csv_files.append(source)
@@ -212,33 +225,54 @@ Examples:
         else:
             click.echo(f'Cant recognize source: "{source}"', err=True)
 
+    # read sources
+
     all_tags = []
 
-    spotify_playlists_tracks, tags = spoty.spotify.get_tracks_from_spotify_playlists(
+    spotify_playlists_tracks, tags_list, spotify_playlists = spoty.spotify.get_tracks_from_spotify_playlists(
         source_spotify_playlist, filter_playlist_names, filter_have_tags, filter_have_no_tags)
-    all_tags.extend(tags)
+    all_tags.extend(tags_list)
 
-    spotify_user_tracks, tags, spotify_user_playlists = spoty.spotify.get_tracks_of_spotify_user(
+    spotify_user_tracks, tags_list, spotify_user_playlists = spoty.spotify.get_tracks_of_spotify_user(
         source_spotify_user, filter_playlist_names, filter_have_tags, filter_have_no_tags)
-    all_tags.extend(tags)
+    all_tags.extend(tags_list)
 
     audio_file_names = spoty.audio_files.find_audio_files_in_paths(
-        source_audio, not no_recursive, filter_have_tags, filter_have_no_tags)
-    tags = spoty.audio_files.read_audio_files_tags(audio_file_names)
-    all_tags.extend(tags)
+        source_audio, not source_no_recursive, filter_have_tags, filter_have_no_tags)
+    tags_list = spoty.audio_files.read_audio_files_tags(audio_file_names)
+    tags_list = spoty.utils.add_playlist_index_from_playlist_names(tags_list)
+    all_tags.extend(tags_list)
 
-    csv_file_names = spoty.csv_playlist.find_csvs_in_paths(source_csv_paths, not no_recursive)
+    csv_file_names = spoty.csv_playlist.find_csvs_in_paths(source_csv_paths, not source_no_recursive)
     csv_file_names.extend(source_csv_files)
-    csv_tags = spoty.csv_playlist.read_tags_from_csvs(csv_file_names, filter_have_tags, filter_have_no_tags)
-    all_tags.extend(csv_tags)
+    csv_tags_list = spoty.csv_playlist.read_tags_from_csvs(csv_file_names, filter_have_tags, filter_have_no_tags)
+    all_tags.extend(csv_tags_list)
 
-    if print_to_console:
-        spoty.utils.print_tags_list(all_tags, print_tags)
+    # export to destination
 
-    click.echo('-------------------------------------------------------------------------------------')
+    if dest_print:
+        spoty.utils.print_tags_list(all_tags, dest_print_pattern, dest_grouping_pattern)
+
+    if dest_csv:
+        dest_csv_path = os.path.abspath(dest_csv_path)
+
+        if dest_csv_timestamp:
+            now = datetime.now()
+            date_time_str = now.strftime("%Y_%m_%d-%H_%M_%S")
+            dest_csv_path = os.path.join(dest_csv_path, date_time_str)
+
+        exported_playlists_file_names, exported_playlists_names, exported_tracks = \
+            spoty.csv_playlist.create_csvs(all_tags, dest_csv_path, dest_grouping_pattern, dest_csv_overwrite)
+
+        mess = f'\n{len(exported_tracks)} tracks exported to {len(exported_playlists_file_names)} playlists in path: "{dest_csv_path}"'
+        click.echo(mess)
+
+    # print summery
+
+    click.echo('\n-------------------------------------------------------------------------------------')
     print_total=False
     if len(spotify_playlists_tracks) > 0:
-        click.echo(f'{len(spotify_playlists_tracks)} tracks found in {len(source_spotify_playlist)} spotify playlists.')
+        click.echo(f'{len(spotify_playlists_tracks)} tracks found in {len(spotify_playlists)} spotify playlists.')
         if len(spotify_playlists_tracks)!=len(all_tags):
             print_total=True
     if len(spotify_user_tracks) > 0:
@@ -252,27 +286,14 @@ Examples:
         click.echo(f'{len(audio_file_names)} audio files found in {len(source_audio)} local paths.')
         if len(audio_file_names)!=len(all_tags):
             print_total=True
-    if len(csv_tags) > 0:
-        click.echo(f'{len(csv_tags)} tracks found in {len(csv_file_names)} csv playlists.')
-        if len(csv_tags)!=len(all_tags):
+    if len(csv_tags_list) > 0:
+        click.echo(f'{len(csv_tags_list)} tracks found in {len(csv_file_names)} csv playlists.')
+        if len(csv_tags_list)!=len(all_tags):
             print_total=True
-
     if print_total:
         click.echo(f'Total tracks found: {len(all_tags)}')
 
-    if export_csv:
-        export_path = os.path.abspath(export_path)
 
-        if timestamp:
-            now = datetime.now()
-            date_time_str = now.strftime("%Y_%m_%d-%H_%M_%S")
-            export_path = os.path.join(export_path, date_time_str)
-
-        exported_playlists_file_names, exported_playlists_names, exported_tracks = \
-            spoty.csv_playlist.create_csvs(all_tags, export_path, export_naming_pattern, overwrite)
-
-        mess = f'\n{len(exported_tracks)} tracks exported to {len(exported_playlists_file_names)} playlists in path: "{export_path}"'
-        click.echo(mess)
 
 
 def to_list(some_tuple):

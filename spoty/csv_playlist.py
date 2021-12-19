@@ -27,33 +27,33 @@ def is_csv(file_name):
     return file_name.upper().endswith('.CSV')
 
 
-def create_csvs(tags, export_path, csvs_naming_pattern, overwrite):
+def create_csvs(tags_list, export_path, grouping_pattern, overwrite):
     export_path = os.path.abspath(export_path)
 
     exported_csv_file_names = []
     exported_csv_names = []
     exported_tags = []
 
-    if len(tags) > 0:
-        grouped_tags = spoty.utils.group_tags_by_pattern(tags, csvs_naming_pattern)
+    if len(tags_list) > 0:
+        grouped_tags = spoty.utils.group_tags_by_pattern(tags_list, grouping_pattern)
 
-        for group, tags in grouped_tags.items():
+        for group, tags_l in grouped_tags.items():
             csv_name = group
             csv_name = spoty.utils.slugify_file_pah(csv_name)
             csv_file_name = os.path.join(export_path, csv_name + '.csv')
 
             if csv_file_name in exported_csv_file_names:
-                write_tags_to_csv(tags, csv_file_name, True)
+                write_tags_to_csv(tags_l, csv_file_name, True)
             else:
                 if os.path.isfile(csv_file_name) and not overwrite:
                     if not click.confirm(f'File "{csv_file_name}" already exist. Overwrite?'):
                         continue
 
-                write_tags_to_csv(tags, csv_file_name, False)
+                write_tags_to_csv(tags_l, csv_file_name, False)
 
             exported_csv_names.append(csv_name)
             exported_csv_file_names.append(csv_file_name)
-            exported_tags.extend(tags)
+            exported_tags.extend(tags_l)
 
     return exported_csv_file_names, exported_csv_names, exported_tags
 
@@ -178,7 +178,7 @@ def read_tags_from_csv(csv_file_name, filter_have_tags=None, filter_have_no_tags
                     playlist_name = playlist_name[:-4]
                 tags['SPOTY_PLAYLIST_SOURCE'] = 'CSV'
                 tags['SPOTY_PLAYLIST_NAME'] = playlist_name
-                tags['SPOTY_PLAYLIST_INDEX'] = i - 1
+                tags['SPOTY_PLAYLIST_INDEX'] = i
 
             tags_list.append(tags)
 
