@@ -107,7 +107,7 @@ Examples:
     spoty list --ssu -e --enp "%SPOTY_PLAYLIST_NAME%"
 
 \b
-    Same as above, but playlists will be named by the artist and album.
+    Same as above, but playlists will be named by the artist and album:
     spoty list --ssu -e --enp "%ARTIST% - %ALBUM%"
 
 \b
@@ -127,7 +127,7 @@ Examples:
     spoty list -p ./music ./music2
 
 \b
-    Display all tracks in local paths. The specified tags will be displayed.
+    Display all tracks in local paths. The specified tags will be displayed:
     spoty list ./music -p --pt TITLE,ARTIST,DATE
 
 \b
@@ -261,6 +261,8 @@ Examples:
         click.echo(f'Total tracks found: {len(all_tags)}')
 
     if export_csv:
+        export_path = os.path.abspath(export_path)
+
         if timestamp:
             now = datetime.now()
             date_time_str = now.strftime("%Y_%m_%d-%H_%M_%S")
