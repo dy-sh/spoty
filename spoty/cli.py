@@ -45,6 +45,7 @@ if __name__ == '__main__':
          '--a','.\music\Techno Nutral',
          '--c','.\PLAYLISTS',
          '--c','.\PLAYLISTS\Pop Nutral.csv',
+         'filter','-d',
          'transfer',
          ])
 

@@ -1,16 +1,14 @@
 from spoty import settings
 from spoty import log
+from spoty.commands import transfer_command
+from spoty.commands import filter_group
+from spoty.utils import SpotyContext
 import spoty.spotify
 import spoty.audio_files
 import spoty.csv_playlist
 import spoty.utils
 import click
-import re
 import time
-import os
-from datetime import datetime
-from spoty.commands import transfer_command
-from spoty.commands import filter_group
 
 
 @click.group("get")
@@ -42,6 +40,7 @@ Get tracks from sources.
     """
 
     # if no sources - print help
+
     if len(spotify_playlist) == 0 \
             and len(spotify_entire_library) == 0 \
             and len(spotify_entire_library_regex) == 0 \
@@ -51,6 +50,8 @@ Get tracks from sources.
         exit()
 
     all_tags_list = []
+
+    # get csv
 
     csv_files = []
     tags_list_from_csv = []
@@ -77,6 +78,8 @@ Get tracks from sources.
     audio_files = []
     tags_list_from_audio = []
 
+    # get audio
+
     if len(audio) > 0:
         audio_paths = []
         for path in audio:
@@ -100,6 +103,8 @@ Get tracks from sources.
     spotify_playlists = []
     tags_list_from_spotify = []
 
+    # get spotify
+
     if len(spotify_playlist) > 0:
         pl = spoty.utils.tuple_to_list(spotify_playlist)
         tracks, tags_list, playlists = spoty.spotify.get_tracks_from_playlists(pl)
@@ -121,6 +126,8 @@ Get tracks from sources.
             tags_list_from_spotify.extend(tags_list)
             all_tags_list.extend(tags_list)
 
+    # make summary
+
     summary = ""
     summary += ('-------------------------------------------------------------------------------------\n')
 
@@ -136,8 +143,13 @@ Get tracks from sources.
             or len(tags_list_from_csv) != len(all_tags_list):
         summary += f'Total tracks found: {len(all_tags_list)}\n'
 
-    print(summary)
-    ctx.obj = all_tags_list
+    # make context
+
+    context = SpotyContext()
+    context.summary = summary
+    context.tags_list = all_tags_list
+
+    ctx.obj = context
 
 
 get_tracks.add_command(transfer_command.transfer)

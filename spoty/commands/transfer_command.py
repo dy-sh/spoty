@@ -4,6 +4,7 @@ import spoty.spotify
 import spoty.audio_files
 import spoty.csv_playlist
 import spoty.utils
+from spoty.utils import SpotyContext
 import click
 import re
 import time
@@ -41,7 +42,7 @@ from datetime import datetime
 @click.option('--yes-all', '-y', is_flag=True,
               help='Confirm all questions with a positive answer automatically.')
 @click.pass_obj
-def transfer(obj,
+def transfer(context:SpotyContext,
 
              dest_print,
              dest_csv,
@@ -193,7 +194,8 @@ Examples of using:
 
     # if no sources - print help
 
-    print(len(obj))
+    print(len(context.tags_list))
+    print(context.summary)
     exit()
 
     if len(source_spotify_user) == 0 \

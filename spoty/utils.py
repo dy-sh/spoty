@@ -1,5 +1,10 @@
 import os.path
 
+class SpotyContext:
+    tags_list:[]
+    summary:str
+
+
 tag_allies = [
     ['YEAR', 'DATE'],
     ['TRACK', 'TRACKNUMBER'],
