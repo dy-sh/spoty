@@ -149,21 +149,16 @@ def write_tags_to_csv(tags_list, csv_file_name, append=False):
         writer.writerows(rows)
 
 
-def read_tags_from_csvs(csv_file_names, filter_have_tags=None, filter_have_no_tags=None, add_spoty_tags=True):
+def read_tags_from_csvs(csv_file_names, add_spoty_tags=True):
     all_tags_lists = []
     for csv_file_name in csv_file_names:
-        tags_list = read_tags_from_csv(csv_file_name, filter_have_tags, filter_have_no_tags, add_spoty_tags)
+        tags_list = read_tags_from_csv(csv_file_name, add_spoty_tags)
         all_tags_lists.extend(tags_list)
 
     return all_tags_lists
 
 
-def read_tags_from_csv(csv_file_name, filter_have_tags=None, filter_have_no_tags=None, add_spoty_tags=True):
-    if filter_have_tags == None:
-        filter_have_tags = []
-    if filter_have_no_tags == None:
-        filter_have_no_tags = []
-
+def read_tags_from_csv(csv_file_name, add_spoty_tags=True):
     csv_file_name = os.path.abspath(csv_file_name)
     tags_list = []
 
@@ -198,14 +193,6 @@ def read_tags_from_csv(csv_file_name, filter_have_tags=None, filter_have_no_tags
             for h, key in enumerate(header):
                 if len(row[h]) > 0:
                     tags[key] = row[h]
-
-            if len(filter_have_tags) > 0:
-                if not spoty.utils.check_all_tags_exist(tags, filter_have_tags):
-                    continue
-
-            if len(filter_have_no_tags) > 0:
-                if spoty.utils.check_all_tags_exist(tags, filter_have_no_tags):
-                    continue
 
             if (add_spoty_tags):
                 playlist_name = os.path.basename(csv_file_name)

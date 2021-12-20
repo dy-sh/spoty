@@ -75,6 +75,10 @@ additional_tags = \
         'WRITER',
     ]
 
+def tuple_to_list(some_tuple):
+    l = []
+    l.extend(some_tuple)
+    return l
 
 def is_valid_path(path):
     return os.path.isdir(path)

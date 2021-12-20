@@ -12,27 +12,6 @@ from datetime import datetime
 
 
 @click.command("transfer")
-@click.argument('sources', nargs=-1)
-@click.option('--source-spotify-playlist', '--ssp', multiple=True,
-              help='Read tracks in specified Spotify playlist (playlist URI or ID).')
-@click.option('--source-spotify-user', '--ssu', multiple=True, is_flag=False, flag_value="me",
-              help='Read tracks in this Spotify user library (user URI or ID). To request a list for the current user, leave this option empty, or use "me" as ID.')
-# @click.option('--source-deezer-playlist', '--sdp', multiple=True,
-#               help='Read tracks in specified deezer playlist.')
-# @click.option('--source-deezer-user', '--sdu', multiple=True,
-#               help='Read tracks in this spotify user library.')
-@click.option('--source-audio', '--sa', multiple=True,
-              help='Read tracks from audio files located in specified local path.')
-@click.option('--source-csv', '--sc', multiple=True,
-              help='Read tracks from csv playlists located in specified local path. You can specify the scv filename as well.')
-@click.option('--source-no-recursive', '-r', is_flag=True,
-              help='Do not search in subdirectories from the specified path.')
-@click.option('--filter-playlist-names', '--fpn',
-              help='Read only playlists whose names matches this regex filter')
-@click.option('--filter-have-tags', '--fht', multiple=True,
-              help='Get only tracks that have all of the specified tags.')
-@click.option('--filter-have-no-tags', '--fhnt', multiple=True,
-              help='Get only tracks that do not have any of the listed tags.')
 @click.option('--dest-print', '-P', is_flag=True,
               help='Print a list of read tracks to console.')
 @click.option('--dest-csv', '-C', is_flag=True,
@@ -61,18 +40,8 @@ from datetime import datetime
               help='Compare duplicates by this tags.')
 @click.option('--yes-all', '-y', is_flag=True,
               help='Confirm all questions with a positive answer automatically.')
-def transfer(sources,
-             source_spotify_playlist,
-             source_spotify_user,
-             # source_deezer_playlist,
-             # source_deezer_user,
-             source_audio,
-             source_csv,
-             source_no_recursive,
-
-             filter_playlist_names,
-             filter_have_tags,
-             filter_have_no_tags,
+@click.pass_obj
+def transfer(obj,
 
              dest_print,
              dest_csv,
@@ -224,6 +193,9 @@ Examples of using:
 
     # if no sources - print help
 
+    print(len(obj))
+    exit()
+
     if len(source_spotify_user) == 0 \
             and len(source_spotify_playlist) == 0 \
             and len(source_audio) == 0 \
@@ -287,11 +259,11 @@ Examples of using:
 
     all_tags = []
 
-    spotify_playlists_tracks, tags_list, spotify_playlists = spoty.spotify.get_tracks_from_spotify_playlists(
+    spotify_playlists_tracks, tags_list, spotify_playlists = spoty.spotify.get_tracks_from_playlists(
         source_spotify_playlist, filter_playlist_names, filter_have_tags, filter_have_no_tags)
     all_tags.extend(tags_list)
 
-    spotify_user_tracks, tags_list, spotify_user_playlists = spoty.spotify.get_tracks_of_spotify_user(
+    spotify_user_tracks, tags_list, spotify_user_playlists = spoty.spotify.get_tracks_of_spotify_users(
         source_spotify_user, filter_playlist_names, filter_have_tags, filter_have_no_tags)
     all_tags.extend(tags_list)
 
@@ -349,35 +321,6 @@ Examples of using:
                 dest_option_duplicates, yes_all)
 
     # print summery
-
-    click.echo('\n-------------------------------------------------------------------------------------')
-    print_total = False
-    if len(spotify_playlists_tracks) > 0:
-        click.echo(f'{len(spotify_playlists_tracks)} tracks found in {len(spotify_playlists)} Spotify playlists.')
-        if len(spotify_playlists_tracks) != len(all_tags):
-            print_total = True
-    if len(spotify_user_tracks) > 0:
-        if len(source_spotify_user) == 1:
-            click.echo(
-                f'{len(spotify_user_tracks)} tracks found in {len(spotify_user_playlists)} playlists in Spotify user library.')
-        else:
-            click.echo(
-                f'{len(spotify_user_tracks)} tracks found in {len(spotify_user_playlists)} playlists in libraries of {len(source_spotify_user)} Spotify users.')
-        if len(spotify_user_tracks) != len(all_tags):
-            print_total = True
-    if len(source_audio) > 0:
-        if len(source_audio) == 1:
-            click.echo(f'{len(audio_file_names)} audio files found in local path.')
-        else:
-            click.echo(f'{len(audio_file_names)} audio files found in {len(source_audio)} local paths.')
-        if len(audio_file_names) != len(all_tags):
-            print_total = True
-    if len(csv_tags_list) > 0:
-        click.echo(f'{len(csv_tags_list)} tracks found in {len(csv_file_names)} csv playlists.')
-        if len(csv_tags_list) != len(all_tags):
-            print_total = True
-    if print_total:
-        click.echo(f'Total tracks found: {len(all_tags)}')
 
     if import_to_csv:
         mess = f'{len(csv_added_tracks)} tracks written to {len(csv_created_file_names)} csv playlists.'

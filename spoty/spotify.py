@@ -8,46 +8,46 @@ import time
 import re
 
 
-def get_tracks_from_spotify_playlists(playlist_ids, filter_playlists_names=None, filter_have_tags=None,
-                                      filter_have_no_tags=None):
-    if filter_playlists_names == None:
-        filter_playlists_names = []
-    if filter_have_tags == None:
-        filter_have_tags = []
-    if filter_have_no_tags == None:
-        filter_have_no_tags = []
-
-    spotify_tracks = []
-    source_tags = []
-    r_playlists = []
-
-    if len(playlist_ids) > 0:
-        playlists = []
-        with click.progressbar(playlist_ids, label=f'Reading {len(playlist_ids)} spotify playlists') as bar:
-            for playlist_id in bar:
-                playlist = get_playlist(playlist_id)
-                playlists.append(playlist)
-
-        if len(filter_playlists_names) > 0:
-            playlists = list(filter(lambda pl: re.findall(filter_playlists_names, pl['name']), playlists))
-
-        spotify_tracks, source_tags, r_playlists = get_tracks_from_playlists(playlists, filter_have_tags,
-                                                                             filter_have_no_tags)
-
-    return spotify_tracks, source_tags, r_playlists
 
 
-def get_tracks_of_spotify_user(user_ids, filter_playlists_names=None, filter_have_tags=None,
-                               filter_have_no_tags=None):
-    if filter_playlists_names == None:
-        filter_playlists_names = []
-    if filter_have_tags == None:
-        filter_have_tags = []
-    if filter_have_no_tags == None:
-        filter_have_no_tags = []
+def get_tracks_from_playlists(playlist_ids):
+    all_tracks = []
+    all_tags_list = []
+    all_received_playlists = []
+
+    requested_playlists = []
+
+    with click.progressbar(playlist_ids, label=f'Reading tracks in {len(playlist_ids)} spotify playlists') as bar:
+        for playlist_id in bar:
+
+            # remove already requested playlists
+            if playlist_id in requested_playlists:
+                click.echo(f'Spotify playlist {playlist_id} requested twice. In will be skipped.')
+                continue
+
+            playlist=get_playlist_with_full_list_of_tracks(playlist_ids)
+            requested_playlists.append(playlist_id)
+
+            tracks = playlist.tracks
+            for track in tracks:
+                track['track']['SPOTY_PLAYLIST_NAME'] = playlist['name']
+                track['track']['SPOTY_PLAYLIST_ID'] = playlist['id']
+
+            tags = read_tags_from_spotify_tracks(tracks)
+
+            all_tracks.extend(tracks)
+            all_tags_list.extend(tags)
+            all_received_playlists.append(playlist_id)
+
+    return all_tracks, all_tags_list, all_received_playlists
+
+
+def get_tracks_of_spotify_users(user_ids, playlists_names_regex=None):
+    if playlists_names_regex == None:
+        playlists_names_regex = []
 
     all_tracks = []
-    all_tags = []
+    all_tags_list = []
     all_playlists = []
 
     for user_id in user_ids:
@@ -59,8 +59,8 @@ def get_tracks_of_spotify_user(user_ids, filter_playlists_names=None, filter_hav
             playlists = get_list_of_user_playlists(user_id)
             click.echo(f'User {user_id} has {len(playlists)} playlists in Spotify library')
 
-        if len(filter_playlists_names) > 0:
-            playlists = list(filter(lambda pl: re.findall(filter_playlists_names, pl['name']), playlists))
+        if len(playlists_names_regex) > 0:
+            playlists = list(filter(lambda pl: re.findall(playlists_names_regex, pl['name']), playlists))
 
         # remove already requested playlists
         new_playlists = playlists.copy()
@@ -74,46 +74,11 @@ def get_tracks_of_spotify_user(user_ids, filter_playlists_names=None, filter_hav
 
         all_playlists.extend(playlists)
 
-        tracks, tags, playlists = get_tracks_from_playlists(playlists, filter_have_tags, filter_have_no_tags)
+        tracks, tags, playlists = get_tracks_from_playlists(playlists)
         all_tracks.extend(tracks)
-        all_tags.extend(tags)
+        all_tags_list.extend(tags)
 
-    return all_tracks, all_tags, all_playlists
-
-
-def get_tracks_from_playlists(playlists, filter_have_tags, filter_have_no_tags):
-    spotify_tracks = []
-    source_tags = []
-    requested_playlists = []
-    received_playlists = []
-
-    with click.progressbar(playlists, label=f'Reading tracks in {len(playlists)} spotify playlists') as bar:
-        for playlist in bar:
-
-            # remove already requested playlists
-            if playlist in requested_playlists:
-                click.echo(
-                    f'Spotify playlist {playlist["id"]} ({playlist["name"]}) requested twice. In will be skipped.')
-                continue
-            requested_playlists.append(playlist)
-
-            tracks = get_tracks_of_playlist(playlist['id'])
-            for track in tracks:
-                track['track']['SPOTY_PLAYLIST_NAME'] = playlist['name']
-
-            if len(filter_have_tags) > 0:
-                tracks = filter_spotify_tracks_which_have_all_tags(tracks, filter_have_tags)
-
-            if len(filter_have_no_tags) > 0:
-                tracks = filter_spotify_tracks_which_not_have_any_of_tags(tracks, filter_have_no_tags)
-
-            tags = read_tags_from_spotify_tracks(tracks)
-
-            spotify_tracks.extend(tracks)
-            source_tags.extend(tags)
-            received_playlists.append(playlist)
-
-    return spotify_tracks, source_tags, received_playlists
+    return all_tracks, all_tags_list, all_playlists
 
 
 def find_track_by_query(query):
