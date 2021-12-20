@@ -40,7 +40,7 @@ from datetime import datetime
 @click.option('--dest-spotify', '-S', is_flag=True,
               help='Export a list of read tracks to playlist library.')
 @click.option('--dest-option-grouping-pattern', '--dogp', show_default=True,
-              default=settings.DEFAULT_DEST_GROUPING_PATTERN,
+              default=settings.SPOTY.DEFAULT_DEST_GROUPING_PATTERN,
               help='Exported playlists/files will be named according to this pattern.')
 @click.option('--dest-option-duplicates', '-d', type=bool, is_flag=True, default=False,
               help='Allow duplicates (add tracks that are already exist in the playlist).')
@@ -49,15 +49,15 @@ from datetime import datetime
 @click.option('--dest-option-overwrite', '-o', is_flag=True,
               help='Overwrite existing playlist/file')
 @click.option('--dest-option-path', '--dop', show_default=True,
-              default=settings.DEFAULT_LIBRARY_PATH,
+              default=settings.SPOTY.DEFAULT_LIBRARY_PATH,
               help='The path on disk where to export csv playlists.')
 @click.option('--dest-option-timestamp', '-t', is_flag=True,
               help='Create a new subfolder with the current date and time for saved csv playlists')
 @click.option('--dest-option-print-pattern', '--dopp', show_default=True,
-              default=settings.DEFAULT_DEST_PRINT_PATTERN,
+              default=settings.SPOTY.DEFAULT_DEST_PRINT_PATTERN,
               help='Print a list of tracks according to this formatting pattern.')
 @click.option('--dest-option-compare-tags', '--sost', show_default=True,
-              default=settings.DEFAULT_COMPARE_TAGS,
+              default=settings.SPOTY.DEFAULT_COMPARE_TAGS,
               help='Compare duplicates by this tags.')
 @click.option('--yes-all', '-y', is_flag=True,
               help='Confirm all questions with a positive answer automatically.')

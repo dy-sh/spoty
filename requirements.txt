@@ -3,3 +3,7 @@ dynaconf
 loguru
 spotipy
 mutagen
+deezersdk
+Flask
+deemix
+toml

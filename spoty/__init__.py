@@ -24,9 +24,9 @@ settings = Dynaconf(
     settings_files=[settings_file_name, secrets_file_name],
 )
 
-sp = spotipy.Spotify(auth_manager=SpotifyOAuth(settings.CLIENT_ID,
-                                               settings.CLIENT_SECRET,
-                                               settings.REDIRECT_URI,
+sp = spotipy.Spotify(auth_manager=SpotifyOAuth(settings.default.SPOTIFY_CLIENT_ID,
+                                               settings.default.SPOTIFY_CLIENT_SECRET,
+                                               settings.SPOTIFY.REDIRECT_URI,
                                                scope="user-library-read user-library-modify playlist-modify-private playlist-read-private playlist-modify-public"))
 
 
