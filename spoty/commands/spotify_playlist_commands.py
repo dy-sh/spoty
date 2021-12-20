@@ -17,6 +17,69 @@ def playlist():
     pass
 
 
+@playlist.command("list")
+@click.option('--filter-names', '--f', default=None,
+              help='List only playlists whose names matches this regex filter')
+@click.option('--user-id', '--u', default=None, help='Get playlists of this user')
+def playlist_list(filter_names, user_id):
+    r"""
+    List of all playlists.
+
+    Examples:
+
+        spoty spotify playlist list
+
+        spoty spotify playlist list --user-id 4717400682
+    """
+    if user_id == None:
+        playlists = spoty.spotify.get_list_of_playlists()
+    else:
+        playlists = spoty.spotify.get_list_of_user_playlists(user_id)
+
+    if len(playlists) == 0:
+        exit()
+
+    if filter_names is not None:
+        playlists = list(filter(lambda pl: re.findall(filter_names, pl['name']), playlists))
+        click.echo(f'{len(playlists)} playlists matches the filter')
+
+    if len(playlists) == 0:
+        exit()
+
+    for playlist in playlists:
+        click.echo(f'{playlist["id"]} "{playlist["name"]}"')
+
+    click.echo(f'Total playlists: {len(playlists)}')
+
+
+@playlist.command("read")
+@click.argument("playlist_ids", nargs=-1)
+def playlist_read(playlist_ids):
+    r"""
+    Read playlists and print track ids.
+    it could be your playlists or created by another user.
+
+    PLAYLIST_IDS - list of playlist IDs or URIs. You can specify one ID or many IDs separated by a space.
+
+    Examples:
+
+        spoty spotify playlist read 37i9dQZF1DX8z1UW9HQvSq
+
+        spoty spotify playlist read 37i9dQZF1DX8z1UW9HQvSq 37i9dQZF1DX7jNFrjYQurt
+
+        spoty spotify playlist read https://open.spotify.com/playlist/37i9dQZF1DX8z1UW9HQvSq
+
+    """
+    tracks = []
+    for playlist_id in playlist_ids:
+        click.echo(f'Tracks in playlist {playlist_id}:')
+        tracks = spoty.spotify.get_tracks_of_playlist(playlist_id)
+        for track in tracks:
+            title = spoty.spotify.get_track_artist_and_title(track["track"])
+            click.echo(f'{track["track"]["id"]}: {title}')
+
+    click.echo(f'Total tracks: {len(tracks)}')
+
 
 @playlist.command("create")
 @click.argument("name", type=str)
@@ -26,14 +89,14 @@ def playlist_create(name):
 
     Examples:
 
-        spoty playlist create "My awesome playlist"
+        spoty spotify playlist create "My awesome playlist"
     """
     id = spoty.spotify.create_playlist(name)
     click.echo(f'New playlist created (id: {id}, name: "{name}")')
 
 
 @playlist.command("copy")
-@click.argument("playlist_ids",  nargs=-1)
+@click.argument("playlist_ids", nargs=-1)
 def playlist_copy(playlist_ids):
     r"""
     Create copies of playlists.
@@ -46,11 +109,11 @@ def playlist_copy(playlist_ids):
 
     Examples:
 
-        spoty playlist copy 37i9dQZF1DX8z1UW9HQvSq
+        spoty spotify playlist copy 37i9dQZF1DX8z1UW9HQvSq
 
-        spoty playlist copy 37i9dQZF1DX8z1UW9HQvSq 37i9dQZF1DX7jNFrjYQurt
+        spoty spotify playlist copy 37i9dQZF1DX8z1UW9HQvSq 37i9dQZF1DX7jNFrjYQurt
 
-        spoty playlist copy https://open.spotify.com/playlist/37i9dQZF1DX8z1UW9HQvSq
+        spoty spotify playlist copy https://open.spotify.com/playlist/37i9dQZF1DX8z1UW9HQvSq
 
     """
     playlists = []
@@ -66,7 +129,7 @@ def playlist_copy(playlist_ids):
 
 @playlist.command("add-tracks")
 @click.argument("playlist_id", type=str)
-@click.argument("track_ids",  nargs=-1)
+@click.argument("track_ids", nargs=-1)
 @click.option('--allow-duplicates', '-d', type=bool, is_flag=True, default=False,
               help='Add tracks that are already in the playlist.')
 def playlist_add_tracks(playlist_id, track_ids, allow_duplicates):
@@ -79,21 +142,22 @@ def playlist_add_tracks(playlist_id, track_ids, allow_duplicates):
 
     Examples:
 
-        spoty playlist add-tracks 37i9dQZF1DX8z1UW9HQvSq 00i9VF7sjSaTqblAuKFBDO
+        spoty spotify playlist add-tracks 37i9dQZF1DX8z1UW9HQvSq 00i9VF7sjSaTqblAuKFBDO
 
-        spoty playlist add-tracks 37i9dQZF1DX8z1UW9HQvSq 00i9VF7sjSaTqblAuKFBDO 7cjlfruK9Oqw7k5wAZGO72
+        spoty spotify playlist add-tracks 37i9dQZF1DX8z1UW9HQvSq 00i9VF7sjSaTqblAuKFBDO 7cjlfruK9Oqw7k5wAZGO72
 
-        spoty playlist add-tracks https://open.spotify.com/playlist/37i9dQZF1DX8z1UW9HQvSq https://open.spotify.com/track/00i9VF7sjSaTqblAuKFBDO
+        spoty spotify playlist add-tracks https://open.spotify.com/playlist/37i9dQZF1DX8z1UW9HQvSq https://open.spotify.com/track/00i9VF7sjSaTqblAuKFBDO
 
     """
     track_ids = list(track_ids)
-    tracks_added, import_duplicates, already_exist = spoty.spotify.add_tracks_to_playlist(playlist_id, track_ids, allow_duplicates)
+    tracks_added, import_duplicates, already_exist = spoty.spotify.add_tracks_to_playlist(playlist_id, track_ids,
+                                                                                          allow_duplicates)
     click.echo(f'{len(tracks_added)} tracks added to playlist {playlist_id}')
 
 
 @playlist.command("remove-tracks")
 @click.argument("playlist_id", type=str)
-@click.argument("track_ids",  nargs=-1)
+@click.argument("track_ids", nargs=-1)
 def playlist_remove_tracks(playlist_id, track_ids):
     r"""
     Remove tracks from playlist.
@@ -104,11 +168,11 @@ def playlist_remove_tracks(playlist_id, track_ids):
 
     Examples:
 
-        spoty playlist remove-tracks 37i9dQZF1DX8z1UW9HQvSq 00i9VF7sjSaTqblAuKFBDO
+        spoty spotify playlist remove-tracks 37i9dQZF1DX8z1UW9HQvSq 00i9VF7sjSaTqblAuKFBDO
 
-        spoty playlist remove-tracks 37i9dQZF1DX8z1UW9HQvSq 00i9VF7sjSaTqblAuKFBDO 7cjlfruK9Oqw7k5wAZGO72
+        spoty spotify playlist remove-tracks 37i9dQZF1DX8z1UW9HQvSq 00i9VF7sjSaTqblAuKFBDO 7cjlfruK9Oqw7k5wAZGO72
 
-        spoty playlist remove-tracks https://open.spotify.com/playlist/37i9dQZF1DX8z1UW9HQvSq https://open.spotify.com/track/00i9VF7sjSaTqblAuKFBDO
+        spoty spotify playlist remove-tracks https://open.spotify.com/playlist/37i9dQZF1DX8z1UW9HQvSq https://open.spotify.com/track/00i9VF7sjSaTqblAuKFBDO
 
     """
     track_ids = list(track_ids)
@@ -117,7 +181,7 @@ def playlist_remove_tracks(playlist_id, track_ids):
 
 
 @playlist.command("remove-liked-tracks")
-@click.argument("playlist_ids",  nargs=-1)
+@click.argument("playlist_ids", nargs=-1)
 def playlist_remove_liked_tracks(playlist_ids):
     r"""
     Read playlists and remove all liked tracks found from these playlists.
@@ -126,11 +190,11 @@ def playlist_remove_liked_tracks(playlist_ids):
 
     Examples:
 
-        spoty playlist remove-liked-tracks 37i9dQZF1DX8z1UW9HQvSq
+        spoty spotify playlist remove-liked-tracks 37i9dQZF1DX8z1UW9HQvSq
 
-        spoty playlist remove-liked-tracks 37i9dQZF1DX8z1UW9HQvSq 37i9dQZF1DX7jNFrjYQurt
+        spoty spotify playlist remove-liked-tracks 37i9dQZF1DX8z1UW9HQvSq 37i9dQZF1DX7jNFrjYQurt
 
-        spoty playlist remove-liked-tracks https://open.spotify.com/playlist/37i9dQZF1DX8z1UW9HQvSq
+        spoty spotify playlist remove-liked-tracks https://open.spotify.com/playlist/37i9dQZF1DX8z1UW9HQvSq
 
     """
 
@@ -144,7 +208,7 @@ def playlist_remove_liked_tracks(playlist_ids):
 
 
 @playlist.command("list-invalid-tracks")
-@click.argument("playlist_ids",  nargs=-1)
+@click.argument("playlist_ids", nargs=-1)
 def playlist_list_invalid_tracks(playlist_ids):
     r"""
     Read playlists and list all invalid tracks found from these playlists.
@@ -156,11 +220,11 @@ def playlist_list_invalid_tracks(playlist_ids):
 
     Examples:
 
-        spoty playlist list-invalid-tracks 37i9dQZF1DX8z1UW9HQvSq
+        spoty spotify playlist list-invalid-tracks 37i9dQZF1DX8z1UW9HQvSq
 
-        spoty playlist list-invalid-tracks 37i9dQZF1DX8z1UW9HQvSq 37i9dQZF1DX7jNFrjYQurt
+        spoty spotify playlist list-invalid-tracks 37i9dQZF1DX8z1UW9HQvSq 37i9dQZF1DX7jNFrjYQurt
 
-        spoty playlist list-invalid-tracks https://open.spotify.com/playlist/37i9dQZF1DX8z1UW9HQvSq
+        spoty spotify playlist list-invalid-tracks https://open.spotify.com/playlist/37i9dQZF1DX8z1UW9HQvSq
 
     """
 
@@ -178,7 +242,7 @@ def playlist_list_invalid_tracks(playlist_ids):
 
 
 @playlist.command("like-all-tracks")
-@click.argument("playlist_ids",  nargs=-1)
+@click.argument("playlist_ids", nargs=-1)
 def playlist_like_all_tracks(playlist_ids):
     r"""
     Read playlists and like all tracks in these playlists.
@@ -187,11 +251,11 @@ def playlist_like_all_tracks(playlist_ids):
 
     Examples:
 
-        spoty playlist like-all-tracks 37i9dQZF1DX8z1UW9HQvSq
+        spoty spotify playlist like-all-tracks 37i9dQZF1DX8z1UW9HQvSq
 
-        spoty playlist like-all-tracks 37i9dQZF1DX8z1UW9HQvSq 37i9dQZF1DX7jNFrjYQurt
+        spoty spotify playlist like-all-tracks 37i9dQZF1DX8z1UW9HQvSq 37i9dQZF1DX7jNFrjYQurt
 
-        spoty playlist like-all-tracks https://open.spotify.com/playlist/37i9dQZF1DX8z1UW9HQvSq
+        spoty spotify playlist like-all-tracks https://open.spotify.com/playlist/37i9dQZF1DX8z1UW9HQvSq
 
     """
 

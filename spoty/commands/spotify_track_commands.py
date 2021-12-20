@@ -18,7 +18,7 @@ def track_find_by_isrc(isrc):
 
     Examples:
 
-        spoty track isrc UK6821402425
+        spoty spotify track isrc UK6821402425
 
     """
     track = spoty.spotify.find_track_by_isrc(isrc)
@@ -38,7 +38,7 @@ def track_find_by_title(artist, title):
 
     Examples:
 
-        spoty track artist-title "Aaron Static" "When We Love"
+        spoty spotify track artist-title "Aaron Static" "When We Love"
 
     """
     track = spoty.spotify.find_track_by_artist_and_title(artist, title)
@@ -57,7 +57,7 @@ def tracks_find_by_query(query):
 
     Examples:
 
-        spoty track query "track: breathe"
+        spoty spotify track query "track: breathe"
 
     """
     tracks = spoty.spotify.find_track_by_query(query)

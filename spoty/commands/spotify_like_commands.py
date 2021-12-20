@@ -22,7 +22,7 @@ def like_count():
 
     Examples:
 
-        spoty like count
+        spoty spotify like count
     """
     count = spoty.spotify.get_liked_tracks_count()
     click.echo(f'Liked tracks: {count}')
@@ -38,11 +38,11 @@ def like_add(track_ids):
 
     Examples:
 
-        spoty like add  00i9VF7sjSaTqblAuKFBDO
+        spoty spotify like add  00i9VF7sjSaTqblAuKFBDO
 
-        spoty like add  00i9VF7sjSaTqblAuKFBDO 7cjlfruK9Oqw7k5wAZGO72
+        spoty spotify like add  00i9VF7sjSaTqblAuKFBDO 7cjlfruK9Oqw7k5wAZGO72
 
-        spoty like add https://open.spotify.com/track/00i9VF7sjSaTqblAuKFBDO
+        spoty spotify like add https://open.spotify.com/track/00i9VF7sjSaTqblAuKFBDO
     """
 
     track_ids = list(track_ids)
@@ -53,9 +53,9 @@ def like_add(track_ids):
 @like.command("export")
 @click.option('--path',  default=settings.DEFAULT_LIBRARY_PATH, help='Path to create file')
 @click.option('--file-name',  default=settings.DEFAULT_LIKES_EXPORT_FILE_NAME, help='File name to create')
-@click.option('--dest_csv_overwrite', '-o', type=bool, is_flag=True, default=False,
+@click.option('--overwrite', '-o', type=bool, is_flag=True, default=False,
               help='Overwrite existing files without asking')
-@click.option('--dest_csv_timestamp', '-t', type=bool, is_flag=True, default=False,
+@click.option('--timestamp', '-t', type=bool, is_flag=True, default=False,
               help='Create a subfolder with the current date and time (it can be convenient for creating backups)')
 def like_export(path, file_name, overwrite, timestamp):
     r"""Export the list of liked tracks to csv file on disk.
@@ -99,9 +99,9 @@ def like_import(file_names):
 
     Examples:
 
-        spoty like import "C:\Users\User\Downloads\export\likes.csv"
+        spoty spotify like import "C:\Users\User\Downloads\export\likes.csv"
 
-        spoty like import "C:\Users\User\Downloads\export\likes1.csv" "C:\Users\User\Downloads\export\likes2.csv"
+        spoty spotify like import "C:\Users\User\Downloads\export\likes1.csv" "C:\Users\User\Downloads\export\likes2.csv"
     """
 
     all_tracks_in_file = []

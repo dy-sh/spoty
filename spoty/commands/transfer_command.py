@@ -40,7 +40,7 @@ from datetime import datetime
 @click.option('--dest-spotify', '-S', is_flag=True,
               help='Export a list of read tracks to playlist library.')
 @click.option('--dest-option-grouping-pattern', '--dogp', show_default=True,
-              default='%SPOTY_PLAYLIST_NAME%',
+              default=settings.DEFAULT_DEST_GROUPING_PATTERN,
               help='Exported playlists/files will be named according to this pattern.')
 @click.option('--dest-option-duplicates', '-d', type=bool, is_flag=True, default=False,
               help='Allow duplicates (add tracks that are already exist in the playlist).')
@@ -49,15 +49,15 @@ from datetime import datetime
 @click.option('--dest-option-overwrite', '-o', is_flag=True,
               help='Overwrite existing playlist/file')
 @click.option('--dest-option-path', '--dop', show_default=True,
-              default="./PLAYLISTS",
+              default=settings.DEFAULT_LIBRARY_PATH,
               help='The path on disk where to export csv playlists.')
 @click.option('--dest-option-timestamp', '-t', is_flag=True,
               help='Create a new subfolder with the current date and time for saved csv playlists')
 @click.option('--dest-option-print-pattern', '--dopp', show_default=True,
-              default='%SPOTY_PLAYLIST_INDEX%: %SPOTY_TRACK_ID% %ARTIST% - %TITLE%',
+              default=settings.DEFAULT_DEST_PRINT_PATTERN,
               help='Print a list of tracks according to this formatting pattern.')
 @click.option('--dest-option-compare-tags', '--sost', show_default=True,
-              default='ISRC,ARTIST,TITLE,LENGTH',
+              default=settings.DEFAULT_COMPARE_TAGS,
               help='Compare duplicates by this tags.')
 @click.option('--yes-all', '-y', is_flag=True,
               help='Confirm all questions with a positive answer automatically.')
@@ -122,6 +122,8 @@ Examples:
         spoty transfer -P --ssu "./LOCAL_PATH"
 To avoid confusion, better to stick to a simple rule: pass the SOURCES before options.
 
+Many options have default values. You can change them in the config file.
+
 Examples of using:
 
 \b
@@ -133,7 +135,7 @@ Examples of using:
     spoty transfer --ssu -P
 
 \b
-    Export all tracks of the current Spotify user to csv playlists in the default (./PLAYLISTS) path (dest_csv_overwrite files if they already exist):
+    Export all tracks of the current Spotify user to csv playlists in the default path (overwrite files if they already exist):
     spoty transfer --ssu -Co
 
 \b
@@ -206,17 +208,17 @@ Examples of using:
 
 \b
     Collect playlists from local audio files and import them to Spotify library:
-    spoty transfer ".\music" -S
+    spoty transfer "./music" -S
 
 \b
     Collect playlists from local audio files, save them to csv files, then read csvs from disk and import tracks to Spotify library:
-    spoty transfer --sa ".\music" --dop ".\EXPORT" -C
-    spoty transfer --sc ".\EXPORT" -S
+    spoty transfer --sa "./music" --dop "./EXPORT" -C
+    spoty transfer --sc "./EXPORT" -S
 
 \b
     Same as above, but use default path:
-    spoty transfer ".\music" -C
-    spoty transfer ".\PLAYLISTS" -S
+    spoty transfer "./music" -C
+    spoty transfer "./PLAYLISTS" -S
 
     """
 
