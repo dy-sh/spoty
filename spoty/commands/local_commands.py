@@ -55,7 +55,7 @@ def duplicates_from_dict_to_array(duplicates_dic):
 @local.command("list-duplicates-in-playlists")
 @click.argument('tags')
 @click.argument('path')
-@click.option('--filter-names', default=None,
+@click.option('--filter-names', '--fn', default=None,
               help='Read only playlists whose names matches this regex filter')
 @click.option('--recursive', '-r', type=bool, is_flag=True, default=False,
               help='Search in subfolders.')
@@ -88,15 +88,15 @@ def local_list_duplicates_in_playlists(tags, path, filter_names, recursive):
 @local.command("list-duplicates-in-tracks")
 @click.argument('tags')
 @click.argument('path')
-@click.option('--filter-names', default=None,
+@click.option('--filter-names', '--fn',default=None,
               help='Include only files whose names matches this regex filter')
-@click.option('--have-tags', default=None,
+@click.option('--filter-have-tags','--fht', default=None,
               help='Include only files that have all of the specified tags.')
-@click.option('--have-no-tags', default=None,
+@click.option('--filter-have-no-tags','--fhnt', default=None,
               help='Include only files that do not have any of the listed tags.')
 @click.option('--recursive', '-r', type=bool, is_flag=True, default=False,
               help='Search in subfolders.')
-def local_list_duplicates_in_tracks(tags, path, filter_names, recursive, have_tags, have_no_tags):
+def local_list_duplicates_in_tracks(tags, path, filter_names, recursive, filter_have_tags, filter_have_no_tags):
     r"""Displays the list of duplicates found in local tracks.
 
     PATH - Path to search files
@@ -113,8 +113,8 @@ def local_list_duplicates_in_tracks(tags, path, filter_names, recursive, have_ta
     path = os.path.abspath(path)
 
     tags_arr = tags.upper().split(',') if tags is not None else []
-    have_tags_arr = have_tags.upper().split(',') if have_tags is not None else []
-    have_no_tags_arr = have_no_tags.upper().split(',') if have_no_tags is not None else []
+    have_tags_arr = filter_have_tags.upper().split(',') if filter_have_tags is not None else []
+    have_no_tags_arr = filter_have_no_tags.upper().split(',') if filter_have_no_tags is not None else []
 
     duplicates_dic, all_tracks, skipped_tracks \
         = spoty.audio_files.find_duplicates_in_audio_files(path, tags_arr, recursive, filter_names, have_tags_arr,
@@ -129,7 +129,7 @@ def local_list_duplicates_in_tracks(tags, path, filter_names, recursive, have_ta
 @click.argument('tags')
 @click.argument('import-path')
 @click.argument('export-file-name')
-@click.option('--filter-names', default=None,
+@click.option('--filter-names','--fn', default=None,
               help='Read only playlists whose names matches this regex filter')
 @click.option('--recursive', '-r', type=bool, is_flag=True, default=False,
               help='Search in subfolders.')
@@ -168,16 +168,16 @@ def local_collect_duplicates_in_playlists(tags, import_path, export_file_name, f
 @click.argument('tags')
 @click.argument('import-path')
 @click.argument('export-file-name')
-@click.option('--filter-names', default=None,
+@click.option('--filter-names', '--fn',default=None,
               help='Include only files whose names matches this regex filter')
-@click.option('--have-tags', default=None,
+@click.option('--filter-have-tags', default=None,
               help='Include only files that have all of the specified tags.')
-@click.option('--have-no-tags', default=None,
+@click.option('--filter-have-no-tags', default=None,
               help='Include only files that do not have any of the listed tags.')
 @click.option('--recursive', '-r', type=bool, is_flag=True, default=False,
               help='Search in subfolders.')
-def local_collect_duplicates_in_tracks(tags, import_path, export_file_name, filter_names, recursive, have_tags,
-                                       have_no_tags):
+def local_collect_duplicates_in_tracks(tags, import_path, export_file_name, filter_names, recursive, filter_have_tags,
+                                       filter_have_no_tags):
     r"""Collect the list of duplicates found in local tracks and create new playlists with duplicates only.
 
     TAGS - Tags to compare
@@ -197,8 +197,8 @@ def local_collect_duplicates_in_tracks(tags, import_path, export_file_name, filt
     export_file_name = os.path.abspath(export_file_name)
 
     tags_arr = tags.upper().split(',') if tags is not None else []
-    have_tags_arr = have_tags.upper().split(',') if have_tags is not None else []
-    have_no_tags_arr = have_no_tags.upper().split(',') if have_no_tags is not None else []
+    have_tags_arr = filter_have_tags.upper().split(',') if filter_have_tags is not None else []
+    have_no_tags_arr = filter_have_no_tags.upper().split(',') if filter_have_no_tags is not None else []
 
     duplicates_dic, all_tracks, skipped_tracks \
         = spoty.audio_files.find_duplicates_in_audio_files(import_path, tags_arr, recursive, filter_names,
@@ -221,14 +221,14 @@ def local_collect_duplicates_in_tracks(tags, import_path, export_file_name, filt
               help='Tags to compare')
 @click.option('--filter-names', default=None,
               help='Read only playlists whose names matches this regex filter')
-@click.option('--have-tags', default=None,
+@click.option('--filter-have-tags', default=None,
               help='Include only files that have all of the specified tags.')
-@click.option('--have-no-tags', default=None,
+@click.option('--filter-have-no-tags', default=None,
               help='Include only files that do not have any of the listed tags.')
 @click.option('--recursive', '-r', type=bool, is_flag=True, default=False,
               help='Search local files in subfolders.')
 @click.option('--user-id', default=None, help='Get playlists of this user')
-def local_add_tags_from_spotify_library(export_path, recursive, compare_tags, filter_names, have_tags, have_no_tags,
+def local_add_tags_from_spotify_library(export_path, recursive, compare_tags, filter_names, filter_have_tags, filter_have_no_tags,
                                         user_id):
     r"""Read local files and try to found it in spotify user library. If found, read tags in spotify tracks and write to local files.
 
@@ -245,8 +245,8 @@ def local_add_tags_from_spotify_library(export_path, recursive, compare_tags, fi
 
     export_path = os.path.abspath(export_path)
 
-    have_tags_arr = have_tags.upper().split(',') if have_tags is not None else []
-    have_no_tags_arr = have_no_tags.upper().split(',') if have_no_tags is not None else []
+    have_tags_arr = filter_have_tags.upper().split(',') if filter_have_tags is not None else []
+    have_no_tags_arr = filter_have_no_tags.upper().split(',') if filter_have_no_tags is not None else []
     compare_tags_arr = compare_tags.upper().split(',') if compare_tags is not None else []
 
     import_tracks_tags = spoty.spotify.get_tags_from_spotify_library(filter_names, user_id)
@@ -266,13 +266,13 @@ def local_add_tags_from_spotify_library(export_path, recursive, compare_tags, fi
 @click.argument('export-path')
 @click.option('--compare-tags', default='ARTIST,TITLE',
               help='Tags to compare')
-@click.option('--have-tags', default=None,
+@click.option('--filter-have-tags', default=None,
               help='Include only files that have all of the specified tags.')
-@click.option('--have-no-tags', default=None,
+@click.option('--filter-have-no-tags', default=None,
               help='Include only files that do not have any of the listed tags.')
 @click.option('--recursive', '-r', type=bool, is_flag=True, default=False,
               help='Search local files in subfolders.')
-def local_add_tags_from_tracks(import_path, export_path, recursive, compare_tags, have_tags, have_no_tags):
+def local_add_tags_from_tracks(import_path, export_path, recursive, compare_tags, filter_have_tags, filter_have_no_tags):
     r"""Read local files and try to found it in another folder. If found, read tags in import folder and write to tracks in export folder.
 
     IMPORT-PATH - Path to search local files for reading tags
@@ -291,8 +291,8 @@ def local_add_tags_from_tracks(import_path, export_path, recursive, compare_tags
     import_path = os.path.abspath(import_path)
     export_path = os.path.abspath(export_path)
 
-    have_tags_arr = have_tags.upper().split(',') if have_tags is not None else []
-    have_no_tags_arr = have_no_tags.upper().split(',') if have_no_tags is not None else []
+    have_tags_arr = filter_have_tags.upper().split(',') if filter_have_tags is not None else []
+    have_no_tags_arr = filter_have_no_tags.upper().split(',') if filter_have_no_tags is not None else []
     compare_tags_arr = compare_tags.upper().split(',') if compare_tags is not None else []
 
     audio_files_names = spoty.audio_files.find_audio_files_in_path(import_path, recursive, have_tags_arr,
@@ -319,14 +319,14 @@ def local_add_tags_from_tracks(import_path, export_path, recursive, compare_tags
               help='Tags to compare')
 @click.option('--filter-names', default=None,
               help='Read only playlists whose names matches this regex filter')
-@click.option('--have-tags', default=None,
+@click.option('--filter-have-tags', default=None,
               help='Include only files that have all of the specified tags.')
-@click.option('--have-no-tags', default=None,
+@click.option('--filter-have-no-tags', default=None,
               help='Include only files that do not have any of the listed tags.')
 @click.option('--recursive', '-r', type=bool, is_flag=True, default=False,
               help='Search local files in subfolders.')
 @click.option('--user-id', default=None, help='Get playlists of this user')
-def local_list_tags_from_spotify_library(export_path, recursive, compare_tags, filter_names, have_tags, have_no_tags,
+def local_list_tags_from_spotify_library(export_path, recursive, compare_tags, filter_names, filter_have_tags, filter_have_no_tags,
                                          user_id):
     r"""Read local files and try to found it in spotify user library. If found, read tags in spotify tracks and display missing tags in local files.
 
@@ -343,8 +343,8 @@ def local_list_tags_from_spotify_library(export_path, recursive, compare_tags, f
 
     export_path = os.path.abspath(export_path)
 
-    have_tags_arr = have_tags.upper().split(',') if have_tags is not None else []
-    have_no_tags_arr = have_no_tags.upper().split(',') if have_no_tags is not None else []
+    have_tags_arr = filter_have_tags.upper().split(',') if filter_have_tags is not None else []
+    have_no_tags_arr = filter_have_no_tags.upper().split(',') if filter_have_no_tags is not None else []
     compare_tags_arr = compare_tags.upper().split(',') if compare_tags is not None else []
 
     import_tracks_tags = spoty.spotify.get_tags_from_spotify_library(filter_names, user_id)
@@ -369,13 +369,13 @@ def local_list_tags_from_spotify_library(export_path, recursive, compare_tags, f
 @click.argument('export-path')
 @click.option('--compare-tags', default='ARTIST,TITLE',
               help='Tags to compare')
-@click.option('--have-tags', default=None,
+@click.option('--filter-have-tags', default=None,
               help='Include only files that have all of the specified tags.')
-@click.option('--have-no-tags', default=None,
+@click.option('--filter-have-no-tags', default=None,
               help='Include only files that do not have any of the listed tags.')
 @click.option('--recursive', '-r', type=bool, is_flag=True, default=False,
               help='Search local files in subfolders.')
-def local_list_tags_from_tracks(import_path, export_path, recursive, compare_tags, have_tags, have_no_tags):
+def local_list_tags_from_tracks(import_path, export_path, recursive, compare_tags, filter_have_tags, filter_have_no_tags):
     r"""Read local files and try to found it in another folder. If found, read tags in import folder and display missing tags in tracks from export folder.
 
     IMPORT-PATH - Path to search local files for reading tags
@@ -394,8 +394,8 @@ def local_list_tags_from_tracks(import_path, export_path, recursive, compare_tag
     import_path = os.path.abspath(import_path)
     export_path = os.path.abspath(export_path)
 
-    have_tags_arr = have_tags.upper().split(',') if have_tags is not None else []
-    have_no_tags_arr = have_no_tags.upper().split(',') if have_no_tags is not None else []
+    have_tags_arr = filter_have_tags.upper().split(',') if filter_have_tags is not None else []
+    have_no_tags_arr = filter_have_no_tags.upper().split(',') if filter_have_no_tags is not None else []
     compare_tags_arr = compare_tags.upper().split(',') if compare_tags is not None else []
 
     audio_files_names = spoty.audio_files.find_audio_files_in_path(import_path, recursive, have_tags_arr,
@@ -419,13 +419,13 @@ def local_list_tags_from_tracks(import_path, export_path, recursive, compare_tag
 
 @local.command("fix-invalid-track-tags")
 @click.argument('path')
-@click.option('--have-tags', default=None,
+@click.option('--filter-have-tags', default=None,
               help='Include only files that have all of the specified tags.')
-@click.option('--have-no-tags', default=None,
+@click.option('--filter-have-no-tags', default=None,
               help='Include only files that do not have any of the listed tags.')
 @click.option('--recursive', '-r', type=bool, is_flag=True, default=False,
               help='Search local files in subfolders.')
-def local_fix_invalid_track_tags(path, recursive, have_tags, have_no_tags):
+def local_fix_invalid_track_tags(path, recursive, filter_have_tags, filter_have_no_tags):
     r"""Read local files and try to found it in spotify user library. If found, read tags in spotify tracks and write to local files.
 
     PATH - Path to search local files
@@ -439,8 +439,8 @@ def local_fix_invalid_track_tags(path, recursive, have_tags, have_no_tags):
 
     path = os.path.abspath(path)
 
-    have_tags_arr = have_tags.upper().split(',') if have_tags is not None else []
-    have_no_tags_arr = have_no_tags.upper().split(',') if have_no_tags is not None else []
+    have_tags_arr = filter_have_tags.upper().split(',') if filter_have_tags is not None else []
+    have_no_tags_arr = filter_have_no_tags.upper().split(',') if filter_have_no_tags is not None else []
 
     edited_files, all_files = spoty.audio_files.fix_invalid_audio_file_tags(path, recursive, have_tags_arr,
                                                                             have_no_tags_arr)

@@ -18,7 +18,7 @@ def playlist():
 
 
 @playlist.command("list")
-@click.option('--filter-names', '--f', default=None,
+@click.option('--filter-names', '--fn', default=None,
               help='List only playlists whose names matches this regex filter')
 @click.option('--user-id', '--u', default=None, help='Get playlists of this user')
 def playlist_list(filter_names, user_id):

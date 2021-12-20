@@ -61,7 +61,7 @@ def tracks_find_by_query(query):
 
     """
     tracks = spoty.spotify.find_track_by_query(query)
-    if len(tracks)==0:
+    if len(tracks) == 0:
         click.echo("Not found")
         return
     tags = spoty.spotify.read_tags_from_spotify_tracks(tracks)
