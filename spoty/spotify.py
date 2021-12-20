@@ -28,7 +28,7 @@ def get_tracks_from_spotify_playlists(playlist_ids, filter_playlists_names=None,
                 playlist = get_playlist(playlist_id)
                 playlists.append(playlist)
 
-        if filter_playlists_names is not None:
+        if len(filter_playlists_names) > 0:
             playlists = list(filter(lambda pl: re.findall(filter_playlists_names, pl['name']), playlists))
 
         spotify_tracks, source_tags, r_playlists = get_tracks_from_playlists(playlists, filter_have_tags,
@@ -59,7 +59,7 @@ def get_tracks_of_spotify_user(user_ids, filter_playlists_names=None, filter_hav
             playlists = get_list_of_user_playlists(user_id)
             click.echo(f'User {user_id} has {len(playlists)} playlists in Spotify library')
 
-        if filter_playlists_names is not None:
+        if len(filter_playlists_names) > 0:
             playlists = list(filter(lambda pl: re.findall(filter_playlists_names, pl['name']), playlists))
 
         # remove already requested playlists
@@ -237,7 +237,7 @@ def delete_playlist(playlist_id, confirm=False):
         if not click.confirm(f'Do you want to delete playlist {playlist["id"]} ("{playlist["name"]}")'):
             click.echo("\nCanceled")
             return False
-        click.echo() # for new line
+        click.echo()  # for new line
 
     sp.current_user_unfollow_playlist(playlist_id)
 
@@ -451,7 +451,7 @@ def remove_all_tracks_from_playlist(playlist_id, confirm=False):
         if not click.confirm(f'Do you want to remove all tracks from playlist {playlist_id}?'):
             click.echo("\nCanceled")
             return False
-        click.echo() # for new line
+        click.echo()  # for new line
 
     ids = get_track_ids(tracks)
     remove_tracks_from_playlist(playlist_id, ids)
@@ -575,35 +575,37 @@ def import_playlist_from_tags_list(playlist_name, tags_list, overwrite_if_exist=
             if append_if_exist:
                 if len(found_playlists) > 1:
                     if confirm:
-                        click.echo(f'\n{len(found_playlists)} playlists with name "{playlist_name}" found in Spotify library. Choosing the first one and appending it.')
+                        click.echo(
+                            f'\n{len(found_playlists)} playlists with name "{playlist_name}" found in Spotify library. Choosing the first one and appending it.')
                     else:
                         if not click.confirm(
-                            f'\n{len(found_playlists)} playlists with name "{playlist_name}" found in Spotify library. Choose the first one and append it?'):
+                                f'\n{len(found_playlists)} playlists with name "{playlist_name}" found in Spotify library. Choose the first one and append it?'):
                             click.echo("\nCanceled")
                             log.info(f'Canceled by user (more than one playlists found with name "{playlist_name})"')
                             return [], [], [], []
-                        click.echo() # for new line
+                        click.echo()  # for new line
             if overwrite_if_exist:
                 if len(found_playlists) > 1:
                     if confirm:
-                        click.echo(                            f'\n{len(found_playlists)} playlists with name "{playlist_name}" found in Spotify library. Choosing the first one and overwriting it.')
+                        click.echo(
+                            f'\n{len(found_playlists)} playlists with name "{playlist_name}" found in Spotify library. Choosing the first one and overwriting it.')
                     else:
                         if not click.confirm(
-                            f'\n{len(found_playlists)} playlists with name "{playlist_name}" found in Spotify library. Choose the first one and overwrite it?'):
+                                f'\n{len(found_playlists)} playlists with name "{playlist_name}" found in Spotify library. Choose the first one and overwrite it?'):
                             click.echo("\nCanceled")
                             log.info(f'Canceled by user (more than one playlists found with name "{playlist_name})"')
                             return [], [], [], []
-                        click.echo() # for new line
+                        click.echo()  # for new line
                 else:
                     if confirm:
                         click.echo(f'\nPlaylist "{playlist_name}" exist in Spotify library. Overwriting it.')
                     else:
                         if not click.confirm(
-                            f'\nPlaylist "{playlist_name}" exist in Spotify library. Overwrite it?'):
+                                f'\nPlaylist "{playlist_name}" exist in Spotify library. Overwrite it?'):
                             click.echo("\nCanceled")
                             log.info(f'Canceled by user (playlist found with name "{playlist_name})"')
                             return [], [], [], []
-                        click.echo() # for new line
+                        click.echo()  # for new line
 
                 remove_all_tracks_from_playlist(found_playlists[0]['id'], True)
 

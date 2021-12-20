@@ -26,10 +26,17 @@ class CSVFileInvalidHeader(CSVImportException):
 def is_csv(file_name):
     return file_name.upper().endswith('.CSV')
 
+def clean_tags(tags_list):
+    for tags in tags_list:
+        if 'SPOTY_PLAYLIST_SOURCE' in tags:
+            del tags['SPOTY_PLAYLIST_INDEX']
+
 
 def create_csvs(tags_list, path, grouping_pattern, overwrite=False, append=False, allow_duplicates=True,
                 confirm=False, compare_duplicates_tags=None):
     path = os.path.abspath(path)
+
+    clean_tags(tags_list)
 
     if compare_duplicates_tags is None:
         compare_duplicates_tags = []
@@ -61,13 +68,14 @@ def create_csvs(tags_list, path, grouping_pattern, overwrite=False, append=False
                     csv_file_name = spoty.utils.find_empty_file_name(csv_file_name)
 
             if not allow_duplicates:
-                tags_l, import_duplicates = spoty.utils.remove_tags_duplicates(tags_l, compare_duplicates_tags)
+                tags_l, import_duplicates = spoty.utils.remove_tags_duplicates(tags_l, compare_duplicates_tags, True)
                 all_import_duplicates.extend(import_duplicates)
                 if len(import_duplicates) > 0:
                     log.debug(f'{len(import_duplicates)} duplicates found when adding tracks. It will be skipped.')
                 if not create_new_file:
                     exist_tags_list = read_tags_from_csv(csv_file_name)
-                    tags_l, exist_tags = spoty.utils.remove_exist_tags(exist_tags_list, tags_l, compare_duplicates_tags)
+                    tags_l, exist_tags = spoty.utils.remove_exist_tags(
+                        exist_tags_list, tags_l, compare_duplicates_tags, True)
                     all_already_exist.extend(exist_tags)
 
             write_tags_to_csv(tags_l, csv_file_name, not create_new_file)
@@ -109,9 +117,9 @@ def find_csvs_in_path(path, recursive=True):
 def write_tags_to_csv(tags_list, csv_file_name, append=False):
     if append:
         if os.path.isfile(csv_file_name):
-            old_tags=read_tags_from_csv(csv_file_name)
+            old_tags = read_tags_from_csv(csv_file_name, None, None, False)
             old_tags.extend(tags_list)
-            tags_list=old_tags
+            tags_list = old_tags
 
     # collect all keys
     keys = []
@@ -128,7 +136,6 @@ def write_tags_to_csv(tags_list, csv_file_name, append=False):
             if not key in tags:
                 tags[key] = ""
 
-
     rows = []
     rows.append(keys)  # header
     for tags in tags_list:
@@ -139,8 +146,6 @@ def write_tags_to_csv(tags_list, csv_file_name, append=False):
     with open(csv_file_name, 'w', encoding='utf-8-sig', newline='') as file:
         writer = csv.writer(file)
         writer.writerows(rows)
-
-
 
 
 def read_tags_from_csvs(csv_file_names, filter_have_tags=None, filter_have_no_tags=None, add_spoty_tags=True):
