@@ -44,7 +44,7 @@ Filter tracks.
             new_tags_list = spoty.utils.filter_tags_list_have_tags(tags_list, have_tags)
 
             if len(tags_list) - len(new_tags_list)  != 0:
-                context.summary += f'{len(tags_list) - len(new_tags_list)} tracks filtered (that have all of the specified tags).'
+                context.summary.append ( f'{len(tags_list) - len(new_tags_list)} tracks filtered (that have all of the specified tags).')
             tags_list = new_tags_list
 
 
@@ -52,14 +52,15 @@ Filter tracks.
             new_tags_list = spoty.utils.filter_tags_list_have_no_tags(tags_list, have_no_tags)
 
             if len(tags_list) - len(new_tags_list)  != 0:
-                context.summary += f'{len(tags_list) - len(new_tags_list)} tracks filtered (that do not have any of the specified tags).'
+                context.summary.append ( f'{len(tags_list) - len(new_tags_list)} tracks filtered (that do not have any of the specified tags).')
             tags_list = new_tags_list
 
-        a=['123','12312321313123','123123123123213']
+
         if duplicates:
-            new_tags_list, dup = spoty.utils.remove_tags_duplicates(tags_list, duplicates_compare_tags, True)
+            tags = duplicates_compare_tags.split(',')
+            new_tags_list, dup = spoty.utils.remove_tags_duplicates(tags_list, tags, True)
             if len(dup) > 0:
-                context.summary += f'{len(dup)} duplicates found in {len(tags_list)} tracks'
+                context.summary.append ( f'{len(dup)} duplicates filtered in {len(tags_list)} tracks')
             tags_list = new_tags_list
 
     context.tags_list = tags_list

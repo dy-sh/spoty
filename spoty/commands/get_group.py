@@ -128,20 +128,19 @@ Get tracks from sources.
 
     # make summary
 
-    summary = ""
-    summary += ('-------------------------------------------------------------------------------------\n')
+    summary = []
 
     if len(tags_list_from_spotify) > 0:
-        summary += f'{len(tags_list_from_spotify)} tracks found in {len(spotify_playlists)} Spotify playlists.\n'
+        summary.append(f'{len(tags_list_from_spotify)} tracks found in {len(spotify_playlists)} Spotify playlists.')
     if len(tags_list_from_audio) > 0:
-        summary += f'{len(tags_list_from_audio)} audio files found in local path.\n'
+        summary.append(f'{len(tags_list_from_audio)} audio files found in local path.')
     if len(tags_list_from_csv) > 0:
-        summary += f'{len(tags_list_from_csv)} tracks found in {len(csv_files)} csv playlists.\n'
+        summary.append(f'{len(tags_list_from_csv)} tracks found in {len(csv_files)} csv playlists.')
 
     if len(tags_list_from_spotify) != len(all_tags_list) \
             or len(tags_list_from_audio) != len(all_tags_list) \
             or len(tags_list_from_csv) != len(all_tags_list):
-        summary += f'Total tracks found: {len(all_tags_list)}\n'
+        summary.append(f'Total tracks found: {len(all_tags_list)}')
 
     # make context
 

@@ -195,7 +195,7 @@ Examples of using:
     # if no sources - print help
 
     print(len(context.tags_list))
-    print(context.summary)
+    print('\n'.join(context.summary))
     exit()
 
     if len(source_spotify_user) == 0 \

@@ -2,7 +2,7 @@ import os.path
 
 class SpotyContext:
     tags_list:[]
-    summary:str
+    summary:[]
 
 
 tag_allies = [
