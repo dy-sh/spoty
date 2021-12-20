@@ -26,6 +26,7 @@ class CSVFileInvalidHeader(CSVImportException):
 def is_csv(file_name):
     return file_name.upper().endswith('.CSV')
 
+
 def clean_tags(tags_list):
     for tags in tags_list:
         if 'SPOTY_PLAYLIST_SOURCE' in tags:
@@ -187,6 +188,9 @@ def read_tags_from_csv(csv_file_name, filter_have_tags=None, filter_have_no_tags
             # read tags
 
             if len(row) == 0:  # skip empty lines
+                continue
+
+            if all(item == "" for item in row):  # skip empty lines
                 continue
 
             tags = {}

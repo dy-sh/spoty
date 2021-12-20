@@ -43,7 +43,7 @@ from datetime import datetime
               default='%SPOTY_PLAYLIST_NAME%',
               help='Exported playlists/files will be named according to this pattern.')
 @click.option('--dest-option-duplicates', '-d', type=bool, is_flag=True, default=False,
-              help='Prevent duplicates (do not add tracks that are already exist in the playlist).')
+              help='Allow duplicates (add tracks that are already exist in the playlist).')
 @click.option('--dest-option-append', '-a', is_flag=True,
               help='Add tracks to an existing playlist/file if already exists. If this option is not specified, a new playlist/file will always be created.')
 @click.option('--dest-option-overwrite', '-o', is_flag=True,
@@ -321,7 +321,7 @@ Examples of using:
         csv_created_file_names, csv_created_names, csv_added_tracks, csv_import_duplicates, csv_already_exist \
             = spoty.csv_playlist.create_csvs(all_tags, dest_option_path, dest_option_grouping_pattern,
                                              dest_option_overwrite, dest_option_append,
-                                             not dest_option_duplicates, yes_all, dest_option_compare_tags)
+                                             dest_option_duplicates, yes_all, dest_option_compare_tags)
 
         import_to_csv = True
 
@@ -344,7 +344,7 @@ Examples of using:
             spotify_imported_playlist_ids, spotify_imported_tracks, spotify_import_duplicates, spotify_already_exist, \
             spotify_not_found = spoty.spotify.import_playlists_from_tags_list(
                 all_tags, dest_option_grouping_pattern, dest_option_overwrite, dest_option_append,
-                not dest_option_duplicates, yes_all)
+                dest_option_duplicates, yes_all)
 
     # print summery
 
