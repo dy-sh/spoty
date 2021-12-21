@@ -6,6 +6,7 @@ from spoty.commands import spotify_playlist_commands
 from spoty.commands import spotify_like_commands
 from spoty.commands import spotify_track_commands
 from spoty.commands import get_group
+from spoty.commands import deezer_commands
 
 
 @click.group()
@@ -16,6 +17,7 @@ def cli():
 
 cli.add_command(local_commands.local)
 cli.add_command(get_group.get_tracks)
+cli.add_command(deezer_commands.deezer)
 
 
 @cli.group()

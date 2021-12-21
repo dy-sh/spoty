@@ -1,4 +1,3 @@
-from spoty import sp
 from spoty import log
 import spoty.utils
 import spoty.csv_playlist
@@ -6,6 +5,25 @@ import os.path
 import click
 import time
 import re
+from spoty import settings
+from spotipy.oauth2 import SpotifyOAuth
+import spotipy
+
+SPOTIFY_CLIENT_ID = settings.default.SPOTIFY_CLIENT_ID
+SPOTIFY_CLIENT_SECRET = settings.default.SPOTIFY_CLIENT_SECRET
+REDIRECT_URI = settings.SPOTIFY.REDIRECT_URI
+
+sp = None
+
+
+def get_sp():
+    global sp
+    if sp is None:
+        sp = spotipy.Spotify(auth_manager=SpotifyOAuth(SPOTIFY_CLIENT_ID,
+                                                       SPOTIFY_CLIENT_SECRET,
+                                                       REDIRECT_URI,
+                                                       scope="user-library-read user-library-modify playlist-modify-private playlist-read-private playlist-modify-public"))
+    return sp
 
 
 def get_tracks_from_playlists(playlist_ids, add_extra_tags=True):
@@ -59,7 +77,7 @@ def get_tracks_of_spotify_user(user_id, playlists_names_regex=None):
 
 
 def find_track_by_query(query):
-    res = sp.search(query)
+    res = get_sp().search(query)
 
     try:
         # todo: find for the best matching by album, length and other tags
@@ -72,7 +90,7 @@ def find_track_by_query(query):
 
 
 def find_track_by_isrc(isrc):
-    res = sp.search(f'isrc:{isrc}')
+    res = get_sp().search(f'isrc:{isrc}')
 
     try:
         # todo: find for the best matching by album, length and other tags
@@ -90,7 +108,7 @@ def find_track_id_by_isrc(isrc):
 
 
 def find_track_by_artist_and_title(artist, title):
-    res = sp.search(f'track:{title} artist:{artist}')
+    res = get_sp().search(f'track:{title} artist:{artist}')
 
     try:
         # todo: find for the best matching by album, length and other tags
@@ -138,7 +156,7 @@ def get_playlist(playlist_id):
 
     log.info(f'Requesting playlist {playlist_id}')
 
-    playlist = sp.playlist(playlist_id)
+    playlist = get_sp().playlist(playlist_id)
 
     return playlist
 
@@ -148,7 +166,7 @@ def get_playlist_with_full_list_of_tracks(playlist_id, add_extra_tags=True):
 
     log.info(f'Collecting playlist {playlist_id}')
 
-    playlist = sp.playlist(playlist_id)
+    playlist = get_sp().playlist(playlist_id)
     total_tracks = playlist["tracks"]["total"]
     tracks = playlist["tracks"]["items"]
 
@@ -162,9 +180,9 @@ def get_playlist_with_full_list_of_tracks(playlist_id, add_extra_tags=True):
     result = playlist
     while len(tracks) < total_tracks:
         if 'next' in result:
-            result = sp.next(result)
+            result = get_sp().next(result)
         else:
-            result = sp.next(result["tracks"])
+            result = get_sp().next(result["tracks"])
         if add_extra_tags:
             add_extra_tags_to_tracks(tracks, result['items'], playlist_id, playlist['name'])
         tracks.extend(result['items'])
@@ -186,13 +204,13 @@ def delete_playlist(playlist_id, confirm=False):
             return False
         click.echo()  # for new line
 
-    sp.current_user_unfollow_playlist(playlist_id)
+    get_sp().current_user_unfollow_playlist(playlist_id)
 
     return True
 
 
 def get_list_of_playlists(only_owned_by_user=True):
-    user_id = sp.me()['id']
+    user_id = get_sp().me()['id']
     playlists = []
 
     log.info(f'Collecting playlists for current user')
@@ -200,7 +218,7 @@ def get_list_of_playlists(only_owned_by_user=True):
     with click.progressbar(length=100, label='Reading current user spotify playlists') as bar:
 
         # load first 50 playlists
-        result = sp.current_user_playlists(limit=50)
+        result = get_sp().current_user_playlists(limit=50)
         playlists.extend(result['items'])
         total_playlists = result['total']
 
@@ -211,7 +229,7 @@ def get_list_of_playlists(only_owned_by_user=True):
 
         # load next 50 playlists
         while result['next']:
-            result = sp.next(result)
+            result = get_sp().next(result)
             playlists.extend(result['items'])
             bar.update(len(playlists))
 
@@ -234,7 +252,7 @@ def get_list_of_user_playlists(user_id: str):
     with click.progressbar(length=100, label=f'Reading user {user_id} spotify playlists') as bar:
         # load first 50 playlists
         playlists = []
-        result = sp.user_playlists(user=user_id, limit=50)
+        result = get_sp().user_playlists(user=user_id, limit=50)
         playlists.extend(result['items'])
         total_playlists = result['total']
 
@@ -245,7 +263,7 @@ def get_list_of_user_playlists(user_id: str):
 
         # load next 50 playlists
         while result['next']:
-            result = sp.next(result)
+            result = get_sp().next(result)
             playlists.extend(result['items'])
             bar.update(len(playlists))
 
@@ -257,8 +275,8 @@ def get_list_of_user_playlists(user_id: str):
 def create_playlist(name):
     log.info(f'Creating new playlist')
 
-    user_id = sp.me()['id']
-    new_playlist = sp.user_playlist_create(user_id, name)
+    user_id = get_sp().me()['id']
+    new_playlist = get_sp().user_playlist_create(user_id, name)
     id = new_playlist['id']
 
     log.success(f'New playlist created (id: {id}, name: "{name}")')
@@ -290,7 +308,7 @@ def get_tracks_of_playlist(playlist_id, add_extra_tags=True, playlist_name=None)
 
     # load the first 100 songs
     tracks = []
-    result = sp.playlist_items(playlist_id, additional_types=['track'], limit=100)
+    result = get_sp().playlist_items(playlist_id, additional_types=['track'], limit=100)
 
     new_tracks = result['items']
     if (add_extra_tags):
@@ -301,7 +319,7 @@ def get_tracks_of_playlist(playlist_id, add_extra_tags=True, playlist_name=None)
 
     # if playlist is larger than 100 songs, continue loading it until end
     while result['next']:
-        result = sp.next(result)
+        result = get_sp().next(result)
 
         new_tracks = result['items']
         if (add_extra_tags):
@@ -373,7 +391,7 @@ def add_tracks_to_playlist(playlist_id, track_ids, allow_duplicates=False):
     while i < len(track_ids):
         next_tracks.append(track_ids[i])
         if len(next_tracks) == 100 or i == len(track_ids) - 1:
-            sp.playlist_add_items(playlist_id, next_tracks)
+            get_sp().playlist_add_items(playlist_id, next_tracks)
             tracks_added.extend(next_tracks)
             log.debug(f'{len(next_tracks)} tracks added to playlist')
             next_tracks = []
@@ -413,7 +431,7 @@ def remove_tracks_from_playlist(playlist_id, track_ids):
         track_ids[i] = parse_track_id(track_ids[i])
         next_tracks.append(track_ids[i])
         if len(next_tracks) == 100 or i == len(track_ids) - 1:
-            snapshot = sp.playlist_remove_all_occurrences_of_items(playlist_id, next_tracks)
+            snapshot = get_sp().playlist_remove_all_occurrences_of_items(playlist_id, next_tracks)
             next_tracks = []
         i += 1
 
@@ -615,7 +633,7 @@ def get_tags_from_spotify_library(filter_names, user_id):
 
 
 def get_liked_tracks_count():
-    results = sp.current_user_saved_tracks(limit=50)
+    results = get_sp().current_user_saved_tracks(limit=50)
     total_likes_count = results['total']
     return total_likes_count
 
@@ -626,7 +644,7 @@ def get_liked_tracks():
     log.info(f'Collecting liked tracks')
 
     with click.progressbar(length=100, label='Collecting liked tracks') as bar:
-        results = sp.current_user_saved_tracks(limit=50)
+        results = get_sp().current_user_saved_tracks(limit=50)
         total_likes_count = results['total']
         tracks.extend(results['items'])
 
@@ -636,7 +654,7 @@ def get_liked_tracks():
         log.debug(f'Collected {len(tracks)}/{total_likes_count}')
 
         while results['next']:
-            results = sp.next(results)
+            results = get_sp().next(results)
             tracks.extend(results['items'])
             bar.update(len(tracks))
 
@@ -656,7 +674,7 @@ def add_tracks_to_liked(track_ids):
     while i < len(track_ids):
         next_tracks.append(track_ids[i])
         if len(next_tracks) == 50 or i == len(track_ids) - 1:
-            sp.current_user_saved_tracks_add(tracks=next_tracks)
+            get_sp().current_user_saved_tracks_add(tracks=next_tracks)
             log.debug(f'Added {i + 1}/{len(next_tracks)} tracks to saved')
             next_tracks = []
         i += 1
@@ -693,7 +711,7 @@ def get_likes_for_tracks(track_ids):
     while i < len(track_ids):
         next_tracks.append(track_ids[i])
         if len(next_tracks) == 50 or i == len(track_ids) - 1:
-            likes_new = sp.current_user_saved_tracks_contains(tracks=next_tracks)
+            likes_new = get_sp().current_user_saved_tracks_contains(tracks=next_tracks)
             likes.extend(likes_new)
             next_tracks = []
         i += 1
