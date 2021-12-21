@@ -1,8 +1,9 @@
-from spoty import settings
-from spoty import log
 from spoty.commands import transfer_command
 from spoty.commands import filter_group
+from spoty.commands import print_command
 from spoty.utils import SpotyContext
+from spoty import settings
+from spoty import log
 import spoty.spotify
 import spoty.audio_files
 import spoty.csv_playlist
@@ -41,13 +42,13 @@ Get tracks from sources.
 
     # if no sources - print help
 
-    if len(spotify_playlist) == 0 \
-            and len(spotify_entire_library) == 0 \
-            and len(spotify_entire_library_regex) == 0 \
-            and len(audio) == 0 \
-            and len(csv) == 0:
-        click.echo('Please, specify the source where to get the tracks from. Execute "spoty get --help" for more info.')
-        exit()
+    # if len(spotify_playlist) == 0 \
+    #         and len(spotify_entire_library) == 0 \
+    #         and len(spotify_entire_library_regex) == 0 \
+    #         and len(audio) == 0 \
+    #         and len(csv) == 0:
+    #     click.echo('Please, specify the source where to get the tracks from. Execute "spoty get --help" for more info.')
+    #     exit()
 
     all_tags_list = []
 
@@ -140,7 +141,7 @@ Get tracks from sources.
     if len(tags_list_from_spotify) != len(all_tags_list) \
             or len(tags_list_from_audio) != len(all_tags_list) \
             or len(tags_list_from_csv) != len(all_tags_list):
-        summary.append(f'Total tracks found: {len(all_tags_list)}')
+        summary.append(f'Total tracks collected: {len(all_tags_list)}')
 
     # make context
 
@@ -153,3 +154,4 @@ Get tracks from sources.
 
 get_tracks.add_command(transfer_command.transfer)
 get_tracks.add_command(filter_group.filter_tracks)
+get_tracks.add_command(print_command.print_tracks)

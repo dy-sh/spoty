@@ -1,9 +1,10 @@
+from spoty.commands import print_command
+from spoty.commands import transfer_command
+from spoty.utils import SpotyContext
 from spoty import settings
 from spoty import log
 import spoty.utils
 import click
-from spoty.commands import transfer_command
-from spoty.utils import SpotyContext
 
 
 @click.group("filter")
@@ -41,7 +42,7 @@ Filter tracks.
 
             if len(tags_list) - len(new_tags_list) != 0:
                 context.summary.append(
-                    f'{len(new_tags_list)} of {len(tags_list)} tracks left that have all of the specified tags.')
+                    f'{len(new_tags_list)} of {len(tags_list)} tracks left due to have all of the specified tags.')
             tags_list = new_tags_list
 
         if len(leave_no_tags) > 0:
@@ -49,7 +50,7 @@ Filter tracks.
 
             if len(tags_list) - len(new_tags_list) != 0:
                 context.summary.append(
-                    f'{len(new_tags_list)} of {len(tags_list)} tracks left that do not have any of the specified tags.')
+                    f'{len(new_tags_list)} of {len(tags_list)} tracks left due to not have any of the specified tags.')
             tags_list = new_tags_list
 
         if remove_duplicates:
@@ -70,3 +71,4 @@ Filter tracks.
 
 
 filter_tracks.add_command(transfer_command.transfer)
+filter_tracks.add_command(print_command.print_tracks)

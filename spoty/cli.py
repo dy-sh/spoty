@@ -1,6 +1,5 @@
 import click
 
-
 import spoty.utils
 from spoty.commands import local_commands
 from spoty.commands import spotify_playlist_commands
@@ -14,23 +13,20 @@ def cli():
     """This program allows you to perform various actions with spotify from the console."""
     pass
 
-cli.add_command(local_commands.local)
 
+cli.add_command(local_commands.local)
 cli.add_command(get_group.get_tracks)
+
 
 @cli.group()
 def spotify():
     """Spotify specific commands."""
     pass
 
+
 spotify.add_command(spotify_playlist_commands.playlist)
 spotify.add_command(spotify_like_commands.like)
 spotify.add_command(spotify_track_commands.track)
-
-
-
-
-
 
 if __name__ == '__main__':
     # cli()
@@ -42,12 +38,10 @@ if __name__ == '__main__':
          # '--sp', 'https://open.spotify.com/playlist/7E6SNhIGjSqEmzHISqnMrJ',
          '--a', r'.\music',
          '--a', r'C:\Users\Derwish\Documents\Develop\spoty\music\Pop Nutral\24KGoldn - Mood.flac',
-         '--a','.\music\Techno Nutral',
-         '--c','.\PLAYLISTS',
-         '--c','.\PLAYLISTS\Pop Nutral.csv',
-         'filter','-l',
-         '--lnt','isrc',
-         'transfer',
+         '--a', '.\music\Techno Nutral',
+         '--c', '.\PLAYLISTS',
+         '--c', '.\PLAYLISTS\Pop Nutral.csv',
+         'filter', '-l',
+         '--lnt', 'isrc',
+         'print',
          ])
-
-
