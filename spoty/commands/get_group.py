@@ -116,15 +116,15 @@ Get tracks from sources.
         all_tags_list.extend(tags_list)
 
     if len(spotify_entire_library) > 0:
-        pl = spoty.utils.tuple_to_list(spotify_entire_library)
-        tracks, tags_list, playlists = spoty.spotify.get_tracks_of_spotify_users(pl)
-        spotify_playlists.extend(playlists)
-        tags_list_from_spotify.extend(tags_list)
-        all_tags_list.extend(tags_list)
+        for user_id in spotify_entire_library:
+            tracks, tags_list, playlists = spoty.spotify.get_tracks_of_spotify_user(user_id)
+            spotify_playlists.extend(playlists)
+            tags_list_from_spotify.extend(tags_list)
+            all_tags_list.extend(tags_list)
 
     if len(spotify_entire_library_regex) > 0:
         for user_and_reg in spotify_entire_library_regex:
-            tracks, tags_list, playlists = spoty.spotify.get_tracks_of_spotify_users(user_and_reg[0], user_and_reg[1])
+            tracks, tags_list, playlists = spoty.spotify.get_tracks_of_spotify_user(user_and_reg[0], user_and_reg[1])
             spotify_playlists.extend(playlists)
             tags_list_from_spotify.extend(tags_list)
             all_tags_list.extend(tags_list)
@@ -159,4 +159,4 @@ get_tracks.add_command(filter_group.filter_tracks)
 get_tracks.add_command(count_command.count_tracks)
 get_tracks.add_command(print_command.print_tracks)
 get_tracks.add_command(export_command.export_tracks)
-get_tracks.add_command(import_spotify_command.transfer)
+get_tracks.add_command(import_spotify_command.import_spotify)

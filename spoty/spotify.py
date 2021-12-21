@@ -27,10 +27,6 @@ def get_tracks_from_playlists(playlist_ids, add_extra_tags=True):
             requested_playlists.append(playlist_id)
 
             tracks = playlist['tracks']['items']
-            for track in tracks:
-                track['track']['SPOTY_PLAYLIST_NAME'] = playlist['name']
-                track['track']['SPOTY_PLAYLIST_ID'] = playlist['id']
-                track['track']['SPOTY_TRACK_ID'] = playlist['id']
 
             tags = read_tags_from_spotify_tracks(tracks)
 
@@ -41,44 +37,25 @@ def get_tracks_from_playlists(playlist_ids, add_extra_tags=True):
     return all_tracks, all_tags_list, all_received_playlists
 
 
-def get_tracks_of_spotify_users(user_ids, playlists_names_regex=None):
-    if playlists_names_regex == None:
-        playlists_names_regex = []
+def get_tracks_of_spotify_user(user_id, playlists_names_regex=None):
+    user_id = parse_user_id(user_id)
+    if user_id == 'me':
+        playlists = get_list_of_playlists()
+        click.echo(f'You have {len(playlists)} playlists in Spotify library')
+    else:
+        playlists = get_list_of_user_playlists(user_id)
+        click.echo(f'User {user_id} has {len(playlists)} playlists in Spotify library')
 
-    all_tracks = []
-    all_tags_list = []
-    all_playlists = []
+    if playlists_names_regex is not None:
+        playlists = list(filter(lambda pl: re.findall(playlists_names_regex, pl['name']), playlists))
 
-    for user_id in user_ids:
-        user_id = parse_user_id(user_id)
-        if user_id == 'me':
-            playlists = get_list_of_playlists()
-            click.echo(f'You have {len(playlists)} playlists in Spotify library')
-        else:
-            playlists = get_list_of_user_playlists(user_id)
-            click.echo(f'User {user_id} has {len(playlists)} playlists in Spotify library')
+    if len(playlists) == 0:
+        return [], [], []
 
-        if len(playlists_names_regex) > 0:
-            playlists = list(filter(lambda pl: re.findall(playlists_names_regex, pl['name']), playlists))
+    ids = get_playlists_ids(playlists)
+    tracks, tags, playlists = get_tracks_from_playlists(ids)
 
-        # remove already requested playlists
-        new_playlists = playlists.copy()
-        for pl in playlists:
-            if pl in all_playlists:
-                click.echo(f'Spotify playlist {pl["id"]} ({pl["name"]}) requested twice. In will be skipped.')
-                new_playlists.remove(pl)
-        playlists = new_playlists
-        if len(playlists) == 0:
-            continue
-
-        all_playlists.extend(playlists)
-
-        ids = get_playlists_ids(playlists)
-        tracks, tags, playlists = get_tracks_from_playlists(ids)
-        all_tracks.extend(tracks)
-        all_tags_list.extend(tags)
-
-    return all_tracks, all_tags_list, all_playlists
+    return tracks, tags, playlists
 
 
 def find_track_by_query(query):
@@ -175,7 +152,8 @@ def get_playlist_with_full_list_of_tracks(playlist_id, add_extra_tags=True):
     total_tracks = playlist["tracks"]["total"]
     tracks = playlist["tracks"]["items"]
 
-    add_extra_tags_to_tracks([], tracks, playlist_id)
+    if add_extra_tags:
+        add_extra_tags_to_tracks([], tracks, playlist_id, playlist['name'])
 
     log.debug(f'Playlist {playlist_id} have {total_tracks} tracks (playlist name: "{playlist["name"]}")')
     log.debug(f'Collected {len(tracks)}/{total_tracks} tracks in playlist {playlist_id}')
@@ -187,7 +165,8 @@ def get_playlist_with_full_list_of_tracks(playlist_id, add_extra_tags=True):
             result = sp.next(result)
         else:
             result = sp.next(result["tracks"])
-        add_extra_tags_to_tracks(tracks, result['items'], playlist_id)
+        if add_extra_tags:
+            add_extra_tags_to_tracks(tracks, result['items'], playlist_id, playlist['name'])
         tracks.extend(result['items'])
         log.debug(f'Collected {len(tracks)}/{total_tracks} tracks in playlist {playlist_id}')
 
@@ -304,7 +283,7 @@ def copy_playlist(playlist_id):
     return new_playlist_id, tracks_added
 
 
-def get_tracks_of_playlist(playlist_id, add_extra_tags=True):
+def get_tracks_of_playlist(playlist_id, add_extra_tags=True, playlist_name=None):
     playlist_id = parse_playlist_id(playlist_id)
 
     log.info(f'Collecting tracks from playlist {playlist_id}')
@@ -315,7 +294,7 @@ def get_tracks_of_playlist(playlist_id, add_extra_tags=True):
 
     new_tracks = result['items']
     if (add_extra_tags):
-        add_extra_tags_to_tracks(tracks, new_tracks, playlist_id)
+        add_extra_tags_to_tracks(tracks, new_tracks, playlist_id, playlist_name)
     tracks.extend(new_tracks)
 
     log.debug(f'Collected {len(tracks)}/{result["total"]} tracks')
@@ -326,7 +305,7 @@ def get_tracks_of_playlist(playlist_id, add_extra_tags=True):
 
         new_tracks = result['items']
         if (add_extra_tags):
-            add_extra_tags_to_tracks(tracks, new_tracks, playlist_id)
+            add_extra_tags_to_tracks(tracks, new_tracks, playlist_id, playlist_name)
         tracks.extend(new_tracks)
 
         log.debug(f'Collected {len(tracks)}/{result["total"]} tracks')
@@ -347,12 +326,14 @@ def get_tracks_of_playlist(playlist_id, add_extra_tags=True):
     return new_tracks
 
 
-def add_extra_tags_to_tracks(tracks, new_tracks, playlist_id):
+def add_extra_tags_to_tracks(tracks, new_tracks, playlist_id, playlist_name):
     counter = len(tracks)
     for track in new_tracks:
         track['track']['SPOTY_PLAYLIST_ID'] = playlist_id
         track['track']['SPOTY_PLAYLIST_INDEX'] = counter + 1
         track['track']['SPOTY_PLAYLIST_SOURCE'] = 'SPOTIFY'
+        if playlist_name is not None:
+            track['track']['SPOTY_PLAYLIST_NAME'] = playlist_name
         try:
             track['track']['SPOTY_TRACK_ID'] = track['track']['id']
         except:

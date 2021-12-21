@@ -1,13 +1,9 @@
 from spoty import settings
 from spoty import log
-import spoty.spotify
-import spoty.audio_files
 import spoty.csv_playlist
 import spoty.utils
 from spoty.utils import SpotyContext
 import click
-import re
-import time
 import os
 from datetime import datetime
 
@@ -17,7 +13,7 @@ from datetime import datetime
               default=settings.SPOTY.DEFAULT_DEST_GROUPING_PATTERN,
               help='Tracks will be grouped to playlists according to this pattern.')
 @click.option('--duplicates', '-d', type=bool, is_flag=True, default=False,
-              help='Allow duplicates (add tracks that are already exist in the playlist).')
+              help='Allow duplicates (add tracks that are already exist in csv file).')
 @click.option('--append', '-a', is_flag=True,
               help='Add tracks to an existing csv file if already exists. If this option is not specified, a new csv file will always be created.')
 @click.option('--overwrite', '-o', is_flag=True,
@@ -34,7 +30,6 @@ from datetime import datetime
               help='Confirm all questions with a positive answer automatically.')
 @click.pass_obj
 def export_tracks(context: SpotyContext,
-
                   grouping_pattern,
                   duplicates,
                   append,
@@ -67,8 +62,6 @@ Export a list of tracks to csv files (playlists) on disk.
     file_names, names, added_tracks, import_duplicates, already_exist \
         = spoty.csv_playlist.create_csvs(tags_list, path, grouping_pattern, overwrite, append, duplicates, yes_all,
                                          compare_tags)
-
-    import_to_csv = True
 
     # print summery
 

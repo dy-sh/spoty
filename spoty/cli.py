@@ -31,17 +31,19 @@ spotify.add_command(spotify_track_commands.track)
 if __name__ == '__main__':
     # cli()
     cli(['get',
-         '--sr','me','^BEST',
+         # '--sr','me','^BEST',
          # '--s','me',
          # '--dgp','%SPOTY_PLAYLIST_SOURCE% %SPOTY_PLAYLIST_ID% - %SPOTY_PLAYLIST_NAME%',
          # '--sp', '48zAnLhtTz5pvrSy7s2Ca1',
          # '--sp', 'https://open.spotify.com/playlist/57VYcWAMIc97Ig41vPpev6',
-         # '--a', r'.\music',
+         '--a', r'.\music',
          # '--a', r'C:\Users\Derwish\Documents\Develop\spoty\music\Pop Nutral\24KGoldn - Mood.flac',
          # '--a', '.\music\Techno Nutral',
-         # '--c', '.\PLAYLISTS',
+         # '--c', '.\MUSIC LIBRARY',
          # '--c', '.\PLAYLISTS\Pop Nutral.csv',
          # 'filter', '-l',
          # '--lnt', 'isrc',
-         'print',
+         # 'import-spotify',
+         'import-spotify',
+         # '--gp','pl',
          ])

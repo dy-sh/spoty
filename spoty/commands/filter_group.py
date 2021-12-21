@@ -75,4 +75,4 @@ Filter tracks.
 filter_tracks.add_command(count_command.count_tracks)
 filter_tracks.add_command(print_command.print_tracks)
 filter_tracks.add_command(export_command.export_tracks)
-filter_tracks.add_command(import_spotify_command.transfer)
+filter_tracks.add_command(import_spotify_command.import_spotify)
