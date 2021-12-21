@@ -1,6 +1,6 @@
 from spoty import settings
 from spoty import log
-import spoty.spotify
+import spoty.spotify_api
 import spoty.utils
 import spoty.csv_playlist
 import click
@@ -24,7 +24,7 @@ def like_count():
 
         spoty spotify like count
     """
-    count = spoty.spotify.get_liked_tracks_count()
+    count = spoty.spotify_api.get_liked_tracks_count()
     click.echo(f'Liked tracks: {count}')
 
 
@@ -46,7 +46,7 @@ def like_add(track_ids):
     """
 
     track_ids = list(track_ids)
-    spoty.spotify.add_tracks_to_liked(track_ids)
+    spoty.spotify_api.add_tracks_to_liked(track_ids)
     click.echo(f'{len(track_ids)} tracks added to liked')
 
 
@@ -83,7 +83,7 @@ def like_export(path, file_name, overwrite, timestamp):
             log.info(f'Canceled by user (file already exist)')
             return
 
-    liked_tracks =spoty.spotify.export_liked_tracks_to_file(file_name)
+    liked_tracks =spoty.spotify_api.export_liked_tracks_to_file(file_name)
 
     click.echo(f'{len(liked_tracks)} liked tracks exported to file: "{file_name}"')
 
@@ -108,7 +108,7 @@ def like_import(file_names):
     with click.progressbar(file_names, label='Importing lied tracks') as bar:
         for file_name in bar:
             try:
-                tracks_in_file = spoty.spotify.import_likes_from_file(file_name)
+                tracks_in_file = spoty.spotify_api.import_likes_from_file(file_name)
                 all_tracks_in_file += tracks_in_file
             except FileNotFoundError:
                 time.sleep(0.2)  # waiting progressbar updating

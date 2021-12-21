@@ -6,7 +6,7 @@ from spoty.commands import filter_group
 from spoty.utils import SpotyContext
 from spoty import settings
 from spoty import log
-import spoty.spotify
+import spoty.spotify_api
 import spoty.audio_files
 import spoty.csv_playlist
 import spoty.utils
@@ -110,21 +110,21 @@ Get tracks from sources.
 
     if len(spotify_playlist) > 0:
         pl = spoty.utils.tuple_to_list(spotify_playlist)
-        tracks, tags_list, playlists = spoty.spotify.get_tracks_from_playlists(pl)
+        tracks, tags_list, playlists = spoty.spotify_api.get_tracks_from_playlists(pl)
         spotify_playlists.extend(playlists)
         tags_list_from_spotify.extend(tags_list)
         all_tags_list.extend(tags_list)
 
     if len(spotify_entire_library) > 0:
         for user_id in spotify_entire_library:
-            tracks, tags_list, playlists = spoty.spotify.get_tracks_of_spotify_user(user_id)
+            tracks, tags_list, playlists = spoty.spotify_api.get_tracks_of_spotify_user(user_id)
             spotify_playlists.extend(playlists)
             tags_list_from_spotify.extend(tags_list)
             all_tags_list.extend(tags_list)
 
     if len(spotify_entire_library_regex) > 0:
         for user_and_reg in spotify_entire_library_regex:
-            tracks, tags_list, playlists = spoty.spotify.get_tracks_of_spotify_user(user_and_reg[0], user_and_reg[1])
+            tracks, tags_list, playlists = spoty.spotify_api.get_tracks_of_spotify_user(user_and_reg[0], user_and_reg[1])
             spotify_playlists.extend(playlists)
             tags_list_from_spotify.extend(tags_list)
             all_tags_list.extend(tags_list)

@@ -3,7 +3,7 @@ from spoty import log
 import spoty.deezer_auth
 import spoty.deezer_auth_manualy
 import spoty.utils
-import spoty.deezer
+import spoty.deezer_api
 import click
 import re
 import time
@@ -64,9 +64,9 @@ def playlist_list(filter_names, user_id):
         spoty deezer playlist list --user-id 4717400682
     """
     if user_id == None:
-        playlists = spoty.deezer.get_list_of_playlists()
+        playlists = spoty.deezer_api.get_list_of_playlists()
     else:
-        playlists = spoty.deezer.get_list_of_user_playlists(user_id)
+        playlists = spoty.deezer_api.get_list_of_user_playlists(user_id)
 
     if len(playlists) == 0:
         exit()
@@ -94,7 +94,7 @@ def playlist_create(name):
 
         spoty deezer playlist create "My awesome playlist"
     """
-    id = spoty.deezer.create_playlist(name)
+    id = spoty.deezer_api.create_playlist(name)
     click.echo(f'New playlist created (id: {id}, name: "{name}")')
 
 
@@ -118,7 +118,7 @@ def playlist_delete(playlist_id, confirm):
 
         spoty deezer playlist delete https://www.deezer.com/ru/playlist/9457847341
     """
-    deleted_playlists = spoty.deezer.delete_playlist(playlist_id, confirm)
+    deleted_playlists = spoty.deezer_api.delete_playlist(playlist_id, confirm)
     click.echo(f'{len(deleted_playlists)} playlist deleted')
 
 
@@ -135,7 +135,7 @@ def playlist_delete_all(confirm):
 
         spoty deezer playlist delete-all --confirm
     """
-    deleted_playlists = spoty.deezer.delete_all_playlist(confirm)
+    deleted_playlists = spoty.deezer_api.delete_all_playlist(confirm)
     click.echo(f'{len(deleted_playlists)} playlist deleted')
 
 
@@ -165,7 +165,7 @@ def playlist_delete_all(confirm):
 # tracks = []
 # with click.progressbar(playlist_ids, label='Copying playlists') as bar:
 #     for playlist_id in bar:
-#         new_playlist_id, tracks_added = spoty.deezer.copy_playlist(playlist_id)
+#         new_playlist_id, tracks_added = spoty.deezer_api.copy_playlist(playlist_id)
 #         playlists.extend(new_playlist_id)
 #         tracks.extend(tracks_added)
 #
@@ -194,7 +194,7 @@ def playlist_add_tracks(playlist_id, track_ids, allow_duplicates):
         spoty deezer playlist add-tracks https://www.deezer.com/ru/playlist/9457847341 https://www.deezer.com/ru/track/74359352
 
     """
-    tracks_added = spoty.deezer.add_tracks_to_playlist(playlist_id, track_ids, allow_duplicates)
+    tracks_added = spoty.deezer_api.add_tracks_to_playlist(playlist_id, track_ids, allow_duplicates)
     click.echo(f'{len(tracks_added)} tracks added to playlist {playlist_id}')
 
 
@@ -217,12 +217,12 @@ def playlist_read(playlist_ids):
 
     """
 
-    playlists_dict = spoty.deezer.get_playlists_with_full_list_of_tracks(playlist_ids)
+    playlists_dict = spoty.deezer_api.get_playlists_with_full_list_of_tracks(playlist_ids)
 
     for playlist_id, tracks_list in playlists_dict.items():
         click.echo(f'Tracks in playlist {playlist_id}:')
         for track in tracks_list:
-            title = spoty.deezer.get_track_artist_and_title(track)
+            title = spoty.deezer_api.get_track_artist_and_title(track)
             click.echo(f'{track["SNG_ID"]} "{title}"')
 
         click.echo(f'Total tracks: {len(tracks_list)}')

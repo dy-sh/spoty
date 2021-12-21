@@ -13,8 +13,8 @@ DEEZER_ACCESS_TOKEN = settings.default.DEEZER_ACCESS_TOKEN
 DEEZER_REDIRECT_URI = settings.DEEZER.REDIRECT_URI
 arl_file_name = os.path.join(spoty.config_path, '.arl')
 
-def do_something():
-    print('Server is started')
+def on_started():
+    print('Server is running')
     webbrowser.open("http://localhost:8888")
 
 
@@ -22,7 +22,7 @@ class AuthFlaskApp(Flask):
     def run(self, host=None, port=None, debug=None, load_dotenv=True, **options):
         if not self.debug or os.getenv('WERKZEUG_RUN_MAIN') == 'true':
             with self.app_context():
-                do_something()
+                on_started()
         super(AuthFlaskApp, self).run(host=host, port=port, debug=debug, load_dotenv=load_dotenv, **options)
 
 
@@ -30,10 +30,10 @@ app = AuthFlaskApp(__name__)
 
 
 def write_token_to_config_file(token):
-    data = toml.load(settings.secrets_file_name)
-    data['ACCESS_TOKEN'] = token
+    data = toml.load(spoty.secrets_file_name)
+    data['default']['DEEZER_ACCESS_TOKEN'] = token
 
-    f = open(settings.secrets_file_name, 'w')
+    f = open(spoty.secrets_file_name, 'w')
     toml.dump(data, f)
     f.close()
 
@@ -75,7 +75,7 @@ def deezer_login():
 
     shutdown_server()
 
-    return f'<h1>Access token received</h1>{token}<br><br>Now you can use deezy.', {'Content-Type': 'text/html'}
+    return f'<h1>Access token received</h1>{token}<br><br>Now you can use spoty.', {'Content-Type': 'text/html'}
 
 
 def get_token():

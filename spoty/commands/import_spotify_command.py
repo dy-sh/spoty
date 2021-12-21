@@ -1,6 +1,6 @@
 from spoty import settings
 from spoty import log
-import spoty.spotify
+import spoty.spotify_api
 import spoty.utils
 from spoty.utils import SpotyContext
 import click
@@ -55,7 +55,7 @@ Import track list to Spotify Library
             exit()
 
     playlist_ids, added_tracks, import_duplicates, already_exist, not_found_tracks = \
-        spoty.spotify.import_playlists_from_tags_list(
+        spoty.spotify_api.import_playlists_from_tags_list(
             tags_list, grouping_pattern, overwrite, append, duplicates, yes_all)
 
     # print summery

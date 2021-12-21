@@ -21,6 +21,7 @@ def get_dz():
     global dz
     if dz is None:
         dz = Deezer()
+        get_arl()
     return dz
 
 
@@ -31,7 +32,7 @@ def request_valid_arl():
     return arl
 
 
-def check_arl():
+def get_arl():
     if os.path.isfile(arl_file_name):
         with open(arl_file_name, 'r') as f:
             arl = f.readline().rstrip("\n").strip()

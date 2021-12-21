@@ -1,4 +1,4 @@
-import spoty.spotify
+import spoty.spotify_api
 import spoty.audio_files
 import click
 import spoty.utils
@@ -21,11 +21,11 @@ def track_find_by_isrc(isrc):
         spoty spotify track isrc UK6821402425
 
     """
-    track = spoty.spotify.find_track_by_isrc(isrc)
+    track = spoty.spotify_api.find_track_by_isrc(isrc)
     if track == None:
         click.echo("Not found")
         return
-    tags = spoty.spotify.read_tags_from_spotify_tracks([track])
+    tags = spoty.spotify_api.read_tags_from_spotify_tracks([track])
     spoty.utils.print_main_tags(tags[0])
 
 
@@ -41,11 +41,11 @@ def track_find_by_title(artist, title):
         spoty spotify track artist-title "Aaron Static" "When We Love"
 
     """
-    track = spoty.spotify.find_track_by_artist_and_title(artist, title)
+    track = spoty.spotify_api.find_track_by_artist_and_title(artist, title)
     if track == None:
         click.echo("Not found")
         return
-    tags = spoty.spotify.read_tags_from_spotify_tracks([track])
+    tags = spoty.spotify_api.read_tags_from_spotify_tracks([track])
     spoty.utils.print_main_tags(tags[0])
 
 
@@ -60,11 +60,11 @@ def tracks_find_by_query(query):
         spoty spotify track query "track: breathe"
 
     """
-    tracks = spoty.spotify.find_track_by_query(query)
+    tracks = spoty.spotify_api.find_track_by_query(query)
     if len(tracks) == 0:
         click.echo("Not found")
         return
-    tags = spoty.spotify.read_tags_from_spotify_tracks(tracks)
+    tags = spoty.spotify_api.read_tags_from_spotify_tracks(tracks)
     for t in tags:
         click.echo("------------------------------")
         spoty.utils.print_main_tags(t)

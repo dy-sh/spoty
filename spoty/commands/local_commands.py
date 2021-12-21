@@ -1,5 +1,5 @@
 from spoty import log
-import spoty.spotify
+import spoty.spotify_api
 import spoty.csv_playlist
 import spoty.utils
 import spoty.audio_files
@@ -249,9 +249,9 @@ def local_add_tags_from_spotify_library(export_path, recursive, compare_tags, fi
     have_no_tags_arr = filter_have_no_tags.upper().split(',') if filter_have_no_tags is not None else []
     compare_tags_arr = compare_tags.upper().split(',') if compare_tags is not None else []
 
-    import_tracks_tags = spoty.spotify.get_tags_from_spotify_library(filter_names, user_id)
+    import_tracks_tags = spoty.spotify_api.get_tags_from_spotify_library(filter_names, user_id)
     audio_files_names = spoty.audio_files.find_audio_files_in_path(
-        export_path, recursive, have_tags_arr, have_no_tags_arr)
+        export_path, recursive)
     export_tracks_tags = spoty.audio_files.read_audio_files_tags(audio_files_names)
     missing_tags = spoty.audio_files.get_missing_tags_from_source_to_dest_audio_files(
         import_tracks_tags, export_tracks_tags, compare_tags_arr)
@@ -347,7 +347,7 @@ def local_list_tags_from_spotify_library(export_path, recursive, compare_tags, f
     have_no_tags_arr = filter_have_no_tags.upper().split(',') if filter_have_no_tags is not None else []
     compare_tags_arr = compare_tags.upper().split(',') if compare_tags is not None else []
 
-    import_tracks_tags = spoty.spotify.get_tags_from_spotify_library(filter_names, user_id)
+    import_tracks_tags = spoty.spotify_api.get_tags_from_spotify_library(filter_names, user_id)
     audio_files_names = spoty.audio_files.find_audio_files_in_path(export_path, recursive, have_tags_arr,
                                                                    have_no_tags_arr)
     export_tracks_tags = spoty.audio_files.read_audio_files_tags(audio_files_names)

@@ -1,6 +1,6 @@
 from spoty import settings
 from spoty import log
-import spoty.spotify
+import spoty.spotify_api
 import spoty.audio_files
 import spoty.csv_playlist
 import click
@@ -32,9 +32,9 @@ def playlist_list(filter_names, user_id):
         spoty spotify playlist list --user-id 4717400682
     """
     if user_id == None:
-        playlists = spoty.spotify.get_list_of_playlists()
+        playlists = spoty.spotify_api.get_list_of_playlists()
     else:
-        playlists = spoty.spotify.get_list_of_user_playlists(user_id)
+        playlists = spoty.spotify_api.get_list_of_user_playlists(user_id)
 
     if len(playlists) == 0:
         exit()
@@ -73,9 +73,9 @@ def playlist_read(playlist_ids):
     tracks = []
     for playlist_id in playlist_ids:
         click.echo(f'Tracks in playlist {playlist_id}:')
-        tracks = spoty.spotify.get_tracks_of_playlist(playlist_id)
+        tracks = spoty.spotify_api.get_tracks_of_playlist(playlist_id)
         for track in tracks:
-            title = spoty.spotify.get_track_artist_and_title(track["track"])
+            title = spoty.spotify_api.get_track_artist_and_title(track["track"])
             click.echo(f'{track["track"]["id"]}: {title}')
 
     click.echo(f'Total tracks: {len(tracks)}')
@@ -91,7 +91,7 @@ def playlist_create(name):
 
         spoty spotify playlist create "My awesome playlist"
     """
-    id = spoty.spotify.create_playlist(name)
+    id = spoty.spotify_api.create_playlist(name)
     click.echo(f'New playlist created (id: {id}, name: "{name}")')
 
 
@@ -120,7 +120,7 @@ def playlist_copy(playlist_ids):
     tracks = []
     with click.progressbar(playlist_ids, label='Copying playlists') as bar:
         for playlist_id in bar:
-            new_playlist_id, tracks_added = spoty.spotify.copy_playlist(playlist_id)
+            new_playlist_id, tracks_added = spoty.spotify_api.copy_playlist(playlist_id)
             playlists.extend(new_playlist_id)
             tracks.extend(tracks_added)
 
@@ -150,7 +150,7 @@ def playlist_add_tracks(playlist_id, track_ids, allow_duplicates):
 
     """
     track_ids = list(track_ids)
-    tracks_added, import_duplicates, already_exist = spoty.spotify.add_tracks_to_playlist(playlist_id, track_ids,
+    tracks_added, import_duplicates, already_exist = spoty.spotify_api.add_tracks_to_playlist(playlist_id, track_ids,
                                                                                           allow_duplicates)
     click.echo(f'{len(tracks_added)} tracks added to playlist {playlist_id}')
 
@@ -176,7 +176,7 @@ def playlist_remove_tracks(playlist_id, track_ids):
 
     """
     track_ids = list(track_ids)
-    spoty.spotify.remove_tracks_from_playlist(playlist_id, track_ids)
+    spoty.spotify_api.remove_tracks_from_playlist(playlist_id, track_ids)
     click.echo(f'Tracks removed from playlist {playlist_id}')
 
 
@@ -201,7 +201,7 @@ def playlist_remove_liked_tracks(playlist_ids):
     all_removed_tracks = []
     with click.progressbar(playlist_ids, label='Removing liked tracks from playlists') as bar:
         for playlist_id in bar:
-            removed_tracks = spoty.spotify.remove_liked_tracks_in_playlist(playlist_id)
+            removed_tracks = spoty.spotify_api.remove_liked_tracks_in_playlist(playlist_id)
             all_removed_tracks.extend(removed_tracks)
 
     click.echo(f'{len(all_removed_tracks)} liked tracks removed from {len(playlist_ids)} playlists.')
@@ -231,7 +231,7 @@ def playlist_list_invalid_tracks(playlist_ids):
     all_invalid_tracks = []
     with click.progressbar(playlist_ids, label='Collecting invalid tracks from playlists') as bar:
         for playlist_id in bar:
-            removed_tracks = spoty.spotify.get_invalid_tracks_in_playlist(playlist_id)
+            removed_tracks = spoty.spotify_api.get_invalid_tracks_in_playlist(playlist_id)
             all_invalid_tracks.extend(removed_tracks)
 
     click.echo(f'{len(all_invalid_tracks)} invalid tracks in {len(playlist_ids)} playlists.')
@@ -262,7 +262,7 @@ def playlist_like_all_tracks(playlist_ids):
     all_liked_tracks = []
     with click.progressbar(playlist_ids, label='Liking all tracks in playlists') as bar:
         for playlist_id in bar:
-            liked_tracks = spoty.spotify.like_all_tracks_in_playlist(playlist_id)
+            liked_tracks = spoty.spotify_api.like_all_tracks_in_playlist(playlist_id)
             all_liked_tracks.extend(liked_tracks)
 
     click.echo(f'{len(all_liked_tracks)} tracks added to liked tracks in {len(playlist_ids)} playlists.')
