@@ -1,5 +1,7 @@
+from spoty.commands import count_command
 from spoty.commands import print_command
-from spoty.commands import transfer_command
+from spoty.commands import export_command
+from spoty.commands import import_spotify_command
 from spoty.utils import SpotyContext
 from spoty import settings
 from spoty import log
@@ -61,8 +63,8 @@ Filter tracks.
             tags_list = new_tags_list
 
         if leave_duplicates:
-            tags = duplicates_compare_tags.split(',')
-            new_tags_list, dup = spoty.utils.remove_tags_duplicates(tags_list, tags, True)
+            compare_tags = duplicates_compare_tags.split(',')
+            new_tags_list, dup = spoty.utils.remove_tags_duplicates(tags_list, compare_tags, True)
             if len(dup) > 0:
                 context.summary.append(f'{len(dup)} of {len(tags_list)} tracks left due to duplicates')
             tags_list = dup
@@ -70,5 +72,7 @@ Filter tracks.
     context.tags_list = tags_list
 
 
-filter_tracks.add_command(transfer_command.transfer)
+filter_tracks.add_command(count_command.count_tracks)
 filter_tracks.add_command(print_command.print_tracks)
+filter_tracks.add_command(export_command.export_tracks)
+filter_tracks.add_command(import_spotify_command.transfer)
