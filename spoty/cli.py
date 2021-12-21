@@ -39,7 +39,7 @@ if __name__ == '__main__':
          # '--sp', '48zAnLhtTz5pvrSy7s2Ca1',
          # '--sp', 'https://open.spotify.com/playlist/57VYcWAMIc97Ig41vPpev6',
          '--a', r'.\music',
-         # '--a', r'C:\Users\Derwish\Documents\Develop\spoty\music\Pop Nutral\24KGoldn - Mood.flac',
+         # '--a', r'.\music\Pop Nutral\24KGoldn - Mood.flac',
          # '--a', '.\music\Techno Nutral',
          # '--c', '.\MUSIC LIBRARY',
          # '--c', '.\PLAYLISTS\Pop Nutral.csv',

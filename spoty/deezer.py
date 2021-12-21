@@ -8,12 +8,11 @@ import click
 import time
 import re
 
-
-DEEZER_APP_ID = settings.default.APP_ID
-DEEZER_APP_SECRET = settings.default.APP_SECRET
-DEEZER_ACCESS_TOKEN = settings.default.ACCESS_TOKEN
-DEEZER_REDIRECT_URI = settings.REDIRECT_URI
-arl_file_name = os.path.join(settings.config_path, '.arl')
+DEEZER_APP_ID = settings.default.DEEZER_APP_ID
+DEEZER_APP_SECRET = settings.default.DEEZER_APP_SECRET
+DEEZER_ACCESS_TOKEN = settings.default.DEEZER_ACCESS_TOKEN
+DEEZER_REDIRECT_URI = settings.DEEZER.REDIRECT_URI
+arl_file_name = os.path.join(spoty.config_path, '.arl')
 
 dz = None
 

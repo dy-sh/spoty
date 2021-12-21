@@ -1,6 +1,8 @@
 from spoty import settings
 from spoty import log
-from spoty.utils import *
+import spoty.deezer_auth
+import spoty.deezer_auth_manualy
+import spoty.utils
 import spoty.deezer
 import click
 import re
@@ -27,7 +29,7 @@ def auth_get_token():
 
     When the token is received, it will be written to the configuration file.
     """
-    spoty.deezer.get_token()
+    spoty.deezer_auth.get_token()
     pass
 
 
@@ -37,7 +39,7 @@ def auth_get_token():
 
     When starting the command, further actions will be described.
     """
-    deezy.auth_manualy.get_token()
+    spoty.deezer_auth_manualy.get_token()
     pass
 
 
@@ -57,9 +59,9 @@ def playlist_list(filter_names, user_id):
 
     Examples:
 
-        deezy playlist list
+        spoty deezer playlist list
 
-        deezy playlist list --user-id 4717400682
+        spoty deezer playlist list --user-id 4717400682
     """
     if user_id == None:
         playlists = spoty.deezer.get_list_of_playlists()
@@ -90,7 +92,7 @@ def playlist_create(name):
 
     Examples:
 
-        deezy playlist create "My awesome playlist"
+        spoty deezer playlist create "My awesome playlist"
     """
     id = spoty.deezer.create_playlist(name)
     click.echo(f'New playlist created (id: {id}, name: "{name}")')
@@ -108,13 +110,13 @@ def playlist_delete(playlist_id, confirm):
 
     Examples:
 
-        deezy playlist delete 9457847341
+        spoty deezer playlist delete 9457847341
 
-        deezy playlist delete 9457847341 --confirm
+        spoty deezer playlist delete 9457847341 --confirm
 
-        deezy playlist delete 9457847341 9712468342
+        spoty deezer playlist delete 9457847341 9712468342
 
-        deezy playlist delete https://www.deezer.com/ru/playlist/9457847341
+        spoty deezer playlist delete https://www.deezer.com/ru/playlist/9457847341
     """
     deleted_playlists = spoty.deezer.delete_playlist(playlist_id, confirm)
     click.echo(f'{len(deleted_playlists)} playlist deleted')
@@ -129,9 +131,9 @@ def playlist_delete_all(confirm):
 
     Examples:
 
-        deezy playlist delete-all
+        spoty deezer playlist delete-all
 
-        deezy playlist delete-all --confirm
+        spoty deezer playlist delete-all --confirm
     """
     deleted_playlists = spoty.deezer.delete_all_playlist(confirm)
     click.echo(f'{len(deleted_playlists)} playlist deleted')
@@ -151,11 +153,11 @@ def playlist_delete_all(confirm):
 #
 #     Examples:
 #
-#         deezy playlist copy 9457847341
+#         spoty deezer playlist copy 9457847341
 #
-#         deezy playlist copy 9457847341 9712468342
+#         spoty deezer playlist copy 9457847341 9712468342
 #
-#         deezy playlist copy https://www.deezer.com/ru/playlist/9457847341
+#         spoty deezer playlist copy https://www.deezer.com/ru/playlist/9457847341
 #
 #     """
 #
@@ -185,11 +187,11 @@ def playlist_add_tracks(playlist_id, track_ids, allow_duplicates):
 
     Examples:
 
-        deezy playlist add-tracks 9457847341 74359352
+        spoty deezer playlist add-tracks 9457847341 74359352
 
-        deezy playlist add-tracks 9457847341 74359352 14456300
+        spoty deezer playlist add-tracks 9457847341 74359352 14456300
 
-        deezy playlist add-tracks https://www.deezer.com/ru/playlist/9457847341 https://www.deezer.com/ru/track/74359352
+        spoty deezer playlist add-tracks https://www.deezer.com/ru/playlist/9457847341 https://www.deezer.com/ru/track/74359352
 
     """
     tracks_added = spoty.deezer.add_tracks_to_playlist(playlist_id, track_ids, allow_duplicates)
@@ -207,11 +209,11 @@ def playlist_read(playlist_ids):
 
     Examples:
 
-        deezy playlist read 9457847341
+        spoty deezer playlist read 9457847341
 
-        deezy playlist read 9457847341 9712468342
+        spoty deezer playlist read 9457847341 9712468342
 
-        deezy playlist read https://www.deezer.com/ru/playlist/9457847341
+        spoty deezer playlist read https://www.deezer.com/ru/playlist/9457847341
 
     """
 

@@ -1,16 +1,17 @@
-from deezy.core import *
+from spoty import settings
+import spoty
 from flask import Flask, redirect, request
 import os
 import requests
 import webbrowser
 import toml
-from spoty import settings
 
-DEEZER_APP_ID = settings.default.APP_ID
-DEEZER_APP_SECRET = settings.default.APP_SECRET
-DEEZER_ACCESS_TOKEN = settings.default.ACCESS_TOKEN
-DEEZER_REDIRECT_URI = settings.REDIRECT_URI
-arl_file_name = os.path.join(settings.config_path, '.arl')
+
+DEEZER_APP_ID = settings.default.DEEZER_APP_ID
+DEEZER_APP_SECRET = settings.default.DEEZER_APP_SECRET
+DEEZER_ACCESS_TOKEN = settings.default.DEEZER_ACCESS_TOKEN
+DEEZER_REDIRECT_URI = settings.DEEZER.REDIRECT_URI
+arl_file_name = os.path.join(spoty.config_path, '.arl')
 
 def do_something():
     print('Server is started')
@@ -29,8 +30,6 @@ app = AuthFlaskApp(__name__)
 
 
 def write_token_to_config_file(token):
-    DEEZER_ACCESS_TOKEN = token
-
     data = toml.load(settings.secrets_file_name)
     data['ACCESS_TOKEN'] = token
 
