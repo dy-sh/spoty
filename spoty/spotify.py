@@ -73,7 +73,8 @@ def get_tracks_of_spotify_users(user_ids, playlists_names_regex=None):
 
         all_playlists.extend(playlists)
 
-        tracks, tags, playlists = get_tracks_from_playlists(playlists)
+        ids = get_playlists_ids(playlists)
+        tracks, tags, playlists = get_tracks_from_playlists(ids)
         all_tracks.extend(tracks)
         all_tags_list.extend(tags)
 
@@ -754,6 +755,13 @@ def get_track_ids(tracks):
         return []
     else:
         return [item['track']['id'] for item in tracks]
+
+
+def get_playlists_ids(playlists):
+    if len(playlists) == 0:
+        return []
+    else:
+        return [item['id'] for item in playlists]
 
 
 def check_is_playlist_URI(uri):

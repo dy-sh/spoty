@@ -3,9 +3,13 @@ import os
 from spotipy.oauth2 import SpotifyOAuth
 from dynaconf import Dynaconf
 from loguru import logger as log
+import sys
+
+
 
 log.remove() # remove default handler to prevent printing to console
-log.add('logs/logs.log', level='DEBUG')
+log.add('logs/logs.log', level='DEBUG', encoding="utf8")
+
 
 current_directory = os.path.dirname(os.path.realpath(__file__))
 settings_file_name = os.path.abspath(os.path.join(current_directory, '..', 'config', 'settings.toml'))
