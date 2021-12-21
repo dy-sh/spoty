@@ -118,7 +118,7 @@ def find_csvs_in_path(path, recursive=True):
 def write_tags_to_csv(tags_list, csv_file_name, append=False):
     if append:
         if os.path.isfile(csv_file_name):
-            old_tags = read_tags_from_csv(csv_file_name, None, None, False)
+            old_tags = read_tags_from_csv(csv_file_name, False)
             old_tags.extend(tags_list)
             tags_list = old_tags
 

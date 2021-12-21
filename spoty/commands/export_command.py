@@ -60,7 +60,7 @@ Export a list of tracks to csv files (playlists) on disk.
     if timestamp:
         now = datetime.now()
         date_time_str = now.strftime("%Y_%m_%d-%H_%M_%S")
-        dest_option_path = os.path.join(path, date_time_str)
+        path = os.path.join(path, date_time_str)
 
     compare_tags = duplicates_compare_tags.split(',')
 
@@ -74,12 +74,10 @@ Export a list of tracks to csv files (playlists) on disk.
 
     context.summary.append( f'{len(added_tracks)} tracks written to {len(file_names)} csv files.')
     if len(import_duplicates) > 0:
-        context.summary.append( f' {len(import_duplicates)} duplicates in collected tracks skipped.')
+        context.summary.append( f'{len(import_duplicates)} duplicates in collected tracks skipped.')
     if len(already_exist) > 0:
-        context.summary.append( f' {len(already_exist)} tracks already exist in csv files and skipped.')
+        context.summary.append( f'{len(already_exist)} tracks already exist in csv files and skipped.')
     context.summary.append( f'Export path: "{path}"')
 
-    grouped_tags = spoty.utils.group_tags_by_pattern(tags_list, grouping_pattern)
-    context.summary.append(f'{len(tags_list)} tracks collected in {len(grouped_tags)} groups and printed to console')
     click.echo('\n------------------------------------------------------------')
     click.echo('\n'.join(context.summary))
