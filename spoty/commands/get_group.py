@@ -4,6 +4,7 @@ from spoty.commands import export_command
 from spoty.commands import import_spotify_command
 from spoty.commands import import_deezer_command
 from spoty.commands import filter_group
+from spoty.commands import compare_command
 from spoty.utils import SpotyContext
 from spoty import settings
 from spoty import log
@@ -36,21 +37,47 @@ import time
 @click.option('--no-recursive', '-r', is_flag=True,
               help='Do not search in subdirectories from the specified path.')
 @click.pass_context
-def get_tracks(ctx,
-               spotify_playlist,
-               spotify_entire_library,
-               spotify_entire_library_regex,
-               deezer_playlist,
-               deezer_entire_library,
-               deezer_entire_library_regex,
-               audio,
-               csv,
-               no_recursive,
-               ):
+def get_tracks(
+        ctx,
+        spotify_playlist,
+        spotify_entire_library,
+        spotify_entire_library_regex,
+        deezer_playlist,
+        deezer_entire_library,
+        deezer_entire_library_regex,
+        audio,
+        csv,
+        no_recursive,
+):
     """
 Get tracks from sources.
     """
+    get_tracks_wrapper(
+        ctx,
+        spotify_playlist,
+        spotify_entire_library,
+        spotify_entire_library_regex,
+        deezer_playlist,
+        deezer_entire_library,
+        deezer_entire_library_regex,
+        audio,
+        csv,
+        no_recursive,
+    )
 
+
+def get_tracks_wrapper(
+        ctx,
+        spotify_playlist,
+        spotify_entire_library,
+        spotify_entire_library_regex,
+        deezer_playlist,
+        deezer_entire_library,
+        deezer_entire_library_regex,
+        audio,
+        csv,
+        no_recursive,
+):
     all_tags_list = []
 
     # get csv
@@ -123,17 +150,16 @@ Get tracks from sources.
 
     if len(spotify_entire_library_regex) > 0:
         for user_and_reg in spotify_entire_library_regex:
-            tracks, tags_list, playlists = spoty.spotify_api.get_tracks_of_spotify_user(user_and_reg[0], user_and_reg[1])
+            tracks, tags_list, playlists = spoty.spotify_api.get_tracks_of_spotify_user(user_and_reg[0],
+                                                                                        user_and_reg[1])
             spotify_playlists.extend(playlists)
             tags_list_from_spotify.extend(tags_list)
             all_tags_list.extend(tags_list)
-
 
     # get deezer
 
     deezer_playlists = []
     tags_list_from_deezer = []
-
 
     if len(deezer_playlist) > 0:
         pl = spoty.utils.tuple_to_list(deezer_playlist)
@@ -168,9 +194,9 @@ Get tracks from sources.
     if len(tags_list_from_csv) > 0:
         summary.append(f'{len(tags_list_from_csv)} tracks found in {len(csv_files)} csv playlists.')
 
-    if not (len(tags_list_from_spotify) == len(all_tags_list) or len(tags_list_from_spotify) == 0)\
-            or not (len(tags_list_from_audio) == len(all_tags_list) or len(tags_list_from_audio) == 0)\
-            or not (len(tags_list_from_csv) == len(all_tags_list)or len(tags_list_from_csv) == 0):
+    if not (len(tags_list_from_spotify) == len(all_tags_list) or len(tags_list_from_spotify) == 0) \
+            or not (len(tags_list_from_audio) == len(all_tags_list) or len(tags_list_from_audio) == 0) \
+            or not (len(tags_list_from_csv) == len(all_tags_list) or len(tags_list_from_csv) == 0):
         summary.append(f'Total tracks collected: {len(all_tags_list)}')
 
     if len(tags_list_from_deezer) > 0:
@@ -180,9 +206,9 @@ Get tracks from sources.
     if len(tags_list_from_csv) > 0:
         summary.append(f'{len(tags_list_from_csv)} tracks found in {len(csv_files)} csv playlists.')
 
-    if not (len(tags_list_from_deezer) == len(all_tags_list) or len(tags_list_from_deezer) == 0)\
-            or not (len(tags_list_from_audio) == len(all_tags_list) or len(tags_list_from_audio) == 0)\
-            or not (len(tags_list_from_csv) == len(all_tags_list)or len(tags_list_from_csv) == 0):
+    if not (len(tags_list_from_deezer) == len(all_tags_list) or len(tags_list_from_deezer) == 0) \
+            or not (len(tags_list_from_audio) == len(all_tags_list) or len(tags_list_from_audio) == 0) \
+            or not (len(tags_list_from_csv) == len(all_tags_list) or len(tags_list_from_csv) == 0):
         summary.append(f'Total tracks collected: {len(all_tags_list)}')
 
     # make context
@@ -201,3 +227,4 @@ get_tracks.add_command(print_command.print_tracks)
 get_tracks.add_command(export_command.export_tracks)
 get_tracks.add_command(import_spotify_command.import_spotify)
 get_tracks.add_command(import_deezer_command.import_deezer)
+get_tracks.add_command(compare_command.compare)

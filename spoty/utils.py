@@ -6,6 +6,10 @@ class SpotyContext:
     summary: []
 
 
+class FakeContext:
+    obj: None
+
+
 tag_allies = [
     ['YEAR', 'DATE'],
     ['TRACK', 'TRACKNUMBER'],
