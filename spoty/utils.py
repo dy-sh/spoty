@@ -20,7 +20,8 @@ spoty_tags = \
         'SPOTY_PLAYLIST_INDEX',
         'SPOTY_FILE_NAME',
         'SPOTY_TRACK_ID',
-        'LENGTH'
+        'SPOTY_TRACK_ADDED',
+        'SPOTY_LENGTH'
 
     ]
 
@@ -39,7 +40,6 @@ main_tags = \
         'BARCODE',
         'BPM',
         'FILEOWNER'  # public
-        'LENGTH',
         'QUALITY',
         'SPOTIFY_TRACK_ID'  # spotify specific
         'SPOTIFY_RELEASE_ID',  # spotify specific

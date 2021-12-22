@@ -8,6 +8,7 @@ import re
 from spoty import settings
 from spotipy.oauth2 import SpotifyOAuth
 import spotipy
+import datetime
 
 SPOTIFY_CLIENT_ID = settings.default.SPOTIFY_CLIENT_ID
 SPOTIFY_CLIENT_SECRET = settings.default.SPOTIFY_CLIENT_SECRET
@@ -815,6 +816,8 @@ def read_tags_from_spotify_tracks(tracks):
 
 
 def read_tags_from_spotify_track(track):
+    date_added = track['added_at']
+
     if "track" in track:
         track = track['track']
 
@@ -838,7 +841,7 @@ def read_tags_from_spotify_track(track):
     except:
         pass
 
-    tags['LENGTH'] = track['duration_ms']
+    tags['SPOTY_LENGTH'] = track['duration_ms']
 
     try:
         tags['SPOTIFY_RELEASE_ID'] = track['album']['id']
@@ -860,6 +863,10 @@ def read_tags_from_spotify_track(track):
         tags['YEAR'] = track['album']['release_date']
     except:
         pass
+
+    # tags['SPOTIFY_DATE_ADDED'] = date_added
+    timestamp = datetime.datetime.strptime(date_added, "%Y-%m-%dT%H:%M:%SZ") # format: 2021-12-19T19:35:17Z
+    tags['SPOTY_TRACK_ADDED'] = timestamp.strftime('%Y-%m-%d %H:%M:%S')
 
     for tag in spoty.utils.spoty_tags:
         if tag in track:

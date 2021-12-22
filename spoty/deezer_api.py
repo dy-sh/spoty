@@ -7,6 +7,7 @@ import os.path
 import click
 import time
 import re
+import datetime
 
 DEEZER_APP_ID = settings.default.DEEZER_APP_ID
 DEEZER_APP_SECRET = settings.default.DEEZER_APP_SECRET
@@ -421,7 +422,7 @@ def read_tags_from_deezer_track(track):
         tags['ALBUM'] = track['ALB_TITLE']
 
     if 'DURATION' in track:
-        tags['LENGTH'] = int(track['DURATION']) * 1000
+        tags['SPOTY_LENGTH'] = int(track['DURATION']) * 1000
 
     if 'ALB_ID' in track:
         tags['DEEZER_ALBUM_ID'] = track['ALB_ID']
@@ -446,6 +447,11 @@ def read_tags_from_deezer_track(track):
 
     if 'GAIN' in track:
         tags['GAIN'] = track['GAIN']
+
+    if 'DATE_ADD' in track:
+        timestamp = datetime.datetime.fromtimestamp(int(track['DATE_ADD']))
+        # tags['DEZZER_DATE_ADD'] = track['DATE_ADD']
+        tags['SPOTY_TRACK_ADDED'] = timestamp.strftime('%Y-%m-%d %H:%M:%S')
 
     # try:
     #     tags['YEAR'] = track['album']['release_date']

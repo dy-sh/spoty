@@ -29,7 +29,7 @@ def is_csv(file_name):
 
 def clean_tags(tags_list):
     for tags in tags_list:
-        if 'SPOTY_PLAYLIST_SOURCE' in tags:
+        if 'SPOTY_PLAYLIST_INDEX' in tags:
             del tags['SPOTY_PLAYLIST_INDEX']
 
 
