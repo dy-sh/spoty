@@ -569,7 +569,7 @@ def import_playlists_from_tags_list(tags_list: list, grouping_pattern: str, over
 
     with click.progressbar(grouped_tags.items(), label=f'Importing {len(grouped_tags)} playlists') as bar:
         for group_name, g_tags_list in bar:
-            playlist_id, added, source_duplicates, already_exist, not_found \
+            playlist_id, added, source_duplicates, already_exist \
                 = import_playlist_from_tags_list(group_name, g_tags_list, overwrite_if_exist, append_if_exist,
                                                  allow_duplicates, confirm)
 

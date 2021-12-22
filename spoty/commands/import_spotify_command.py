@@ -1,6 +1,7 @@
 from spoty import settings
 from spoty import log
 import spoty.spotify_api
+import spoty.csv_playlist
 import spoty.utils
 from spoty.utils import SpotyContext
 import click
@@ -62,21 +63,41 @@ Import track list to Spotify Library
             click.echo("\nCanceled.")
             exit()
 
-    spoty.spotify_api.find_missing_track_ids(tags_list)
+    found_tags_list, not_found_tags_list = spoty.spotify_api.find_missing_track_ids(tags_list)
 
-    playlist_ids, added_tracks, import_duplicates, already_exist = \
+    playlist_ids, imported_tags_list, source_duplicates_tags_list, already_exist_tags_list = \
         spoty.spotify_api.import_playlists_from_tags_list(
-            tags_list, grouping_pattern, overwrite, append, duplicates, yes_all)
+            found_tags_list, grouping_pattern, overwrite, append, duplicates, yes_all)
+
+    # create result csv playlists
+
+    if export_result:
+        result_path = os.path.abspath(result_path)
+        date_time_str = datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
+        result_path = os.path.join(result_path, 'import-spotify-' + date_time_str)
+
+        if len(imported_tags_list) > 0:
+            path = os.path.join(result_path, 'imported')
+            spoty.csv_playlist.create_csvs(imported_tags_list, path, grouping_pattern)
+        if len(source_duplicates_tags_list) > 0:
+            path = os.path.join(result_path, 'skipped_source_duplicates')
+            spoty.csv_playlist.create_csvs(source_duplicates_tags_list, path, grouping_pattern)
+        if len(already_exist_tags_list) > 0:
+            path = os.path.join(result_path, 'skipped_already_exist')
+            spoty.csv_playlist.create_csvs(already_exist_tags_list, path, grouping_pattern)
+        if len(not_found_tags_list) > 0:
+            path = os.path.join(result_path, 'not_found')
+            spoty.csv_playlist.create_csvs(not_found_tags_list, path, grouping_pattern)
 
     # print summery
 
-    context.summary.append(f'{len(added_tracks)} tracks imported in {len(playlist_ids)} Spotify playlists.')
-    if len(import_duplicates) > 0:
-        context.summary.append(f'{len(import_duplicates)} duplicates in collected tracks skipped.')
-    if len(already_exist) > 0:
-        context.summary.append(f'{len(already_exist)} tracks already exist in playlists and skipped.')
-    if len(not_found_tracks) > 0:
-        context.summary.append(f'{len(not_found_tracks)} tracks not found by tags.')
+    context.summary.append(f'{len(imported_tags_list)} tracks imported in {len(playlist_ids)} Spotify playlists.')
+    if len(source_duplicates_tags_list) > 0:
+        context.summary.append(f'{len(source_duplicates_tags_list)} duplicates in collected tracks skipped.')
+    if len(already_exist_tags_list) > 0:
+        context.summary.append(f'{len(already_exist_tags_list)} tracks already exist in playlists and skipped.')
+    if len(not_found_tags_list) > 0:
+        context.summary.append(f'{len(not_found_tags_list)} tracks not found by tags.')
 
     click.echo('\n------------------------------------------------------------')
     click.echo('\n'.join(context.summary))
