@@ -44,7 +44,7 @@ Import track list to Deezer Library
     click.echo('Next playlists will be imported to Deezer library:')
     grouped_tags = spoty.utils.group_tags_by_pattern(tags_list, grouping_pattern)
     for group_name, g_tags_list in grouped_tags.items():
-        click.echo(group_name)
+        click.echo("  " + group_name)
     click.echo(f'Total {len(tags_list)} tracks in {len(grouped_tags)} playlists.')
 
     if not yes_all:

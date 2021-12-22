@@ -510,16 +510,19 @@ def import_playlists_from_tags_list(tags_list, grouping_pattern, overwrite_if_ex
     all_not_found = []
     grouped_tags = spoty.utils.group_tags_by_pattern(tags_list, grouping_pattern)
 
-    for group_name, g_tags_list in grouped_tags.items():
-        playlist_id, tracks_added, import_duplicates, already_exist, not_found \
-            = import_playlist_from_tags_list(group_name, g_tags_list, overwrite_if_exist, append_if_exist,
-                                             allow_duplicates, confirm)
+    with click.progressbar(length=len(grouped_tags), label=f'Importing {len(grouped_tags)} playlists') as bar:
+        for group_name, g_tags_list in grouped_tags.items():
+            playlist_id, tracks_added, import_duplicates, already_exist, not_found \
+                = import_playlist_from_tags_list(group_name, g_tags_list, overwrite_if_exist, append_if_exist,
+                                                 allow_duplicates, confirm)
 
-        all_playlist_ids.append(playlist_id)
-        all_tracks_added.extend(tracks_added)
-        all_import_duplicates.extend(import_duplicates)
-        all_already_exist.extend(already_exist)
-        all_not_found.extend(not_found)
+            bar.update(1)
+
+            all_playlist_ids.append(playlist_id)
+            all_tracks_added.extend(tracks_added)
+            all_import_duplicates.extend(import_duplicates)
+            all_already_exist.extend(already_exist)
+            all_not_found.extend(not_found)
 
     return all_playlist_ids, all_tracks_added, all_import_duplicates, all_already_exist, all_not_found
 
