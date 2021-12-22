@@ -1,12 +1,12 @@
 from spoty import settings
 from spoty import log
-import spoty.spotify_api
+import spoty.deezer_api
 import spoty.utils
 from spoty.utils import SpotyContext
 import click
 
 
-@click.command("import-spotify")
+@click.command("import-deezer")
 @click.option('--grouping-pattern', '--gp', show_default=True,
               default=settings.SPOTY.DEFAULT_GROUPING_PATTERN,
               help='Tracks will be grouped to playlists according to this pattern.')
@@ -22,7 +22,7 @@ import click
 @click.option('--yes-all', '-y', is_flag=True,
               help='Confirm all questions with a positive answer automatically.')
 @click.pass_obj
-def import_spotify(context: SpotyContext,
+def import_deezer(context: SpotyContext,
                    grouping_pattern,
                    duplicates,
                    append,
@@ -31,7 +31,7 @@ def import_spotify(context: SpotyContext,
                    yes_all,
                    ):
     """
-Import track list to Spotify Library
+Import track list to Deezer Library
     """
 
     tags_list = context.tags_list
@@ -41,7 +41,7 @@ Import track list to Spotify Library
                    err=True)
         exit()
 
-    click.echo('Next playlists will be imported to Spotify library:')
+    click.echo('Next playlists will be imported to Deezer library:')
     grouped_tags = spoty.utils.group_tags_by_pattern(tags_list, grouping_pattern)
     for group_name, g_tags_list in grouped_tags.items():
         click.echo(group_name)
@@ -55,12 +55,12 @@ Import track list to Spotify Library
             exit()
 
     playlist_ids, added_tracks, import_duplicates, already_exist, not_found_tracks = \
-        spoty.spotify_api.import_playlists_from_tags_list(
+        spoty.deezer_api.import_playlists_from_tags_list(
             tags_list, grouping_pattern, overwrite, append, duplicates, yes_all)
 
     # print summery
 
-    context.summary.append(f'{len(added_tracks)} tracks imported in {len(playlist_ids)} Spotify playlists.')
+    context.summary.append(f'{len(added_tracks)} tracks imported in {len(playlist_ids)} Deezer playlists.')
     if len(import_duplicates) > 0:
         context.summary.append(f'{len(import_duplicates)} duplicates in collected tracks skipped.')
     if len(already_exist) > 0:

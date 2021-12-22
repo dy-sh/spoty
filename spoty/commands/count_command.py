@@ -7,7 +7,7 @@ import click
 
 @click.command("count")
 @click.option('--grouping-pattern', '--gp', show_default=True,
-              default=settings.SPOTY.DEFAULT_DEST_GROUPING_PATTERN,
+              default=settings.SPOTY.DEFAULT_GROUPING_PATTERN,
               help='Tracks will be grouped to playlists according to this pattern.')
 @click.pass_obj
 def count_tracks(context: SpotyContext,

@@ -98,18 +98,10 @@ def create_folder(folder_name):
         os.makedirs(final_directory)
 
 
-def read_file(file_name):
-    try:
-        file = open(file_name, encoding='utf-8-sig')
-        lines = list(file)
-        file.close()
-    except:
-        print("Cant open file: " + file_name)
-        raise
-    return lines
-
-
 def get_track_artist_and_title(track):
+    if track is None:
+        return None
+
     artist = "Unknown"
     title = "Unknown"
     try:
@@ -130,6 +122,13 @@ def get_track_ids(tracks):
         return []
     else:
         return [str(track['SNG_ID']) for track in tracks]
+
+
+def get_playlists_ids(playlists):
+    if len(playlists) == 0:
+        return []
+    else:
+        return [item['id'] for item in playlists]
 
 
 def parse_playlist_id(id_or_url: str):
@@ -225,35 +224,7 @@ def get_list_of_user_playlists(user_id=None):
     return playlists
 
 
-def delete_playlist(playlist_ids, confirm=False):
-    deleted_playlists = []
-    for playlist_id in playlist_ids:
-        playlist_id = parse_playlist_id(playlist_id)
-
-        log.info(f'Deleting playlist {playlist_id}')
-
-        playlist = get_playlist(playlist_id)
-        if playlist == None:
-            log.info(f'Playlist {playlist_id} does not exist.')
-            continue
-
-        if not confirm:
-            if not click.confirm(f'Are you sure you want to delete playlist "{playlist["TITLE"]}"?'):
-                log.info("Playlist not deleted. Canceled by user.")
-                continue
-            click.echo()
-
-        res = get_dz().gw.delete_playlist(playlist_id)
-        if res:
-            log.success(f'Playlist {playlist_id} deleted"')
-            deleted_playlists.append(playlist_id)
-        else:
-            log.error(f'Playlist {playlist_id} not deleted"')
-
-    return deleted_playlists
-
-
-def delete_all_playlist(confirm=False):
+def delete_all_playlists(confirm=False):
     log.info(f'Deleting all playlist')
 
     playlists = get_list_of_user_playlists()
@@ -268,9 +239,45 @@ def delete_all_playlist(confirm=False):
             return []
 
     ids = [pl['id'] for pl in playlists]
-    deleted_playlists = delete_playlist(ids, True)
+    deleted_playlists = delete_playlists(ids, True)
 
     return deleted_playlists
+
+
+def delete_playlists(playlist_ids, confirm=False):
+    deleted_playlists = []
+    with click.progressbar(playlist_ids, label=f'Deleting {len(playlist_ids)} playlists') as bar:
+        for playlist_id in bar:
+            res =delete_playlist(playlist_id, confirm)
+            if res:
+                deleted_playlists.append(playlist_id)
+
+    return deleted_playlists
+
+
+def delete_playlist(playlist_id, confirm=False):
+    playlist_id = parse_playlist_id(playlist_id)
+
+    log.info(f'Deleting playlist {playlist_id}')
+
+    playlist = get_playlist(playlist_id)
+    if playlist == None:
+        log.info(f'Playlist {playlist_id} does not exist.')
+        return False
+
+    if not confirm:
+        if not click.confirm(f'\nAre you sure you want to delete playlist "{playlist["TITLE"]}"?'):
+            log.info("Playlist not deleted. Canceled by user.")
+            return False
+        click.echo()
+
+    res = get_dz().gw.delete_playlist(playlist_id)
+    if res:
+        log.success(f'Playlist {playlist_id} deleted"')
+        return True
+    else:
+        log.error(f'Playlist {playlist_id} not deleted"')
+        return False
 
 
 def add_track_release_dates(tracks):
@@ -294,34 +301,63 @@ def get_album_release_date(album_id):
     return None
 
 
-def find_tracks_by_isrc(isrcs_list):
-    isrcs_list = list(filter(lambda isrc: len(isrc) > 0, isrcs_list))
-    isrcs_list = spoty.utils.remove_duplicates(isrcs_list)
+def find_tracks_from_tags(tags_list):
+    found_ids = []
+    not_found_tracks = []
 
-    log.info(f'Finding tacks by ISRCs (count: {len(isrcs_list)})')
+    for tags in tags_list:
+        if "DEEZER_TRACK_ID" in tags:
+            found_ids.append(tags['DEEZER_TRACK_ID'])
+            continue
 
-    # for dup in duplicates:
-    #     log.warning(f'A track with IRSC "{dup}" duplicated. Duplicate removed.')
+        if "ISRC" in tags:
+            id = find_track_id_by_isrc(tags['ISRC'])
+            if id is not None:
+                found_ids.append(id)
+                continue
 
-    not_found_isrcs = []
-    tracks = []
+        if "TITLE" in tags and "ARTIST" in tags:
+            id = find_track_id_by_artist_and_title(tags['ARTIST'], tags['TITLE'], tags.get('ALBUM', None))
+            if id is not None:
+                found_ids.append(id)
+                continue
 
-    for i, isrc in enumerate(isrcs_list):
-        try:
-            track = get_dz().api.get_track_by_ISRC(isrc)
-            tracks.append(track)
-            title = get_track_artist_and_title(track)
-            log.debug(f'Track found: ISRC: {isrc} ID: {track["id"]} TITLE: "{title.encode("utf-8")}"')
-        except deezer.errors.DataException as e:
-            log.debug(f'Track not found: ISRC: {isrc}"')
-            not_found_isrcs.append(isrc)
+        not_found_tracks.append(tags)
 
-    return tracks, not_found_isrcs
+    return found_ids, not_found_tracks
+
+
+def find_track_id_by_isrc(isrc):
+    track = find_track_by_isrc(isrc)
+    return track['id'] if track is not None else None
+
+
+def find_track_by_isrc(isrc):
+    try:
+        track = get_dz().api.get_track_by_ISRC(isrc)
+        log.debug(f'Track found by ISRC: {isrc} (ID: {track["id"]} TITLE: "{get_track_artist_and_title(track)}")')
+        if track is not None and int(track['id']) != 0:
+            return track
+    except deezer.errors.DataException as e:
+        log.debug(f'Track not found by ISRC: {isrc}"')
+
+    return None
+
+
+def find_track_id_by_artist_and_title(artist, title, album=""):
+    track_id = get_dz().api.get_track_id_from_metadata(artist, title, album)
+    return track_id if int(track_id) != 0 else None
 
 
 def add_tracks_to_playlist(playlist_id, track_ids, allow_duplicates=False):
     playlist_id = parse_playlist_id(playlist_id)
-    track_ids = spoty.utils.remove_duplicates(track_ids)
+
+    import_duplicates = []
+
+    if not allow_duplicates:
+        track_ids, import_duplicates = spoty.utils.remove_duplicates(track_ids)
+        if len(import_duplicates) > 0:
+            log.debug(f'{len(import_duplicates)} duplicates found when adding tracks. It will be skipped.')
 
     for i in range(len(track_ids)):
         track_ids[i] = parse_track_id(track_ids[i])
@@ -330,13 +366,14 @@ def add_tracks_to_playlist(playlist_id, track_ids, allow_duplicates=False):
 
     playlist = get_playlist(playlist_id)
 
+    already_exist = []
+
     if not allow_duplicates:
         tracks, playlist = get_playlist_with_full_list_of_tracks(playlist_id)
-        existing_ids = get_track_ids(tracks)
-        new_ids = spoty.utils.filter_duplicates(existing_ids, track_ids)
-        if len(track_ids) != len(new_ids):
-            log.debug(f'{len(track_ids) - len(new_ids)}/{len(track_ids)} tracks already exist and will be skipped.')
-            track_ids = new_ids
+        ids_in_playlist = get_track_ids(tracks)
+        track_ids, already_exist = spoty.utils.remove_exist(ids_in_playlist, track_ids)
+        if len(already_exist) > 0:
+            log.debug(f'{len(already_exist)} tracks already exist and will be skipped.')
 
     tracks_added = []
     tracks_copy = track_ids.copy()
@@ -362,12 +399,141 @@ def add_tracks_to_playlist(playlist_id, track_ids, allow_duplicates=False):
 
     log.success(f'Adding tracks complete (tracks added: {len(tracks_added)}')
 
-    return tracks_added
+    return tracks_added, import_duplicates, already_exist
 
 
 def find_playlist_by_name(name):
     playlists = get_list_of_user_playlists()
     return list(filter(lambda pl: pl['title'] == name, playlists))
+
+
+def import_playlists_from_tags_list(tags_list, grouping_pattern, overwrite_if_exist=False, append_if_exist=False,
+                                    allow_duplicates=True, confirm=False):
+    all_playlist_ids = []
+    all_tracks_added = []
+    all_import_duplicates = []
+    all_already_exist = []
+    all_not_found = []
+    grouped_tags = spoty.utils.group_tags_by_pattern(tags_list, grouping_pattern)
+
+    for group_name, g_tags_list in grouped_tags.items():
+        playlist_id, tracks_added, import_duplicates, already_exist, not_found \
+            = import_playlist_from_tags_list(group_name, g_tags_list, overwrite_if_exist, append_if_exist,
+                                             allow_duplicates, confirm)
+
+        all_playlist_ids.append(playlist_id)
+        all_tracks_added.extend(tracks_added)
+        all_import_duplicates.extend(import_duplicates)
+        all_already_exist.extend(already_exist)
+        all_not_found.extend(not_found)
+
+    return all_playlist_ids, all_tracks_added, all_import_duplicates, all_already_exist, all_not_found
+
+
+def import_playlist_from_tags_list(playlist_name, tags_list, overwrite_if_exist=False, append_if_exist=False,
+                                   allow_duplicates=True, confirm=False):
+    log.info(f'Importing playlist "{playlist_name}"')
+    tracks_added = []
+
+    playlist_id = None
+
+    if overwrite_if_exist or append_if_exist:
+        found_playlists = find_playlist_by_name(playlist_name)
+
+        if len(found_playlists) > 0:
+            if append_if_exist:
+                if len(found_playlists) > 1:
+                    if confirm:
+                        click.echo(
+                            f'\n{len(found_playlists)} playlists with name "{playlist_name}" found in Spotify library. Choosing the first one and appending it.')
+                    else:
+                        if not click.confirm(
+                                f'\n{len(found_playlists)} playlists with name "{playlist_name}" found in Spotify library. Choose the first one and append it?'):
+                            click.echo("\nCanceled")
+                            log.info(f'Canceled by user (more than one playlists found with name "{playlist_name})"')
+                            return [], [], [], []
+                        click.echo()  # for new line
+            if overwrite_if_exist:
+                if len(found_playlists) > 1:
+                    if confirm:
+                        click.echo(
+                            f'\n{len(found_playlists)} playlists with name "{playlist_name}" found in Spotify library. Choosing the first one and overwriting it.')
+                    else:
+                        if not click.confirm(
+                                f'\n{len(found_playlists)} playlists with name "{playlist_name}" found in Spotify library. Choose the first one and overwrite it?'):
+                            click.echo("\nCanceled")
+                            log.info(f'Canceled by user (more than one playlists found with name "{playlist_name})"')
+                            return [], [], [], []
+                        click.echo()  # for new line
+                else:
+                    if confirm:
+                        click.echo(f'\nPlaylist "{playlist_name}" exist in Spotify library. Overwriting it.')
+                    else:
+                        if not click.confirm(
+                                f'\nPlaylist "{playlist_name}" exist in Spotify library. Overwrite it?'):
+                            click.echo("\nCanceled")
+                            log.info(f'Canceled by user (playlist found with name "{playlist_name})"')
+                            return [], [], [], []
+                        click.echo()  # for new line
+
+                remove_all_tracks_from_playlist(found_playlists[0]['id'], True)
+
+            playlist_id = found_playlists[0]['id']
+
+    if playlist_id is None:
+        playlist_id = create_playlist(playlist_name)
+
+    found_ids, tracks_not_found = find_tracks_from_tags(tags_list)
+
+    import_duplicates = []
+    already_exist = []
+
+    if len(found_ids) > 0:
+        tracks_added, import_duplicates, already_exist = add_tracks_to_playlist(playlist_id, found_ids,
+                                                                                allow_duplicates)
+    log.success(f'Playlist imported (new tracks: "{len(tracks_added)}")  id: {playlist_id} name: "{playlist_name}"')
+
+    return playlist_id, tracks_added, import_duplicates, already_exist, tracks_not_found
+
+
+def remove_all_tracks_from_playlist(playlist_id, confirm=False):
+    playlist_id = parse_playlist_id(playlist_id)
+
+    playlist = get_playlist_with_full_list_of_tracks(playlist_id)
+    tracks = playlist.tracks
+
+    if len(tracks) == 0:
+        return False
+
+    if not confirm:
+        if not click.confirm(f'Do you want to remove all tracks from playlist {playlist_id}?'):
+            click.echo("\nCanceled")
+            return False
+        click.echo()  # for new line
+
+    ids = get_track_ids(tracks)
+    remove_tracks_from_playlist(playlist_id, ids)
+    return True
+
+
+def remove_tracks_from_playlist(playlist_id, track_ids):
+    playlist_id = parse_playlist_id(playlist_id)
+
+    log.info(f'Removing {len(track_ids)} tracks from playlist {playlist_id}')
+
+    get_dz().gw.remove_songs_from_playlist(playlist_id, track_ids)
+
+    # i = 0
+    # next_tracks = []
+    # while i < len(track_ids):
+    #     track_ids[i] = parse_track_id(track_ids[i])
+    #     next_tracks.append(track_ids[i])
+    #     if len(next_tracks) == 100 or i == len(track_ids) - 1:
+    #         get_dz().gw.remove_songs_from_playlist(playlist_id, next_tracks)
+    #         next_tracks = []
+    #     i += 1
+
+    log.success(f'Tracks removed from playlist {playlist_id}')
 
 
 def add_extra_tags_to_tracks(tracks, new_tracks, playlist_id, playlist_name):
@@ -394,13 +560,6 @@ def read_tags_from_deezer_tracks(tracks):
         tag_tracks.append(tags)
 
     return tag_tracks
-
-
-def get_playlists_ids(playlists):
-    if len(playlists) == 0:
-        return []
-    else:
-        return [item['id'] for item in playlists]
 
 
 def read_tags_from_deezer_track(track):

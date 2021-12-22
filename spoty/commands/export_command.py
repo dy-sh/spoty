@@ -10,7 +10,7 @@ from datetime import datetime
 
 @click.command("export")
 @click.option('--grouping-pattern', '--gp', show_default=True,
-              default=settings.SPOTY.DEFAULT_DEST_GROUPING_PATTERN,
+              default=settings.SPOTY.DEFAULT_GROUPING_PATTERN,
               help='Tracks will be grouped to playlists according to this pattern.')
 @click.option('--duplicates', '-d', type=bool, is_flag=True, default=False,
               help='Allow duplicates (add tracks that are already exist in csv file).')

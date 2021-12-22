@@ -2,6 +2,7 @@ from spoty.commands import count_command
 from spoty.commands import print_command
 from spoty.commands import export_command
 from spoty.commands import import_spotify_command
+from spoty.commands import import_deezer_command
 from spoty.utils import SpotyContext
 from spoty import settings
 from spoty import log
@@ -76,3 +77,4 @@ filter_tracks.add_command(count_command.count_tracks)
 filter_tracks.add_command(print_command.print_tracks)
 filter_tracks.add_command(export_command.export_tracks)
 filter_tracks.add_command(import_spotify_command.import_spotify)
+filter_tracks.add_command(import_deezer_command.import_deezer)

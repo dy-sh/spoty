@@ -7,10 +7,10 @@ import click
 
 @click.command("print")
 @click.option('--grouping-pattern', '--gp', show_default=True,
-              default=settings.SPOTY.DEFAULT_DEST_GROUPING_PATTERN,
+              default=settings.SPOTY.DEFAULT_GROUPING_PATTERN,
               help='Tracks will be grouped to playlists according to this pattern.')
 @click.option('--print-pattern', '--pp', show_default=True,
-              default=settings.SPOTY.DEFAULT_DEST_PRINT_PATTERN,
+              default=settings.SPOTY.DEFAULT_PRINT_PATTERN,
               help='Print a list of tracks according to this formatting pattern.')
 @click.pass_obj
 def print_tracks(context: SpotyContext,

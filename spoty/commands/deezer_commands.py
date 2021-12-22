@@ -65,7 +65,7 @@ def playlist_list(filter_names, user_id):
         spoty deezer playlist list --user-id 4717400682
     """
     if user_id == None:
-        playlists = spoty.deezer_api.get_list_of_playlists()
+        playlists = spoty.deezer_api.get_list_of_user_playlists()
     else:
         playlists = spoty.deezer_api.get_list_of_user_playlists(user_id)
 
@@ -119,7 +119,7 @@ def playlist_delete(playlist_id, confirm):
 
         spoty deezer playlist delete https://www.deezer.com/ru/playlist/9457847341
     """
-    deleted_playlists = spoty.deezer_api.delete_playlist(playlist_id, confirm)
+    deleted_playlists = spoty.deezer_api.delete_playlists(playlist_id, confirm)
     click.echo(f'{len(deleted_playlists)} playlist deleted')
 
 
@@ -128,7 +128,7 @@ def playlist_delete(playlist_id, confirm):
               help='Do not ask for export confirmation')
 def playlist_delete_all(confirm):
     r"""
-    Delete playlists with the specified id.
+    Delete all playlists in the library.
 
     Examples:
 
@@ -136,7 +136,7 @@ def playlist_delete_all(confirm):
 
         spoty deezer playlist delete-all --confirm
     """
-    deleted_playlists = spoty.deezer_api.delete_all_playlist(confirm)
+    deleted_playlists = spoty.deezer_api.delete_all_playlists(confirm)
     click.echo(f'{len(deleted_playlists)} playlist deleted')
 
 
