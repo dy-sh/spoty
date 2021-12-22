@@ -565,7 +565,6 @@ def import_playlists_from_tags_list(tags_list: list, grouping_pattern: str, over
     all_added = []
     all_source_duplicates = []
     all_already_exist = []
-    all_not_found = []
     grouped_tags = spoty.utils.group_tags_by_pattern(tags_list, grouping_pattern)
 
     with click.progressbar(grouped_tags.items(), label=f'Importing {len(grouped_tags)} playlists') as bar:
@@ -578,9 +577,8 @@ def import_playlists_from_tags_list(tags_list: list, grouping_pattern: str, over
             all_added.extend(added)
             all_source_duplicates.extend(source_duplicates)
             all_already_exist.extend(already_exist)
-            all_not_found.extend(not_found)
 
-    return all_playlist_ids, all_added, all_source_duplicates, all_already_exist, all_not_found
+    return all_playlist_ids, all_added, all_source_duplicates, all_already_exist
 
 
 def import_playlist_from_tags_list(playlist_name: str, tags_list: list, overwrite_if_exist=False, append_if_exist=False,

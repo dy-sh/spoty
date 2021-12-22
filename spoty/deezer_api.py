@@ -358,7 +358,9 @@ def find_track_by_isrc(isrc: str):
     return None
 
 
-def find_track_id_by_artist_and_title(artist: str, title: str, album=""):
+def find_track_id_by_artist_and_title(artist: str, title: str, album=None):
+    if album == None:
+        album = ""
     track_id = get_dz().api.get_track_id_from_metadata(artist, title, album)
     return track_id if int(track_id) != 0 else None
 
@@ -481,12 +483,11 @@ def import_playlists_from_tags_list(tags_list: list, grouping_pattern: str, over
     all_added = []
     all_source_duplicates = []
     all_already_exist = []
-    all_not_found = []
     grouped_tags = spoty.utils.group_tags_by_pattern(tags_list, grouping_pattern)
 
     with click.progressbar(grouped_tags.items(), label=f'Importing {len(grouped_tags)} playlists') as bar:
         for group_name, g_tags_list in bar:
-            playlist_id, added, source_duplicates, already_exist, not_found \
+            playlist_id, added, source_duplicates, already_exist \
                 = import_playlist_from_tags_list(group_name, g_tags_list, overwrite_if_exist, append_if_exist,
                                                  allow_duplicates, confirm)
 
@@ -494,9 +495,8 @@ def import_playlists_from_tags_list(tags_list: list, grouping_pattern: str, over
             all_added.extend(added)
             all_source_duplicates.extend(source_duplicates)
             all_already_exist.extend(already_exist)
-            all_not_found.extend(not_found)
 
-    return all_playlist_ids, all_added, all_source_duplicates, all_already_exist, all_not_found
+    return all_playlist_ids, all_added, all_source_duplicates, all_already_exist
 
 
 def import_playlist_from_tags_list(playlist_name: str, tags_list: list, overwrite_if_exist=False, append_if_exist=False,

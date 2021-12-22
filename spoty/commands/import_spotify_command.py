@@ -64,7 +64,7 @@ Import track list to Spotify Library
 
     spoty.spotify_api.find_missing_track_ids(tags_list)
 
-    playlist_ids, added_tracks, import_duplicates, already_exist, not_found_tracks = \
+    playlist_ids, added_tracks, import_duplicates, already_exist = \
         spoty.spotify_api.import_playlists_from_tags_list(
             tags_list, grouping_pattern, overwrite, append, duplicates, yes_all)
 
