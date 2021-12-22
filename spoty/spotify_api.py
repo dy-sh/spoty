@@ -33,7 +33,7 @@ def get_tracks_from_playlists(playlist_ids, add_extra_tags=True):
 
     requested_playlists = []
 
-    with click.progressbar(playlist_ids, label=f'Reading tracks in {len(playlist_ids)} spotify playlists') as bar:
+    with click.progressbar(playlist_ids, label=f'Reading tracks in {len(playlist_ids)} Spotify playlists') as bar:
         for playlist_id in bar:
 
             # remove already requested playlists
@@ -860,10 +860,6 @@ def read_tags_from_spotify_track(track):
         tags['YEAR'] = track['album']['release_date']
     except:
         pass
-
-    # PREVIEW_URL=track['preview_url']
-    # tags['SOURCE'] = "Spotify"
-    # tags['SOURCEID'] = tags['SPOTIFY_TRACK_ID']
 
     for tag in spoty.utils.spoty_tags:
         if tag in track:

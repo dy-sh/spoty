@@ -33,12 +33,13 @@ spotify.add_command(spotify_track_commands.track)
 if __name__ == '__main__':
     # cli()
     cli([
-        'deezer','playlist','list'
-        # 'get',
+        # 'deezer','playlist','list'
+        'get',
          # '--sr','me','^BEST',
-         # '--s','me',
+         # '--d','me',
          # '--dgp','%SPOTY_PLAYLIST_SOURCE% %SPOTY_PLAYLIST_ID% - %SPOTY_PLAYLIST_NAME%',
          # '--sp', '48zAnLhtTz5pvrSy7s2Ca1',
+         '--dp', '9809325662',
          # '--sp', 'https://open.spotify.com/playlist/57VYcWAMIc97Ig41vPpev6',
          # '--a', r'.\music',
          # '--a', r'.\music\Pop Nutral\24KGoldn - Mood.flac',
@@ -50,4 +51,6 @@ if __name__ == '__main__':
          # 'import-spotify',
          # 'import-spotify',
          # '--gp','pl',
+         # 'print',
+         'export',
          ])

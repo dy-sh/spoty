@@ -7,6 +7,7 @@ from spoty.utils import SpotyContext
 from spoty import settings
 from spoty import log
 import spoty.spotify_api
+import spoty.deezer_api
 import spoty.audio_files
 import spoty.csv_playlist
 import spoty.utils
@@ -21,6 +22,12 @@ import time
               help='Get all tracks from Spotify library (by user URI or ID). To request a list for the current authorized user, use "me" as ID.')
 @click.option('--spotify-entire-library-regex', '--sr', nargs=2, multiple=True,
               help='Works the same as --spotify-entire-library, but you can specify regex filter which will be applied to playlists names. This way you can query any playlists by names.')
+@click.option('--deezer-playlist', '--dp', multiple=True,
+              help='Get tracks from Deezer playlist URI or ID.')
+@click.option('--deezer-entire-library', '--d', multiple=True,
+              help='Get all tracks from Deezer library (by user URI or ID). To request a list for the current authorized user, use "me" as ID.')
+@click.option('--deezer-entire-library-regex', '--dr', nargs=2, multiple=True,
+              help='Works the same as --deezer-entire-library, but you can specify regex filter which will be applied to playlists names. This way you can query any playlists by names.')
 @click.option('--audio', '--a', multiple=True,
               help='Get audio files located at the specified local path. You can specify the audio file name as well.')
 @click.option('--csv', '--c', multiple=True,
@@ -32,25 +39,16 @@ def get_tracks(ctx,
                spotify_playlist,
                spotify_entire_library,
                spotify_entire_library_regex,
+               deezer_playlist,
+               deezer_entire_library,
+               deezer_entire_library_regex,
                audio,
                csv,
                no_recursive,
                ):
     """
-
 Get tracks from sources.
-
     """
-
-    # if no sources - print help
-
-    # if len(spotify_playlist) == 0 \
-    #         and len(spotify_entire_library) == 0 \
-    #         and len(spotify_entire_library_regex) == 0 \
-    #         and len(audio) == 0 \
-    #         and len(csv) == 0:
-    #     click.echo('Please, specify the source where to get the tracks from. Execute "spoty get --help" for more info.')
-    #     exit()
 
     all_tags_list = []
 
@@ -103,10 +101,10 @@ Get tracks from sources.
         tags_list_from_audio.extend(tags_list)
         all_tags_list.extend(tags_list)
 
+    # get spotify
+
     spotify_playlists = []
     tags_list_from_spotify = []
-
-    # get spotify
 
     if len(spotify_playlist) > 0:
         pl = spoty.utils.tuple_to_list(spotify_playlist)
@@ -129,6 +127,35 @@ Get tracks from sources.
             tags_list_from_spotify.extend(tags_list)
             all_tags_list.extend(tags_list)
 
+
+    # get deezer
+
+    deezer_playlists = []
+    tags_list_from_deezer = []
+
+
+    if len(deezer_playlist) > 0:
+        pl = spoty.utils.tuple_to_list(deezer_playlist)
+        tracks, tags_list, playlists = spoty.deezer_api.get_tracks_from_playlists(pl)
+        # tags_list = spoty.deezer_api.add_track_release_dates(tags_list)
+        deezer_playlists.extend(playlists)
+        tags_list_from_deezer.extend(tags_list)
+        all_tags_list.extend(tags_list)
+
+    if len(deezer_entire_library) > 0:
+        for user_id in deezer_entire_library:
+            tracks, tags_list, playlists = spoty.deezer_api.get_tracks_of_deezer_user(user_id)
+            deezer_playlists.extend(playlists)
+            tags_list_from_deezer.extend(tags_list)
+            all_tags_list.extend(tags_list)
+
+    if len(deezer_entire_library_regex) > 0:
+        for user_and_reg in deezer_entire_library_regex:
+            tracks, tags_list, playlists = spoty.deezer_api.get_tracks_of_deezer_user(user_and_reg[0], user_and_reg[1])
+            deezer_playlists.extend(playlists)
+            tags_list_from_deezer.extend(tags_list)
+            all_tags_list.extend(tags_list)
+
     # make summary
 
     summary = []
@@ -141,6 +168,18 @@ Get tracks from sources.
         summary.append(f'{len(tags_list_from_csv)} tracks found in {len(csv_files)} csv playlists.')
 
     if not (len(tags_list_from_spotify) == len(all_tags_list) or len(tags_list_from_spotify) == 0)\
+            or not (len(tags_list_from_audio) == len(all_tags_list) or len(tags_list_from_audio) == 0)\
+            or not (len(tags_list_from_csv) == len(all_tags_list)or len(tags_list_from_csv) == 0):
+        summary.append(f'Total tracks collected: {len(all_tags_list)}')
+
+    if len(tags_list_from_deezer) > 0:
+        summary.append(f'{len(tags_list_from_deezer)} tracks found in {len(deezer_playlists)} deezer playlists.')
+    if len(tags_list_from_audio) > 0:
+        summary.append(f'{len(tags_list_from_audio)} audio files found in local path.')
+    if len(tags_list_from_csv) > 0:
+        summary.append(f'{len(tags_list_from_csv)} tracks found in {len(csv_files)} csv playlists.')
+
+    if not (len(tags_list_from_deezer) == len(all_tags_list) or len(tags_list_from_deezer) == 0)\
             or not (len(tags_list_from_audio) == len(all_tags_list) or len(tags_list_from_audio) == 0)\
             or not (len(tags_list_from_csv) == len(all_tags_list)or len(tags_list_from_csv) == 0):
         summary.append(f'Total tracks collected: {len(all_tags_list)}')

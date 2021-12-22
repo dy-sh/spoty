@@ -10,6 +10,7 @@ import time
 import os
 from datetime import datetime
 
+
 @click.group()
 def deezer():
     r"""Deezer specific commands."""
@@ -217,6 +218,7 @@ def playlist_read(playlist_ids):
 
     """
 
+    playlist_ids = spoty.utils.tuple_to_list(playlist_ids)
     playlists_dict = spoty.deezer_api.get_playlists_with_full_list_of_tracks(playlist_ids)
 
     for playlist_id, tracks_list in playlists_dict.items():
@@ -226,4 +228,3 @@ def playlist_read(playlist_ids):
             click.echo(f'{track["SNG_ID"]} "{title}"')
 
         click.echo(f'Total tracks: {len(tracks_list)}')
-

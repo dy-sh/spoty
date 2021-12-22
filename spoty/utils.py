@@ -59,6 +59,7 @@ additional_tags = \
         'DISC',
         'ENCODER',
         'EXPLICIT'
+        'GAIN'
         'INITIAL KEY',
         'INITIALKEY'
         'ENGINEER',
