@@ -36,10 +36,11 @@ if __name__ == '__main__':
         # 'deezer','playlist','list'
         'get',
          # '--sr','me','^BEST',
+         '--dr','me','^BEST',
          # '--d','me',
          # '--dgp','%SPOTY_PLAYLIST_SOURCE% %SPOTY_PLAYLIST_ID% - %SPOTY_PLAYLIST_NAME%',
          # '--sp', '48zAnLhtTz5pvrSy7s2Ca1',
-         '--dp', '9809325662',
+         # '--dp', '9809325662',
          # '--sp', 'https://open.spotify.com/playlist/57VYcWAMIc97Ig41vPpev6',
          # '--a', r'.\music',
          # '--a', r'.\music\Pop Nutral\24KGoldn - Mood.flac',

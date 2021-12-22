@@ -72,16 +72,15 @@ def get_tracks_from_playlists(playlist_ids, add_extra_tags=True):
 
 
 def get_tracks_of_deezer_user(user_id, playlists_names_regex=None):
-    user_id = parse_user_id(user_id)
     if user_id == 'me':
-        playlists = get_list_of_playlists()
+        playlists = get_list_of_user_playlists()
         click.echo(f'You have {len(playlists)} playlists in Deezer library')
     else:
         playlists = get_list_of_user_playlists(user_id)
         click.echo(f'User {user_id} has {len(playlists)} playlists in Deezer library')
 
     if playlists_names_regex is not None:
-        playlists = list(filter(lambda pl: re.findall(playlists_names_regex, pl['name']), playlists))
+        playlists = list(filter(lambda pl: re.findall(playlists_names_regex, pl['title']), playlists))
 
     if len(playlists) == 0:
         return [], [], []
@@ -217,14 +216,11 @@ def get_playlists_with_full_list_of_tracks(playlist_ids):
     return playlists_dict
 
 
-def get_list_of_playlists():
-    return get_list_of_user_playlists()
-
-
 def get_list_of_user_playlists(user_id=None):
     if user_id is None:
-        user_data = get_dz().gw.get_user_data()
-        user_id = user_data['USER']['USER_ID']
+        user_id = parse_user_id(get_dz().current_user['id'])
+        # user_data = get_dz().gw.get_user_data()
+        # user_id = user_data['USER']['USER_ID']
     playlists = get_dz().gw.get_user_playlists(user_id)
     return playlists
 
@@ -260,7 +256,7 @@ def delete_playlist(playlist_ids, confirm=False):
 def delete_all_playlist(confirm=False):
     log.info(f'Deleting all playlist')
 
-    playlists = get_list_of_playlists()
+    playlists = get_list_of_user_playlists()
 
     if len(playlists) <= 1:
         log.debug("User has no playlists.")
@@ -370,7 +366,7 @@ def add_tracks_to_playlist(playlist_id, track_ids, allow_duplicates=False):
 
 
 def find_playlist_by_name(name):
-    playlists = get_list_of_playlists()
+    playlists = get_list_of_user_playlists()
     return list(filter(lambda pl: pl['title'] == name, playlists))
 
 
@@ -398,6 +394,13 @@ def read_tags_from_deezer_tracks(tracks):
         tag_tracks.append(tags)
 
     return tag_tracks
+
+
+def get_playlists_ids(playlists):
+    if len(playlists) == 0:
+        return []
+    else:
+        return [item['id'] for item in playlists]
 
 
 def read_tags_from_deezer_track(track):
@@ -454,7 +457,7 @@ def read_tags_from_deezer_track(track):
         tags['SPOTY_TRACK_ADDED'] = timestamp.strftime('%Y-%m-%d %H:%M:%S')
 
     # try:
-    #     tags['YEAR'] = track['album']['release_date']
+    #     tags['YEAR'] = track['album']['release_date'] # get release date from album request
     # except:
     #     pass
 
