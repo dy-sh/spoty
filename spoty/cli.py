@@ -51,7 +51,7 @@ if __name__ == '__main__':
          # '--lnt', 'isrc',
          # 'import-spotify',
          'import-deezer',
-        '-y',
+        '-yr',
          # '--gp','pl',
          # 'print',
          # 'export',

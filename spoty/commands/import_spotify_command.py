@@ -4,7 +4,8 @@ import spoty.spotify_api
 import spoty.utils
 from spoty.utils import SpotyContext
 import click
-
+import os
+from datetime import datetime
 
 @click.command("import-spotify")
 @click.option('--grouping-pattern', '--gp', show_default=True,
@@ -21,6 +22,11 @@ import click
 #               help='Compare duplicates by this tags. It is optional. You can also change the list of tags in the config file.')
 @click.option('--yes-all', '-y', is_flag=True,
               help='Confirm all questions with a positive answer automatically.')
+@click.option('--export-result', '-r', is_flag=True,
+              help='Export csv files with result (imported, not found, skipped tracks)')
+@click.option('--result-path', '--rp',
+              default=settings.SPOTY.DEFAULT_LIBRARY_PATH,
+              help='Path to create resulting csv files')
 @click.pass_obj
 def import_spotify(context: SpotyContext,
                    grouping_pattern,
@@ -29,6 +35,8 @@ def import_spotify(context: SpotyContext,
                    overwrite,
                    # duplicates_compare_tags,
                    yes_all,
+                   export_result,
+                   result_path
                    ):
     """
 Import track list to Spotify Library
@@ -53,6 +61,8 @@ Import track list to Spotify Library
         else:
             click.echo("\nCanceled.")
             exit()
+
+    spoty.spotify_api.find_missing_track_ids(tags_list)
 
     playlist_ids, added_tracks, import_duplicates, already_exist, not_found_tracks = \
         spoty.spotify_api.import_playlists_from_tags_list(

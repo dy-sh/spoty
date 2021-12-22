@@ -27,7 +27,7 @@ def get_sp():
     return sp
 
 
-def get_tracks_from_playlists(playlist_ids, add_extra_tags=True):
+def get_tracks_from_playlists(playlist_ids: list, add_extra_tags=True):
     all_tracks = []
     all_tags_list = []
     all_received_playlists = []
@@ -56,7 +56,7 @@ def get_tracks_from_playlists(playlist_ids, add_extra_tags=True):
     return all_tracks, all_tags_list, all_received_playlists
 
 
-def get_tracks_of_spotify_user(user_id, playlists_names_regex=None):
+def get_tracks_of_spotify_user(user_id: str, playlists_names_regex: str = None):
     user_id = parse_user_id(user_id)
     if user_id == 'me':
         playlists = get_list_of_playlists()
@@ -77,7 +77,7 @@ def get_tracks_of_spotify_user(user_id, playlists_names_regex=None):
     return tracks, tags, playlists
 
 
-def find_track_by_query(query):
+def find_track_by_query(query: str):
     res = get_sp().search(query)
 
     try:
@@ -90,7 +90,7 @@ def find_track_by_query(query):
     return []
 
 
-def find_track_by_isrc(isrc):
+def find_track_by_isrc(isrc: str):
     res = get_sp().search(f'isrc:{isrc}')
 
     try:
@@ -103,12 +103,12 @@ def find_track_by_isrc(isrc):
     return None
 
 
-def find_track_id_by_isrc(isrc):
+def find_track_id_by_isrc(isrc: str):
     track = find_track_by_isrc(isrc)
     return track['id'] if track is not None else None
 
 
-def find_track_by_artist_and_title(artist, title):
+def find_track_by_artist_and_title(artist: str, title: str):
     res = get_sp().search(f'track:{title} artist:{artist}')
 
     try:
@@ -121,38 +121,52 @@ def find_track_by_artist_and_title(artist, title):
     return None
 
 
-def find_track_id_by_artist_and_title(artist, title):
+def find_track_id_by_artist_and_title(artist: str, title: str):
     track = find_track_by_artist_and_title(artist, title)
     return track['id'] if track is not None else None
 
 
-def find_tracks_from_tags(tags_list):
-    found_ids = []
-    not_found_tracks = []
+def find_missing_track_ids(tags_list: list):
+    found = []
+    not_found = []
 
-    for tags in tags_list:
-        if "SPOTIFY_TRACK_ID" in tags:
-            found_ids.append(tags['SPOTIFY_TRACK_ID'])
-            continue
+    tracks_without_id = [tags for tags in tags_list if not 'SPOTIFY_TRACK_ID' in tags]
 
-        if "ISRC" in tags:
-            id = find_track_id_by_isrc(tags['ISRC'])
-            if id is not None:
-                found_ids.append(id)
+    if len(tracks_without_id) == 0:
+        return tags_list, []
+
+    with click.progressbar(tags_list, length=len(tracks_without_id),
+                           label=f'Identifying {len(tracks_without_id)} tracks') as bar:
+        for tags in bar:
+            if "SPOTIFY_TRACK_ID" in tags:
+                found.append(tags)
                 continue
 
-        if "TITLE" in tags and "ARTIST" in tags:
-            id = find_track_id_by_artist_and_title(tags['ARTIST'], tags['TITLE'])
-            if id is not None:
-                found_ids.append(id)
-                continue
+            elif "SPOTY_TRACK_ID" in tags and tags.get("SPOTY_SOURCE", None) == "SPOTIFY":
+                tags['SPOTIFY_TRACK_ID'] = tags['SPOTY_TRACK_ID']
+                found.append(tags)
 
-        not_found_tracks.append(tags)
+            elif "ISRC" in tags:
+                id = find_track_id_by_isrc(tags['ISRC'])
+                if id is not None:
+                    tags['SPOTIFY_TRACK_ID'] = id
+                    found.append(tags)
 
-    return found_ids, not_found_tracks
+            elif "TITLE" in tags and "ARTIST" in tags:
+                id = find_track_id_by_artist_and_title(tags['ARTIST'], tags['TITLE'])
+                if id is not None:
+                    tags['SPOTIFY_TRACK_ID'] = id
+                    found.append(tags)
+
+            else:
+                not_found.append(tags)
+
+            bar.update(1)
+
+    return found, not_found
 
 
-def get_playlist(playlist_id):
+def get_playlist(playlist_id: str):
     playlist_id = parse_playlist_id(playlist_id)
 
     log.info(f'Requesting playlist {playlist_id}')
@@ -162,7 +176,7 @@ def get_playlist(playlist_id):
     return playlist
 
 
-def get_playlist_with_full_list_of_tracks(playlist_id, add_extra_tags=True):
+def get_playlist_with_full_list_of_tracks(playlist_id: str, add_extra_tags=True):
     playlist_id = parse_playlist_id(playlist_id)
 
     log.info(f'Collecting playlist {playlist_id}')
@@ -194,7 +208,7 @@ def get_playlist_with_full_list_of_tracks(playlist_id, add_extra_tags=True):
     return playlist
 
 
-def delete_playlist(playlist_id, confirm=False):
+def delete_playlist(playlist_id: str, confirm=False):
     playlist = get_playlist(playlist_id)
     if playlist is None:
         return False
@@ -236,13 +250,13 @@ def get_list_of_playlists(only_owned_by_user=True):
 
             log.debug(f'Read {len(playlists)}/{total_playlists} for current user')
 
-    if (only_owned_by_user):
+    if only_owned_by_user:
         playlists = list(filter(lambda pl: pl['owner']['id'] == user_id, playlists))
 
     return playlists
 
 
-def find_playlist_by_name(name, only_owned_by_user=True):
+def find_playlist_by_name(name: str, only_owned_by_user=True):
     playlists = get_list_of_playlists(only_owned_by_user)
     return list(filter(lambda pl: pl['name'] == name, playlists))
 
@@ -273,7 +287,7 @@ def get_list_of_user_playlists(user_id: str):
         return playlists
 
 
-def create_playlist(name):
+def create_playlist(name: str):
     log.info(f'Creating new playlist')
 
     user_id = get_sp().me()['id']
@@ -285,7 +299,7 @@ def create_playlist(name):
     return id
 
 
-def copy_playlist(playlist_id):
+def copy_playlist(playlist_id: str):
     playlist_id = parse_playlist_id(playlist_id)
 
     log.info(f'Creating a copy of playlist {playlist_id}')
@@ -295,14 +309,14 @@ def copy_playlist(playlist_id):
 
     ids = get_track_ids(tracks)
     new_playlist_id = create_playlist(playlist['name'])
-    tracks_added, import_duplicates, already_exist = add_tracks_to_playlist(new_playlist_id, ids, True)
+    tracks_added, import_duplicates, already_exist = add_tracks_to_playlist_by_ids(new_playlist_id, ids, True)
 
     log.success(f"Playlist {playlist_id} copy completed ({len(tracks_added)} tracks added).")
 
     return new_playlist_id, tracks_added
 
 
-def get_tracks_of_playlist(playlist_id, add_extra_tags=True, playlist_name=None):
+def get_tracks_of_playlist(playlist_id: str, add_extra_tags=True, playlist_name: str = None):
     playlist_id = parse_playlist_id(playlist_id)
 
     log.info(f'Collecting tracks from playlist {playlist_id}')
@@ -345,7 +359,7 @@ def get_tracks_of_playlist(playlist_id, add_extra_tags=True, playlist_name=None)
     return new_tracks
 
 
-def add_extra_tags_to_tracks(tracks, new_tracks, playlist_id, playlist_name):
+def add_extra_tags_to_tracks(tracks: list, new_tracks: list, playlist_id: str, playlist_name: str):
     counter = len(tracks)
     for track in new_tracks:
         track['track']['SPOTY_PLAYLIST_ID'] = playlist_id
@@ -361,8 +375,54 @@ def add_extra_tags_to_tracks(tracks, new_tracks, playlist_id, playlist_name):
     return counter
 
 
-def add_tracks_to_playlist(playlist_id, track_ids, allow_duplicates=False):
+def add_tracks_to_playlist_by_tags(playlist_id: str, tags_list: list, allow_duplicates=False):
     playlist_id = parse_playlist_id(playlist_id)
+
+    tags_list = tags_list.copy()
+
+    for i in range(len(tags_list)):
+        tags_list[i]['SPOTIFY_TRACK_ID'] = parse_track_id(tags_list[i]['SPOTIFY_TRACK_ID'])
+
+    import_duplicates = []
+
+    if not allow_duplicates:
+        tags_list, import_duplicates = spoty.utils.remove_tags_duplicates(tags_list, ['SPOTIFY_TRACK_ID'])
+        if len(import_duplicates) > 0:
+            log.debug(f'{len(import_duplicates)} duplicates found when adding tracks. It will be skipped.')
+
+    log.info(f'Adding {len(tags_list)} tracks to playlist {playlist_id}')
+
+    already_exist = []
+
+    if not allow_duplicates:
+        tracks = get_tracks_of_playlist(playlist_id)
+        tags_in_playlist = read_tags_from_spotify_tracks(tracks)
+        tags_list, already_exist = spoty.utils.remove_exist_tags(tags_in_playlist, tags_list, ['SPOTIFY_TRACK_ID'])
+        if len(already_exist) > 0:
+            log.debug(f'{len(already_exist)} tracks already exist and will be skipped.')
+
+    track_ids = get_track_ids_from_tags_list(tags_list)
+
+    i = 0
+    next_tracks = []
+    while i < len(track_ids):
+        next_tracks.append(track_ids[i])
+        if len(next_tracks) == 100 or i == len(track_ids) - 1:
+            get_sp().playlist_add_items(playlist_id, next_tracks)
+            log.debug(f'{len(next_tracks)} tracks added to playlist')
+            next_tracks = []
+        i += 1
+
+    log.success(f'Adding tracks to playlist {playlist_id} complete (tracks added: {len(tags_list)}')
+
+    return tags_list, import_duplicates, already_exist
+
+
+def add_tracks_to_playlist_by_ids(playlist_id: str, track_ids: list, allow_duplicates=False):
+    playlist_id = parse_playlist_id(playlist_id)
+
+    for i in range(len(track_ids)):
+        track_ids[i] = parse_track_id(track_ids[i])
 
     import_duplicates = []
 
@@ -370,9 +430,6 @@ def add_tracks_to_playlist(playlist_id, track_ids, allow_duplicates=False):
         track_ids, import_duplicates = spoty.utils.remove_duplicates(track_ids)
         if len(import_duplicates) > 0:
             log.debug(f'{len(import_duplicates)} duplicates found when adding tracks. It will be skipped.')
-
-    for i in range(len(track_ids)):
-        track_ids[i] = parse_track_id(track_ids[i])
 
     log.info(f'Adding {len(track_ids)} tracks to playlist {playlist_id}')
 
@@ -403,7 +460,7 @@ def add_tracks_to_playlist(playlist_id, track_ids, allow_duplicates=False):
     return tracks_added, import_duplicates, already_exist
 
 
-def remove_all_tracks_from_playlist(playlist_id, confirm=False):
+def remove_all_tracks_from_playlist(playlist_id: str, confirm=False):
     playlist_id = parse_playlist_id(playlist_id)
     tracks = get_tracks_of_playlist(playlist_id)
 
@@ -421,7 +478,7 @@ def remove_all_tracks_from_playlist(playlist_id, confirm=False):
     return True
 
 
-def remove_tracks_from_playlist(playlist_id, track_ids):
+def remove_tracks_from_playlist(playlist_id: str, track_ids: list):
     playlist_id = parse_playlist_id(playlist_id)
 
     log.info(f'Removing {len(track_ids)} tracks from playlist {playlist_id}')
@@ -439,7 +496,7 @@ def remove_tracks_from_playlist(playlist_id, track_ids):
     log.success(f'Tracks removed from playlist {playlist_id}')
 
 
-def remove_liked_tracks_in_playlist(playlist_id):
+def remove_liked_tracks_in_playlist(playlist_id: str):
     playlist_id = parse_playlist_id(playlist_id)
 
     log.info(f'Removing liked tracks from playlist {playlist_id}')
@@ -454,7 +511,7 @@ def remove_liked_tracks_in_playlist(playlist_id):
     return liked_track_ids
 
 
-def get_invalid_tracks_in_playlist(playlist_id):
+def get_invalid_tracks_in_playlist(playlist_id: str):
     playlist_id = parse_playlist_id(playlist_id)
 
     log.info(f'Listing invalid tracks in playlist {playlist_id}')
@@ -472,7 +529,7 @@ def get_invalid_tracks_in_playlist(playlist_id):
     return invalid_tracks
 
 
-def export_playlist_to_file(playlist_id, path, overwrite=False, avoid_filenames=None):
+def export_playlist_to_file(playlist_id: str, path: str, overwrite=False, avoid_filenames: list = None):
     if avoid_filenames is None:
         avoid_filenames = []
     playlist_id = parse_playlist_id(playlist_id)
@@ -501,36 +558,37 @@ def export_playlist_to_file(playlist_id, path, overwrite=False, avoid_filenames=
     return file_name
 
 
-def import_playlists_from_tags_list(tags_list, grouping_pattern, overwrite_if_exist=False, append_if_exist=False,
+def import_playlists_from_tags_list(tags_list: list, grouping_pattern: str, overwrite_if_exist=False,
+                                    append_if_exist=False,
                                     allow_duplicates=True, confirm=False):
     all_playlist_ids = []
-    all_tracks_added = []
-    all_import_duplicates = []
+    all_added = []
+    all_source_duplicates = []
     all_already_exist = []
     all_not_found = []
     grouped_tags = spoty.utils.group_tags_by_pattern(tags_list, grouping_pattern)
 
-    with click.progressbar(length=len(grouped_tags), label=f'Importing {len(grouped_tags)} playlists') as bar:
-        for group_name, g_tags_list in grouped_tags.items():
-            playlist_id, tracks_added, import_duplicates, already_exist, not_found \
+    with click.progressbar(grouped_tags.items(), label=f'Importing {len(grouped_tags)} playlists') as bar:
+        for group_name, g_tags_list in bar:
+            playlist_id, added, source_duplicates, already_exist, not_found \
                 = import_playlist_from_tags_list(group_name, g_tags_list, overwrite_if_exist, append_if_exist,
                                                  allow_duplicates, confirm)
 
-            bar.update(1)
-
             all_playlist_ids.append(playlist_id)
-            all_tracks_added.extend(tracks_added)
-            all_import_duplicates.extend(import_duplicates)
+            all_added.extend(added)
+            all_source_duplicates.extend(source_duplicates)
             all_already_exist.extend(already_exist)
             all_not_found.extend(not_found)
 
-    return all_playlist_ids, all_tracks_added, all_import_duplicates, all_already_exist, all_not_found
+    return all_playlist_ids, all_added, all_source_duplicates, all_already_exist, all_not_found
 
 
-def import_playlist_from_tags_list(playlist_name, tags_list, overwrite_if_exist=False, append_if_exist=False,
+def import_playlist_from_tags_list(playlist_name: str, tags_list: list, overwrite_if_exist=False, append_if_exist=False,
                                    allow_duplicates=True, confirm=False):
+    if len(tags_list) == 0:
+        return [], [], [], []
+
     log.info(f'Importing playlist "{playlist_name}"')
-    tracks_added = []
 
     playlist_id = None
 
@@ -580,20 +638,14 @@ def import_playlist_from_tags_list(playlist_name, tags_list, overwrite_if_exist=
     if playlist_id is None:
         playlist_id = create_playlist(playlist_name)
 
-    found_ids, tracks_not_found = find_tracks_from_tags(tags_list)
+    added, source_duplicates, already_exist = add_tracks_to_playlist_by_tags(playlist_id, tags_list, allow_duplicates)
 
-    import_duplicates = []
-    already_exist = []
+    log.success(f'Playlist imported (new tracks: "{len(added)}")  id: {playlist_id} name: "{playlist_name}"')
 
-    if len(found_ids) > 0:
-        tracks_added, import_duplicates, already_exist = add_tracks_to_playlist(playlist_id, found_ids,
-                                                                                allow_duplicates)
-    log.success(f'Playlist imported (new tracks: "{len(tracks_added)}")  id: {playlist_id} name: "{playlist_name}"')
-
-    return playlist_id, tracks_added, import_duplicates, already_exist, tracks_not_found
+    return playlist_id, added, source_duplicates, already_exist
 
 
-def like_all_tracks_in_playlist(playlist_id):
+def like_all_tracks_in_playlist(playlist_id: str):
     playlist_id = parse_playlist_id(playlist_id)
 
     log.info(f'Adding likes to all tracks in playlist {playlist_id}')
@@ -608,7 +660,7 @@ def like_all_tracks_in_playlist(playlist_id):
     return not_liked_track_ids
 
 
-def get_tags_from_spotify_library(filter_names, user_id):
+def get_tags_from_spotify_library(filter_names: str, user_id: str):
     if user_id == None:
         playlists = get_list_of_playlists()
         click.echo(f'You have {len(playlists)} playlists')
@@ -667,7 +719,7 @@ def get_liked_tracks():
     return tracks
 
 
-def add_tracks_to_liked(track_ids):
+def add_tracks_to_liked(track_ids: list):
     for i in range(len(track_ids)):
         track_ids[i] = parse_track_id(track_ids[i])
 
@@ -684,7 +736,7 @@ def add_tracks_to_liked(track_ids):
         i += 1
 
 
-def export_liked_tracks_to_file(file_name):
+def export_liked_tracks_to_file(file_name: str):
     log.info(f'Exporting liked tracks from file "{file_name}"')
 
     liked_tracks = get_liked_tracks()
@@ -696,7 +748,7 @@ def export_liked_tracks_to_file(file_name):
     return liked_tracks
 
 
-def import_likes_from_file(file_name):
+def import_likes_from_file(file_name: str):
     log.info(f'Importing liked tracks from file "{file_name}"')
     tracks_in_file = spoty.csv_playlist.read_tags_from_csv(file_name)
     if len(tracks_in_file) > 0:
@@ -707,7 +759,7 @@ def import_likes_from_file(file_name):
     return tracks_in_file
 
 
-def get_likes_for_tracks(track_ids):
+def get_likes_for_tracks(track_ids: list):
     likes = []
 
     i = 0
@@ -723,7 +775,7 @@ def get_likes_for_tracks(track_ids):
     return likes
 
 
-def get_liked_track_ids(track_ids):
+def get_liked_track_ids(track_ids: list):
     liked_tracks = []
 
     likes = get_likes_for_tracks(track_ids)
@@ -734,7 +786,7 @@ def get_liked_track_ids(track_ids):
     return liked_tracks
 
 
-def get_not_liked_track_ids(track_ids):
+def get_not_liked_track_ids(track_ids: list):
     not_liked_tracks = []
 
     likes = get_likes_for_tracks(track_ids)
@@ -745,7 +797,7 @@ def get_not_liked_track_ids(track_ids):
     return not_liked_tracks
 
 
-def get_track_artist_and_title(track):
+def get_track_artist_and_title(track: dict):
     artists = list(map(lambda artist: artist['name'], track['artists']))
     artists_str = ', '.join(artists)
     artists_str.replace(' - ', ' ')
@@ -753,50 +805,57 @@ def get_track_artist_and_title(track):
     return f"{artists_str} - {title}"
 
 
-def get_track_ids(tracks):
+def get_track_ids(tracks: list):
     if len(tracks) == 0:
         return []
     else:
         return [item['track']['id'] for item in tracks]
 
 
-def get_playlists_ids(playlists):
+def get_track_ids_from_tags_list(tags_list):
+    if len(tags_list) == 0:
+        return []
+    else:
+        return [str(track['SPOTIFY_TRACK_ID']) for track in tags_list]
+
+
+def get_playlists_ids(playlists: list):
     if len(playlists) == 0:
         return []
     else:
         return [item['id'] for item in playlists]
 
 
-def check_is_playlist_URI(uri):
+def check_is_playlist_URI(uri: str):
     return uri.startswith("https://open.spotify.com/playlist/")
 
 
-def check_is_user_URI(uri):
+def check_is_user_URI(uri: str):
     return uri.startswith("https://open.spotify.com/user/")
 
 
-def parse_playlist_id(id_or_uri):
+def parse_playlist_id(id_or_uri: str):
     if (id_or_uri.startswith("https://open.spotify.com/playlist/")):
         id_or_uri = id_or_uri.split('/playlist/')[1]
         id_or_uri = id_or_uri.split('?')[0]
     return id_or_uri
 
 
-def parse_track_id(id_or_uri):
+def parse_track_id(id_or_uri: str):
     if (id_or_uri.startswith("https://open.spotify.com/track/")):
         id_or_uri = id_or_uri.split('/track/')[1]
         id_or_uri = id_or_uri.split('?')[0]
     return id_or_uri
 
 
-def parse_user_id(id_or_uri):
+def parse_user_id(id_or_uri: str):
     if (id_or_uri.startswith("https://open.spotify.com/user/")):
         id_or_uri = id_or_uri.split('/user/')[1]
         id_or_uri = id_or_uri.split('?')[0]
     return id_or_uri
 
 
-def get_playlist_file_name(playlist_name, playlist_id, path, avoid_filenames):
+def get_playlist_file_name(playlist_name: str, playlist_id: str, path: str, avoid_filenames: list):
     playlist_name = spoty.utils.slugify_file_pah(playlist_name)
     if (len(playlist_name) == 0):
         playlist_name = playlist_id
@@ -808,7 +867,7 @@ def get_playlist_file_name(playlist_name, playlist_id, path, avoid_filenames):
     return full_file_name
 
 
-def read_tags_from_spotify_tracks(tracks):
+def read_tags_from_spotify_tracks(tracks: list):
     tag_tracks = []
 
     for track in tracks:
@@ -818,7 +877,7 @@ def read_tags_from_spotify_tracks(tracks):
     return tag_tracks
 
 
-def read_tags_from_spotify_track(track):
+def read_tags_from_spotify_track(track: dict):
     date_added = track['added_at']
 
     if "track" in track:
@@ -868,7 +927,7 @@ def read_tags_from_spotify_track(track):
         pass
 
     # tags['SPOTIFY_DATE_ADDED'] = date_added
-    timestamp = datetime.datetime.strptime(date_added, "%Y-%m-%dT%H:%M:%SZ") # format: 2021-12-19T19:35:17Z
+    timestamp = datetime.datetime.strptime(date_added, "%Y-%m-%dT%H:%M:%SZ")  # format: 2021-12-19T19:35:17Z
     tags['SPOTY_TRACK_ADDED'] = timestamp.strftime('%Y-%m-%d %H:%M:%S')
 
     for tag in spoty.utils.spoty_tags:
@@ -878,7 +937,7 @@ def read_tags_from_spotify_track(track):
     return tags
 
 
-def filter_spotify_tracks_which_have_all_tags(spotify_track, filter_tags):
+def filter_spotify_tracks_which_have_all_tags(spotify_track: dict, filter_tags: list):
     filtered = []
     for track in spotify_track:
         tags = read_tags_from_spotify_track(track)
@@ -887,7 +946,7 @@ def filter_spotify_tracks_which_have_all_tags(spotify_track, filter_tags):
     return filtered
 
 
-def filter_spotify_tracks_which_not_have_any_of_tags(spotify_track, filter_tags):
+def filter_spotify_tracks_which_not_have_any_of_tags(spotify_track: dict, filter_tags: list):
     filtered = []
     for track in spotify_track:
         tags = read_tags_from_spotify_track(track)

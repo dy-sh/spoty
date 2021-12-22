@@ -44,7 +44,7 @@ def get_arl():
         f.write(arl)
 
 
-def get_tracks_from_playlists(playlist_ids, add_extra_tags=True):
+def get_tracks_from_playlists(playlist_ids: list, add_extra_tags=True):
     all_tracks = []
     all_tags_list = []
     all_received_playlists = []
@@ -71,7 +71,7 @@ def get_tracks_from_playlists(playlist_ids, add_extra_tags=True):
     return all_tracks, all_tags_list, all_received_playlists
 
 
-def get_tracks_of_deezer_user(user_id, playlists_names_regex=None):
+def get_tracks_of_deezer_user(user_id: str, playlists_names_regex: str = None):
     if user_id == 'me':
         playlists = get_list_of_user_playlists()
         click.echo(f'You have {len(playlists)} playlists in Deezer library')
@@ -91,14 +91,7 @@ def get_tracks_of_deezer_user(user_id, playlists_names_regex=None):
     return tracks, tags, playlists
 
 
-def create_folder(folder_name):
-    current_directory = os.getcwd()
-    final_directory = os.path.join(current_directory, folder_name)
-    if not os.path.exists(final_directory):
-        os.makedirs(final_directory)
-
-
-def get_track_artist_and_title(track):
+def get_track_artist_and_title(track: dict):
     if track is None:
         return None
 
@@ -117,14 +110,21 @@ def get_track_artist_and_title(track):
     return f"{artist} - {title}"
 
 
-def get_track_ids(tracks):
+def get_track_ids(tracks: list):
     if len(tracks) == 0:
         return []
     else:
         return [str(track['SNG_ID']) for track in tracks]
 
 
-def get_playlists_ids(playlists):
+def get_track_ids_from_tags_list(tags_list):
+    if len(tags_list) == 0:
+        return []
+    else:
+        return [str(track['DEEZER_TRACK_ID']) for track in tags_list]
+
+
+def get_playlists_ids(playlists: list):
     if len(playlists) == 0:
         return []
     else:
@@ -155,7 +155,7 @@ def parse_user_id(id_or_url: str):
     return id_or_url
 
 
-def create_playlist(name):
+def create_playlist(name: str):
     log.info(f'Creating new playlist')
 
     # "Quota exceeded for playlist_create" message is very often received.
@@ -173,7 +173,7 @@ def create_playlist(name):
                 time.sleep(WAITING_DELAY)
 
 
-def get_playlist(playlist_id):
+def get_playlist(playlist_id: str):
     playlist_id = parse_playlist_id(playlist_id)
 
     log.info(f'Requesting playlist {playlist_id}')
@@ -182,7 +182,7 @@ def get_playlist(playlist_id):
     return playlist['DATA']
 
 
-def get_playlist_with_full_list_of_tracks(playlist_id, add_extra_tags=True):
+def get_playlist_with_full_list_of_tracks(playlist_id: str, add_extra_tags=True):
     playlist_id = parse_playlist_id(playlist_id)
 
     log.info(f'Collecting playlist {playlist_id}')
@@ -200,7 +200,7 @@ def get_playlist_with_full_list_of_tracks(playlist_id, add_extra_tags=True):
     return tracks, playlist
 
 
-def get_playlists_with_full_list_of_tracks(playlist_ids):
+def get_playlists_with_full_list_of_tracks(playlist_ids: list):
     for i in range(len(playlist_ids)):
         playlist_ids[i] = parse_playlist_id(playlist_ids[i])
 
@@ -215,7 +215,7 @@ def get_playlists_with_full_list_of_tracks(playlist_ids):
     return playlists_dict
 
 
-def get_list_of_user_playlists(user_id=None):
+def get_list_of_user_playlists(user_id: str = None):
     if user_id is None:
         user_id = parse_user_id(get_dz().current_user['id'])
         # user_data = get_dz().gw.get_user_data()
@@ -244,18 +244,18 @@ def delete_all_playlists(confirm=False):
     return deleted_playlists
 
 
-def delete_playlists(playlist_ids, confirm=False):
+def delete_playlists(playlist_ids: list, confirm=False):
     deleted_playlists = []
     with click.progressbar(playlist_ids, label=f'Deleting {len(playlist_ids)} playlists') as bar:
         for playlist_id in bar:
-            res =delete_playlist(playlist_id, confirm)
+            res = delete_playlist(playlist_id, confirm)
             if res:
                 deleted_playlists.append(playlist_id)
 
     return deleted_playlists
 
 
-def delete_playlist(playlist_id, confirm=False):
+def delete_playlist(playlist_id: str, confirm=False):
     playlist_id = parse_playlist_id(playlist_id)
 
     log.info(f'Deleting playlist {playlist_id}')
@@ -280,7 +280,7 @@ def delete_playlist(playlist_id, confirm=False):
         return False
 
 
-def add_track_release_dates(tracks):
+def add_track_release_dates(tracks: list):
     with click.progressbar(tracks, label=f'Reading albums') as bar:
         for track in bar:
             if 'DEEZER_ALBUM_ID' in track:
@@ -290,7 +290,7 @@ def add_track_release_dates(tracks):
     return tracks
 
 
-def get_album_release_date(album_id):
+def get_album_release_date(album_id: str):
     album = get_dz().gw.get_album(album_id)
     if 'ORIGINAL_RELEASE_DATE' in album:
         return album['ORIGINAL_RELEASE_DATE']
@@ -301,38 +301,52 @@ def get_album_release_date(album_id):
     return None
 
 
-def find_tracks_from_tags(tags_list):
-    found_ids = []
-    not_found_tracks = []
+def find_missing_track_ids(tags_list: list):
+    found = []
+    not_found = []
 
-    for tags in tags_list:
-        if "DEEZER_TRACK_ID" in tags:
-            found_ids.append(tags['DEEZER_TRACK_ID'])
-            continue
+    tracks_without_id = [tags for tags in tags_list if not 'DEEZER_TRACK_ID' in tags]
 
-        if "ISRC" in tags:
-            id = find_track_id_by_isrc(tags['ISRC'])
-            if id is not None:
-                found_ids.append(id)
+    if len(tracks_without_id) == 0:
+        return tags_list, []
+
+    with click.progressbar(tags_list, length=len(tracks_without_id),
+                           label=f'Identifying {len(tracks_without_id)} tracks') as bar:
+        for tags in bar:
+            if "DEEZER_TRACK_ID" in tags:
+                found.append(tags)
                 continue
 
-        if "TITLE" in tags and "ARTIST" in tags:
-            id = find_track_id_by_artist_and_title(tags['ARTIST'], tags['TITLE'], tags.get('ALBUM', None))
-            if id is not None:
-                found_ids.append(id)
-                continue
+            elif "SPOTY_TRACK_ID" in tags and tags.get("SPOTY_SOURCE", None) == "DEEZER":
+                tags['DEEZER_TRACK_ID'] = tags['SPOTY_TRACK_ID']
+                found.append(tags)
 
-        not_found_tracks.append(tags)
+            elif "ISRC" in tags:
+                id = find_track_id_by_isrc(tags['ISRC'])
+                if id is not None:
+                    tags['DEEZER_TRACK_ID'] = id
+                    found.append(tags)
 
-    return found_ids, not_found_tracks
+            elif "TITLE" in tags and "ARTIST" in tags:
+                id = find_track_id_by_artist_and_title(tags['ARTIST'], tags['TITLE'], tags.get('ALBUM', None))
+                if id is not None:
+                    tags['DEEZER_TRACK_ID'] = id
+                    found.append(tags)
+
+            else:
+                not_found.append(tags)
+
+            bar.update(1)
+
+    return found, not_found
 
 
-def find_track_id_by_isrc(isrc):
+def find_track_id_by_isrc(isrc: str):
     track = find_track_by_isrc(isrc)
     return track['id'] if track is not None else None
 
 
-def find_track_by_isrc(isrc):
+def find_track_by_isrc(isrc: str):
     try:
         track = get_dz().api.get_track_by_ISRC(isrc)
         log.debug(f'Track found by ISRC: {isrc} (ID: {track["id"]} TITLE: "{get_track_artist_and_title(track)}")')
@@ -344,23 +358,76 @@ def find_track_by_isrc(isrc):
     return None
 
 
-def find_track_id_by_artist_and_title(artist, title, album=""):
+def find_track_id_by_artist_and_title(artist: str, title: str, album=""):
     track_id = get_dz().api.get_track_id_from_metadata(artist, title, album)
     return track_id if int(track_id) != 0 else None
 
 
-def add_tracks_to_playlist(playlist_id, track_ids, allow_duplicates=False):
+def add_tracks_to_playlist_by_tags(playlist_id: str, tags_list: list, allow_duplicates=False):
     playlist_id = parse_playlist_id(playlist_id)
+
+    tags_list = tags_list.copy()
+
+    for i in range(len(tags_list)):
+        tags_list[i]['DEEZER_TRACK_ID'] = parse_track_id(tags_list[i]['DEEZER_TRACK_ID'])
 
     import_duplicates = []
 
     if not allow_duplicates:
-        track_ids, import_duplicates = spoty.utils.remove_duplicates(track_ids)
+        tags_list, import_duplicates = spoty.utils.remove_tags_duplicates(tags_list, ['DEEZER_TRACK_ID'])
         if len(import_duplicates) > 0:
             log.debug(f'{len(import_duplicates)} duplicates found when adding tracks. It will be skipped.')
 
+    log.info(f'Adding {len(tags_list)} tracks to playlist {playlist_id}')
+
+    playlist = get_playlist(playlist_id)
+
+    already_exist = []
+
+    if not allow_duplicates:
+        tracks, playlist = get_playlist_with_full_list_of_tracks(playlist_id)
+        tags_in_playlist = read_tags_from_deezer_tracks(tracks)
+        tags_list, already_exist = spoty.utils.remove_exist_tags(tags_in_playlist, tags_list, ['SPOTIFY_TRACK_ID'])
+        if len(already_exist) > 0:
+            log.debug(f'{len(already_exist)} tracks already exist and will be skipped.')
+
+    track_ids = get_track_ids_from_tags_list(tags_list)
+
+    # split by 100 tracks for one request
+    tracks_count = 0
+    playlist_index = 1
+    while len(track_ids) > 0:
+        tracks_to_proceed = track_ids[0:50]
+        del track_ids[:50]
+
+        get_dz().gw.add_songs_to_playlist(playlist_id, tracks_to_proceed)
+
+        # split by 2000 tracks for one playlist
+        tracks_count += len(tracks_to_proceed)
+        if tracks_count >= 2000 and len(track_ids) > 0:
+            tracks_count = 0
+            playlist_index += 1
+            title = f'{playlist["title"]} {playlist_index}'
+            playlist = create_playlist(title)
+            print(f'New playlist created. ID: {playlist["id"]} TITLE: {title}')
+
+    log.success(f'Adding tracks complete (tracks added: {len(tags_list)}')
+
+    return tags_list, import_duplicates, already_exist
+
+
+def add_tracks_to_playlist_by_ids(playlist_id: str, track_ids: list, allow_duplicates=False):
+    playlist_id = parse_playlist_id(playlist_id)
+
+    import_duplicates = []
+
     for i in range(len(track_ids)):
         track_ids[i] = parse_track_id(track_ids[i])
+
+    if not allow_duplicates:
+        tags_list, import_duplicates = spoty.utils.remove_duplicates(track_ids)
+        if len(import_duplicates) > 0:
+            log.debug(f'{len(import_duplicates)} duplicates found when adding tracks. It will be skipped.')
 
     log.info(f'Adding {len(track_ids)} tracks to playlist {playlist_id}')
 
@@ -407,36 +474,37 @@ def find_playlist_by_name(name):
     return list(filter(lambda pl: pl['title'] == name, playlists))
 
 
-def import_playlists_from_tags_list(tags_list, grouping_pattern, overwrite_if_exist=False, append_if_exist=False,
+def import_playlists_from_tags_list(tags_list: list, grouping_pattern: str, overwrite_if_exist=False,
+                                    append_if_exist=False,
                                     allow_duplicates=True, confirm=False):
     all_playlist_ids = []
-    all_tracks_added = []
-    all_import_duplicates = []
+    all_added = []
+    all_source_duplicates = []
     all_already_exist = []
     all_not_found = []
     grouped_tags = spoty.utils.group_tags_by_pattern(tags_list, grouping_pattern)
 
-    with click.progressbar(length=len(grouped_tags), label=f'Importing {len(grouped_tags)} playlists') as bar:
-        for group_name, g_tags_list in grouped_tags.items():
-            playlist_id, tracks_added, import_duplicates, already_exist, not_found \
+    with click.progressbar(grouped_tags.items(), label=f'Importing {len(grouped_tags)} playlists') as bar:
+        for group_name, g_tags_list in bar:
+            playlist_id, added, source_duplicates, already_exist, not_found \
                 = import_playlist_from_tags_list(group_name, g_tags_list, overwrite_if_exist, append_if_exist,
                                                  allow_duplicates, confirm)
 
-            bar.update(1)
-
             all_playlist_ids.append(playlist_id)
-            all_tracks_added.extend(tracks_added)
-            all_import_duplicates.extend(import_duplicates)
+            all_added.extend(added)
+            all_source_duplicates.extend(source_duplicates)
             all_already_exist.extend(already_exist)
             all_not_found.extend(not_found)
 
-    return all_playlist_ids, all_tracks_added, all_import_duplicates, all_already_exist, all_not_found
+    return all_playlist_ids, all_added, all_source_duplicates, all_already_exist, all_not_found
 
 
-def import_playlist_from_tags_list(playlist_name, tags_list, overwrite_if_exist=False, append_if_exist=False,
+def import_playlist_from_tags_list(playlist_name: str, tags_list: list, overwrite_if_exist=False, append_if_exist=False,
                                    allow_duplicates=True, confirm=False):
+    if len(tags_list) == 0:
+        return [], [], [], []
+
     log.info(f'Importing playlist "{playlist_name}"')
-    tracks_added = []
 
     playlist_id = None
 
@@ -486,20 +554,14 @@ def import_playlist_from_tags_list(playlist_name, tags_list, overwrite_if_exist=
     if playlist_id is None:
         playlist_id = create_playlist(playlist_name)
 
-    found_ids, tracks_not_found = find_tracks_from_tags(tags_list)
+    added, source_duplicates, already_exist = add_tracks_to_playlist_by_tags(playlist_id, tags_list, allow_duplicates)
 
-    import_duplicates = []
-    already_exist = []
+    log.success(f'Playlist imported (new tracks: "{len(added)}")  id: {playlist_id} name: "{playlist_name}"')
 
-    if len(found_ids) > 0:
-        tracks_added, import_duplicates, already_exist = add_tracks_to_playlist(playlist_id, found_ids,
-                                                                                allow_duplicates)
-    log.success(f'Playlist imported (new tracks: "{len(tracks_added)}")  id: {playlist_id} name: "{playlist_name}"')
-
-    return playlist_id, tracks_added, import_duplicates, already_exist, tracks_not_found
+    return playlist_id, added, source_duplicates, already_exist
 
 
-def remove_all_tracks_from_playlist(playlist_id, confirm=False):
+def remove_all_tracks_from_playlist(playlist_id: str, confirm=False):
     playlist_id = parse_playlist_id(playlist_id)
 
     playlist = get_playlist_with_full_list_of_tracks(playlist_id)
@@ -519,7 +581,7 @@ def remove_all_tracks_from_playlist(playlist_id, confirm=False):
     return True
 
 
-def remove_tracks_from_playlist(playlist_id, track_ids):
+def remove_tracks_from_playlist(playlist_id: str, track_ids: list):
     playlist_id = parse_playlist_id(playlist_id)
 
     log.info(f'Removing {len(track_ids)} tracks from playlist {playlist_id}')
@@ -539,7 +601,7 @@ def remove_tracks_from_playlist(playlist_id, track_ids):
     log.success(f'Tracks removed from playlist {playlist_id}')
 
 
-def add_extra_tags_to_tracks(tracks, new_tracks, playlist_id, playlist_name):
+def add_extra_tags_to_tracks(tracks: list, new_tracks: list, playlist_id: str, playlist_name: str):
     counter = len(tracks)
     for track in new_tracks:
         track['SPOTY_PLAYLIST_ID'] = playlist_id
@@ -555,7 +617,7 @@ def add_extra_tags_to_tracks(tracks, new_tracks, playlist_id, playlist_name):
     return counter
 
 
-def read_tags_from_deezer_tracks(tracks):
+def read_tags_from_deezer_tracks(tracks: list):
     tag_tracks = []
 
     for track in tracks:
@@ -565,7 +627,7 @@ def read_tags_from_deezer_tracks(tracks):
     return tag_tracks
 
 
-def read_tags_from_deezer_track(track):
+def read_tags_from_deezer_track(track: dict):
     tags = {}
 
     if 'ISRC' in track:

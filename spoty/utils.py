@@ -1,8 +1,9 @@
 import os.path
 
+
 class SpotyContext:
-    tags_list:[]
-    summary:[]
+    tags_list: []
+    summary: []
 
 
 tag_allies = [
@@ -81,20 +82,22 @@ additional_tags = \
         'WRITER',
     ]
 
-def tuple_to_list(some_tuple):
+
+def tuple_to_list(some_tuple: tuple):
     l = []
     l.extend(some_tuple)
     return l
 
-def is_valid_path(path):
+
+def is_valid_path(path: str):
     return os.path.isdir(path)
 
 
-def is_valid_file(path):
+def is_valid_file(path: str):
     return os.path.isfile(path)
 
 
-def slugify_file_pah(text):
+def slugify_file_pah(text: str):
     # valid_chars = "-_.()=!@#$%%^&+ %s%s" % (string.ascii_letters, string.digits)
     # return ''.join(c for c in text if c in valid_chars).strip()
 
@@ -106,11 +109,11 @@ def slugify_file_pah(text):
     return text
 
 
-def filter_duplicates(src_arr, dest_arr):
+def filter_duplicates(src_arr: list, dest_arr: list):
     return list(filter(lambda id: id not in src_arr, dest_arr))
 
 
-def remove_duplicates(arr):
+def remove_duplicates(arr: list):
     good = []
     duplicates = []
     for item in arr:
@@ -121,7 +124,7 @@ def remove_duplicates(arr):
     return good, duplicates
 
 
-def remove_exist(exist_arr, new_arr):
+def remove_exist(exist_arr: list, new_arr: list):
     new = []
     exist = []
     for item in new_arr:
@@ -132,7 +135,7 @@ def remove_exist(exist_arr, new_arr):
     return new, exist
 
 
-def remove_tags_duplicates(tags_list, tags_to_compare, allow_missing=False):
+def remove_tags_duplicates(tags_list: list, tags_to_compare: list, allow_missing=False):
     good = []
     duplicates = []
     for new_tags in tags_list:
@@ -148,7 +151,7 @@ def remove_tags_duplicates(tags_list, tags_to_compare, allow_missing=False):
     return good, duplicates
 
 
-def remove_exist_tags(exist_tags_list, new_tags_list, tags_to_compare, allow_missing=False):
+def remove_exist_tags(exist_tags_list: list, new_tags_list: list, tags_to_compare: list, allow_missing=False):
     new = []
     exist = []
     for new_tags in new_tags_list:
@@ -164,7 +167,7 @@ def remove_exist_tags(exist_tags_list, new_tags_list, tags_to_compare, allow_mis
     return new, exist
 
 
-def compare_tags(src_tags, dest_tags, tags_to_compare, allow_missing=False):
+def compare_tags(src_tags: dict, dest_tags: dict, tags_to_compare: list, allow_missing=False):
     for tag in tags_to_compare:
 
         if not tag in src_tags or not tag in dest_tags:
@@ -217,7 +220,7 @@ def compare_tags(src_tags, dest_tags, tags_to_compare, allow_missing=False):
     return True
 
 
-def find_duplicates_in_tags(tags_list, compare_tags):
+def find_duplicates_in_tags(tags_list: list, compare_tags: list):
     if len(compare_tags) == 0:
         return
 
@@ -242,7 +245,7 @@ def find_duplicates_in_tags(tags_list, compare_tags):
     return duplicates, skipped_tags
 
 
-def print_main_tags(tags):
+def print_main_tags(tags: dict):
     if 'ISRC' in tags: print(f'ISRC: {tags["ISRC"]}')
     if 'ARTIST' in tags: print(f'ARTIST: {tags["ARTIST"]}')
     if 'TITLE' in tags: print(f'TITLE: {tags["TITLE"]}')
@@ -260,7 +263,7 @@ def print_main_tags(tags):
     if 'YEAR' in tags: print(f'YEAR: {tags["YEAR"]}')
 
 
-def print_tags_list(tags_list, print_pattern, grouping_pattern):
+def print_tags_list(tags_list: list, print_pattern: str, grouping_pattern: str):
     if len(tags_list) == 0:
         return
 
@@ -273,14 +276,14 @@ def print_tags_list(tags_list, print_pattern, grouping_pattern):
             print(txt)
 
 
-def check_tag_has_allies(tag):
+def check_tag_has_allies(tag: str):
     for allies in tag_allies:
         if tag in allies:
             return True
     return False
 
 
-def get_tag_allies(tag, include_source_tag=True):
+def get_tag_allies(tag: str, include_source_tag=True):
     res = []
     for allies in tag_allies:
         if tag in allies:
@@ -294,7 +297,7 @@ def get_tag_allies(tag, include_source_tag=True):
     return res
 
 
-def print_tags(tags, tags_to_print):
+def print_tags(tags: dict, tags_to_print: list):
     for tag in tags_to_print:
         allies = get_tag_allies(tag, True)
         for a in allies:
@@ -302,7 +305,7 @@ def print_tags(tags, tags_to_print):
                 print(f'{a}: {tags[a]}')
 
 
-def add_playlist_index_from_playlist_names(tags_list):
+def add_playlist_index_from_playlist_names(tags_list: list):
     res = []
     groups = group_tags_by_pattern(tags_list, "%SPOTY_PLAYLIST_NAME%")
     for group, g_tags_list in groups.items():
@@ -312,7 +315,7 @@ def add_playlist_index_from_playlist_names(tags_list):
     return res
 
 
-def filter_tags_list_have_tags(tags_list, filter_tags):
+def filter_tags_list_have_tags(tags_list: list, filter_tags: list):
     filtered = []
     for tags in tags_list:
         if check_all_tags_exist(tags, filter_tags):
@@ -320,7 +323,7 @@ def filter_tags_list_have_tags(tags_list, filter_tags):
     return filtered
 
 
-def filter_tags_list_have_no_tags(tags_list, filter_tags):
+def filter_tags_list_have_no_tags(tags_list: list, filter_tags: list):
     filtered = []
     for tags in tags_list:
         if not check_all_tags_exist(tags, filter_tags):
@@ -328,14 +331,14 @@ def filter_tags_list_have_no_tags(tags_list, filter_tags):
     return filtered
 
 
-def check_all_tags_exist(tags, tags_to_check):
+def check_all_tags_exist(tags: dict, tags_to_check: list):
     for tag in tags_to_check:
         if not tag.upper() in tags:
             return False
     return True
 
 
-def group_tags_by_pattern(tags_list, pattern, not_found_tag_name="Unknown"):
+def group_tags_by_pattern(tags_list: list, pattern: str, not_found_tag_name="Unknown"):
     groups = {}
 
     for tags in tags_list:
@@ -349,7 +352,7 @@ def group_tags_by_pattern(tags_list, pattern, not_found_tag_name="Unknown"):
     return groups
 
 
-def parse_pattern(tags, pattern):
+def parse_pattern(tags: dict, pattern: str):
     result = ""
     tag_name = ""
     building_tag = False
@@ -373,7 +376,7 @@ def parse_pattern(tags, pattern):
     return result
 
 
-def reorder_tag_keys_main_first(keys):
+def reorder_tag_keys_main_first(keys: list):
     res = []
 
     # reorder spoty tags first
@@ -394,7 +397,7 @@ def reorder_tag_keys_main_first(keys):
     return res
 
 
-def get_missing_tags(exist_tags, new_tags):
+def get_missing_tags(exist_tags: dict, new_tags: dict):
     missing_tags = {}
 
     for key, value in new_tags.items():
@@ -421,7 +424,7 @@ def get_missing_tags(exist_tags, new_tags):
     return missing_tags
 
 
-def find_empty_file_name(exist_file_name):
+def find_empty_file_name(exist_file_name: str):
     exist_file_name = os.path.abspath(exist_file_name)
 
     if not os.path.isfile(exist_file_name):
