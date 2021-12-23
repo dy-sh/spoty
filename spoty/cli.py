@@ -5,16 +5,17 @@ from spoty.commands import spotify_like_commands
 from spoty.commands import spotify_track_commands
 from spoty.commands import get_group
 from spoty.commands import deezer_commands
+from spoty import plugins_path
 import click
 import os
 
-plugin_folder = os.path.join(os.path.dirname(__file__), '../plugins')
+
 
 class SpotyPluginsCLI(click.MultiCommand):
 
     def list_commands(self, ctx):
         rv = []
-        for filename in os.listdir(plugin_folder):
+        for filename in os.listdir(plugins_path):
             if filename.endswith('.py') and filename != '__init__.py':
                 rv.append(filename[:-3].replace('_','-'))
         rv.sort()
@@ -22,7 +23,7 @@ class SpotyPluginsCLI(click.MultiCommand):
 
     def get_command(self, ctx, name):
         ns = {}
-        fn = os.path.join(plugin_folder, name.replace('-','_') + '.py')
+        fn = os.path.join(plugins_path, name.replace('-','_') + '.py')
         with open(fn) as f:
             code = compile(f.read(), fn, 'exec')
             eval(code, ns, ns)
@@ -59,7 +60,7 @@ spotify.add_command(spotify_track_commands.track)
 if __name__ == '__main__':
     # cli()
     cli([
-        'plug'
+        # 'plug'
         # 'deezer','playlist','list'
         # 'get',
          # '--sr','me','^BEST',

@@ -456,7 +456,7 @@ def clean_tags_list_before_write(tags_list):
 
 
 def clean_tags_list_after_read(tags_list):
-    for i, tags in tags_list:
+    for i, tags in enumerate(tags_list):
         tags_list[i] = clean_tags_after_read(tags)
 
 
