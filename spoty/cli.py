@@ -1,5 +1,3 @@
-import click
-
 import spoty.utils
 from spoty.commands import local_commands
 from spoty.commands import spotify_playlist_commands
@@ -7,11 +5,39 @@ from spoty.commands import spotify_like_commands
 from spoty.commands import spotify_track_commands
 from spoty.commands import get_group
 from spoty.commands import deezer_commands
+import click
+import os
+
+plugin_folder = os.path.join(os.path.dirname(__file__), '../plugins')
+
+class SpotyPluginsCLI(click.MultiCommand):
+
+    def list_commands(self, ctx):
+        rv = []
+        for filename in os.listdir(plugin_folder):
+            if filename.endswith('.py') and filename != '__init__.py':
+                rv.append(filename[:-3].replace('_','-'))
+        rv.sort()
+        return rv
+
+    def get_command(self, ctx, name):
+        ns = {}
+        fn = os.path.join(plugin_folder, name.replace('-','_') + '.py')
+        with open(fn) as f:
+            code = compile(f.read(), fn, 'exec')
+            eval(code, ns, ns)
+        return ns[name.replace('-','_')]
+
+cli2 = SpotyPluginsCLI(help='This tool\'s subcommands are loaded from a plugin folder dynamically.')
 
 
 @click.group()
 def cli():
     """This program allows you to perform various actions with spotify from the console."""
+    pass
+
+@cli.command(cls=SpotyPluginsCLI, help='Plugins.')
+def plug():
     pass
 
 
@@ -33,8 +59,9 @@ spotify.add_command(spotify_track_commands.track)
 if __name__ == '__main__':
     # cli()
     cli([
+        'plug'
         # 'deezer','playlist','list'
-        'get',
+        # 'get',
          # '--sr','me','^BEST',
          # '--dr','me','^BEST',
          # '--d','me',
@@ -43,7 +70,7 @@ if __name__ == '__main__':
          # '--dp', '2507191384',
          # '--sp', 'https://open.spotify.com/playlist/57VYcWAMIc97Ig41vPpev6',
          # '--a', r'.\music',
-         '--a', r'.\music\TEST1',
+         # '--a', r'.\music\TEST1',
          # '--a', r'.\music\Pop Nutral\24KGoldn - Mood.flac',
          # '--a', '.\music\Techno Nutral',
          # '--c', '.\MUSIC LIBRARY',
@@ -51,7 +78,7 @@ if __name__ == '__main__':
          # 'filter', '--leave-duplicates',
          # '--lnt', 'isrc',
          # 'import-spotify',
-         'compare','--a', r'.\music\TEST2',
+         # 'compare','--a', r'.\music\TEST2',
         # '-yr',
          # '--gp','pl',
          # 'print',
