@@ -65,12 +65,21 @@ Export a list of tracks to csv files (playlists) on disk.
 
     # print summery
 
-    context.summary.append( f'{len(added_tracks)} tracks written to {len(file_names)} csv files.')
+    context.summary.append("Exporting:")
     if len(import_duplicates) > 0:
-        context.summary.append( f'{len(import_duplicates)} duplicates in collected tracks skipped.')
+        context.summary.append(f'  {len(import_duplicates)} duplicates in collected tracks skipped.')
     if len(already_exist) > 0:
-        context.summary.append( f'{len(already_exist)} tracks already exist in csv files and skipped.')
-    context.summary.append( f'Export path: "{path}"')
+        context.summary.append(f'  {len(already_exist)} tracks already exist in csv files and skipped.')
+
+    if len(added_tracks) == 0:
+        context.summary.append(f'  No tracks to export.')
+    else:
+        if len(file_names) == 1:
+            context.summary.append(f'  {len(added_tracks)} tracks written to csv file (path: "{path}").')
+        else:
+            context.summary.append(f'  {len(added_tracks)} tracks written to {len(file_names)} csv files (path: "{path}").')
+
+
 
     click.echo('\n------------------------------------------------------------')
     click.echo('\n'.join(context.summary))

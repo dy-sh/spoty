@@ -41,35 +41,41 @@ Filter tracks.
     tags_list = context.tags_list
 
     if len(tags_list) > 0:
+        summary = []
+        summary.append("Filtering:")
+
         if len(leave_have_tags) > 0:
             new_tags_list = spoty.utils.filter_tags_list_have_tags(tags_list, leave_have_tags)
 
             if len(tags_list) - len(new_tags_list) != 0:
-                context.summary.append(
-                    f'{len(new_tags_list)} of {len(tags_list)} tracks left due to have all of the specified tags.')
+                summary.append(
+                    f'  {len(tags_list) - len(new_tags_list)}/{len(tags_list)} tracks removed (have all of the specified tags).')
             tags_list = new_tags_list
 
         if len(leave_no_tags) > 0:
             new_tags_list = spoty.utils.filter_tags_list_have_no_tags(tags_list, leave_no_tags)
 
             if len(tags_list) - len(new_tags_list) != 0:
-                context.summary.append(
-                    f'{len(new_tags_list)} of {len(tags_list)} tracks left due to not have any of the specified tags.')
+                summary.append(
+                    f'  {len(tags_list) - len(new_tags_list)}/{len(tags_list)} tracks removed (not have any of the specified tags).')
             tags_list = new_tags_list
 
         if remove_duplicates:
             tags = duplicates_compare_tags.split(',')
             new_tags_list, dup = spoty.utils.remove_tags_duplicates(tags_list, tags, True)
             if len(dup) > 0:
-                context.summary.append(f'{len(dup)} of {len(tags_list)} tracks removed due to duplicates')
+                summary.append(f'  {len(dup)}/{len(tags_list)} tracks removed (duplicates)')
             tags_list = new_tags_list
 
         if leave_duplicates:
             compare_tags = duplicates_compare_tags.split(',')
             new_tags_list, dup = spoty.utils.remove_tags_duplicates(tags_list, compare_tags, True)
-            if len(dup) > 0:
-                context.summary.append(f'{len(dup)} of {len(tags_list)} tracks left due to duplicates')
+            if len(new_tags_list) > 0:
+                summary.append(f'   {len(new_tags_list)}/{len(tags_list)} tracks removed (left only duplicates)')
             tags_list = dup
+
+        if len(summary) > 1:
+            context.summary.extend(summary)
 
     context.tags_list = tags_list
 

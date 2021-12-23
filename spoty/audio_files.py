@@ -93,7 +93,7 @@ def read_audio_file_tags(file_name, add_spoty_tags=True):
     if add_spoty_tags:
         dir = os.path.dirname(file_name)
         tags['SPOTY_FILE_NAME'] = file_name
-        tags['SPOTY_PLAYLIST_SOURCE'] = "LOCAL"
+        tags['SPOTY_SOURCE'] = "LOCAL"
         tags['SPOTY_PLAYLIST_NAME'] = os.path.basename(os.path.normpath(dir))
 
     if is_flac(file_name):
@@ -117,7 +117,10 @@ def read_audio_file_tags(file_name, add_spoty_tags=True):
             else:
                 tags[tag[0]] = tag[1]
 
-        tags['LENGTH'] = str(int(f.info.length * 1000))
+        tags['SPOTY_LENGTH'] = str(int(f.info.length))
+
+    tags=spoty.utils.clean_tags_after_read(tags)
+
     return tags
 
 

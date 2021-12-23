@@ -9,6 +9,8 @@ import time
 import re
 import datetime
 
+DEEZER_TRACK_ID_TAG='DEEZER_TRACK_ID'
+
 DEEZER_APP_ID = settings.default.DEEZER_APP_ID
 DEEZER_APP_SECRET = settings.default.DEEZER_APP_SECRET
 DEEZER_ACCESS_TOKEN = settings.default.DEEZER_ACCESS_TOKEN
@@ -121,7 +123,7 @@ def get_track_ids_from_tags_list(tags_list):
     if len(tags_list) == 0:
         return []
     else:
-        return [str(track['DEEZER_TRACK_ID']) for track in tags_list]
+        return [str(track[DEEZER_TRACK_ID_TAG]) for track in tags_list]
 
 
 def get_playlists_ids(playlists: list):
@@ -305,7 +307,7 @@ def find_missing_track_ids(tags_list: list):
     found = []
     not_found = []
 
-    tracks_without_id = [tags for tags in tags_list if not 'DEEZER_TRACK_ID' in tags]
+    tracks_without_id = [tags for tags in tags_list if not DEEZER_TRACK_ID_TAG in tags]
 
     if len(tracks_without_id) == 0:
         return tags_list, []
@@ -313,24 +315,24 @@ def find_missing_track_ids(tags_list: list):
     with click.progressbar(tags_list, length=len(tracks_without_id),
                            label=f'Identifying {len(tracks_without_id)} tracks') as bar:
         for tags in bar:
-            if "DEEZER_TRACK_ID" in tags:
+            if DEEZER_TRACK_ID_TAG in tags:
                 found.append(tags)
                 continue
 
             elif "SPOTY_TRACK_ID" in tags and tags.get("SPOTY_SOURCE", None) == "DEEZER":
-                tags['DEEZER_TRACK_ID'] = tags['SPOTY_TRACK_ID']
+                tags[DEEZER_TRACK_ID_TAG] = tags['SPOTY_TRACK_ID']
                 found.append(tags)
 
             elif "ISRC" in tags:
                 id = find_track_id_by_isrc(tags['ISRC'])
                 if id is not None:
-                    tags['DEEZER_TRACK_ID'] = id
+                    tags[DEEZER_TRACK_ID_TAG] = id
                     found.append(tags)
 
             elif "TITLE" in tags and "ARTIST" in tags:
                 id = find_track_id_by_artist_and_title(tags['ARTIST'], tags['TITLE'], tags.get('ALBUM', None))
                 if id is not None:
-                    tags['DEEZER_TRACK_ID'] = id
+                    tags[DEEZER_TRACK_ID_TAG] = id
                     found.append(tags)
 
             else:
@@ -371,12 +373,12 @@ def add_tracks_to_playlist_by_tags(playlist_id: str, tags_list: list, allow_dupl
     tags_list = tags_list.copy()
 
     for i in range(len(tags_list)):
-        tags_list[i]['DEEZER_TRACK_ID'] = parse_track_id(tags_list[i]['DEEZER_TRACK_ID'])
+        tags_list[i][DEEZER_TRACK_ID_TAG] = parse_track_id(tags_list[i][DEEZER_TRACK_ID_TAG])
 
     import_duplicates = []
 
     if not allow_duplicates:
-        tags_list, import_duplicates = spoty.utils.remove_tags_duplicates(tags_list, ['DEEZER_TRACK_ID'])
+        tags_list, import_duplicates = spoty.utils.remove_tags_duplicates(tags_list, [DEEZER_TRACK_ID_TAG])
         if len(import_duplicates) > 0:
             log.debug(f'{len(import_duplicates)} duplicates found when adding tracks. It will be skipped.')
 
@@ -606,7 +608,7 @@ def add_extra_tags_to_tracks(tracks: list, new_tracks: list, playlist_id: str, p
     for track in new_tracks:
         track['SPOTY_PLAYLIST_ID'] = playlist_id
         track['SPOTY_PLAYLIST_INDEX'] = counter + 1
-        track['SPOTY_PLAYLIST_SOURCE'] = 'DEEZER'
+        track['SPOTY_SOURCE'] = 'DEEZER'
         if playlist_name is not None:
             track['SPOTY_PLAYLIST_NAME'] = playlist_name
         try:
@@ -649,14 +651,14 @@ def read_tags_from_deezer_track(track: dict):
         tags['ALBUM'] = track['ALB_TITLE']
 
     if 'DURATION' in track:
-        tags['SPOTY_LENGTH'] = int(track['DURATION']) * 1000
+        tags['SPOTY_LENGTH'] = int(track['DURATION'])
 
     if 'ALB_ID' in track:
         tags['DEEZER_ALBUM_ID'] = track['ALB_ID']
 
     if 'SNG_ID' in track:
         tags['WWWAUDIOFILE'] = f'https://www.deezer.com/track/{track["SNG_ID"]}'
-        tags['DEEZER_TRACK_ID'] = track["SNG_ID"]
+        tags[DEEZER_TRACK_ID_TAG] = track["SNG_ID"]
 
     if 'ART_ID' in track:
         tags['DEEZER_ARTIST_ID'] = track['ART_ID']
@@ -685,8 +687,7 @@ def read_tags_from_deezer_track(track: dict):
     # except:
     #     pass
 
-    for tag in spoty.utils.spoty_tags:
-        if tag in track:
-            tags[tag] = track[tag]
+    tags = spoty.utils.clean_tags_after_read(tags)
+
 
     return tags

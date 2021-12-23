@@ -27,17 +27,14 @@ def is_csv(file_name):
     return file_name.upper().endswith('.CSV')
 
 
-def clean_tags(tags_list):
-    for tags in tags_list:
-        if 'SPOTY_PLAYLIST_INDEX' in tags:
-            del tags['SPOTY_PLAYLIST_INDEX']
+
 
 
 def create_csvs(tags_list, path, grouping_pattern, overwrite=False, append=False, allow_duplicates=True,
                 confirm=False, compare_duplicates_tags=None):
     path = os.path.abspath(path)
 
-    clean_tags(tags_list)
+    spoty.utils.clean_tags_list_before_write(tags_list)
 
     if compare_duplicates_tags is None:
         compare_duplicates_tags = []
@@ -198,9 +195,11 @@ def read_tags_from_csv(csv_file_name, add_spoty_tags=True):
                 playlist_name = os.path.basename(csv_file_name)
                 if playlist_name.upper().endswith('.CSV'):
                     playlist_name = playlist_name[:-4]
-                tags['SPOTY_PLAYLIST_SOURCE'] = 'CSV'
+                tags['SPOTY_SOURCE'] = 'CSV'
                 tags['SPOTY_PLAYLIST_NAME'] = playlist_name
                 tags['SPOTY_PLAYLIST_INDEX'] = i
+
+            tags = spoty.utils.clean_tags_after_read(tags)
 
             tags_list.append(tags)
 

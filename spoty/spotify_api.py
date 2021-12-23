@@ -364,7 +364,7 @@ def add_extra_tags_to_tracks(tracks: list, new_tracks: list, playlist_id: str, p
     for track in new_tracks:
         track['track']['SPOTY_PLAYLIST_ID'] = playlist_id
         track['track']['SPOTY_PLAYLIST_INDEX'] = counter + 1
-        track['track']['SPOTY_PLAYLIST_SOURCE'] = 'SPOTIFY'
+        track['track']['SPOTY_SOURCE'] = 'SPOTIFY'
         if playlist_name is not None:
             track['track']['SPOTY_PLAYLIST_NAME'] = playlist_name
         try:
@@ -901,10 +901,10 @@ def read_tags_from_spotify_track(track: dict):
     except:
         pass
 
-    tags['SPOTY_LENGTH'] = track['duration_ms']
+    tags['SPOTY_LENGTH'] = str(int(int(track['duration_ms']) / 1000))
 
     try:
-        tags['SPOTIFY_RELEASE_ID'] = track['album']['id']
+        tags['SPOTIFY_ALBUM_ID'] = track['album']['id']
     except:
         pass
 
@@ -928,9 +928,7 @@ def read_tags_from_spotify_track(track: dict):
     timestamp = datetime.datetime.strptime(date_added, "%Y-%m-%dT%H:%M:%SZ")  # format: 2021-12-19T19:35:17Z
     tags['SPOTY_TRACK_ADDED'] = timestamp.strftime('%Y-%m-%d %H:%M:%S')
 
-    for tag in spoty.utils.spoty_tags:
-        if tag in track:
-            tags[tag] = track[tag]
+    tags = spoty.utils.clean_tags_after_read(tags)
 
     return tags
 

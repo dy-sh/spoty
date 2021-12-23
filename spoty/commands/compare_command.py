@@ -2,6 +2,8 @@ from spoty import settings
 from spoty import log
 import spoty.deezer_api
 import spoty.csv_playlist
+import spoty.deezer_api
+import spoty.spotify_api
 import spoty.utils
 from spoty.commands import get_group
 from spoty.utils import SpotyContext
@@ -47,7 +49,8 @@ def compare(context: SpotyContext,
             result_path
             ):
     """
-Compare tracks to exist and export result (missing tracks, duplicates) to csv files
+Compare tracks on two sources (missing tracks, duplicates) to csv files.
+Add another source with this command options.
     """
 
     context2 = FakeContext()
@@ -66,5 +69,6 @@ Compare tracks to exist and export result (missing tracks, duplicates) to csv fi
     tags_list1 = context.tags_list
     tags_list2 = context2.obj.tags_list
 
-    print(len(tags_list1))
-    print(len(tags_list2))
+    tags_to_compare=[spoty.deezer_api.DEEZER_TRACK_ID_TAG,]
+
+    tags_list1 = spoty.utils.remove_tags_duplicates(tags_list1)

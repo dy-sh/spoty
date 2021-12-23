@@ -2,8 +2,8 @@ import os.path
 
 
 class SpotyContext:
-    tags_list: []
-    summary: []
+    tags_list: list = []
+    summary: list = []
 
 
 class FakeContext:
@@ -19,15 +19,22 @@ tag_allies = [
 spoty_tags = \
     [
         'SPOTY_DUPLICATE_GROUP',
-        'SPOTY_PLAYLIST_SOURCE',
+        'SPOTY_SOURCE',
         'SPOTY_PLAYLIST_NAME',
         'SPOTY_PLAYLIST_ID',
         'SPOTY_PLAYLIST_INDEX',
         'SPOTY_FILE_NAME',
         'SPOTY_TRACK_ID',
         'SPOTY_TRACK_ADDED',
-        'SPOTY_LENGTH'
-
+        'SPOTY_LENGTH',
+        # spotify specific
+        'SPOTIFY_TRACK_ID',
+        'SPOTIFY_ALBUM_ID',
+        # deezer specific
+        'DEEZER_TRACK_ID',
+        'DEEZER_ALBUM_ID',
+        'DEEZER_ARTIST_ID',
+        'DEEZER_LYRICS_ID',
     ]
 
 main_tags = \
@@ -44,12 +51,7 @@ main_tags = \
         'COMMENT'
         'BARCODE',
         'BPM',
-        'FILEOWNER'  # public
         'QUALITY',
-        'SPOTIFY_TRACK_ID'  # spotify specific
-        'SPOTIFY_RELEASE_ID',  # spotify specific
-        'SOURCE',  # deezer specific
-        'SOURCEID',  # deezer specific
         'TEMPO',
         'YEAR',
     ]
@@ -63,10 +65,11 @@ additional_tags = \
         'COPYRIGHT',
         'DISC',
         'ENCODER',
-        'EXPLICIT'
-        'GAIN'
+        'EXPLICIT',
+        'FILEOWNER',
+        'GAIN',
         'INITIAL KEY',
-        'INITIALKEY'
+        'INITIALKEY',
         'ENGINEER',
         'INVOLVEDPEOPLE',
         'ITUNESADVISORY',
@@ -77,7 +80,7 @@ additional_tags = \
         'PRODUCER',
         'PUBLISHER',
         'REPLAYGAIN_TRACK_GAIN',
-        'RELEASE DATE'
+        'RELEASE DATE',
         'STYLE',
         'TOTALDISCS',
         'TOTALTRACKS',
@@ -180,8 +183,8 @@ def compare_tags(src_tags: dict, dest_tags: dict, tags_to_compare: list, allow_m
             else:
                 return False
 
-        if tag == "LENGTH":
-            if abs(int(src_tags['LENGTH']) - int(dest_tags['LENGTH'])) > 5:
+        if tag == 'SPOTY_LENGTH':
+            if abs(int(src_tags['SPOTY_LENGTH']) - int(dest_tags['SPOTY_LENGTH'])) > 5:
                 return False
             else:
                 continue
@@ -260,7 +263,7 @@ def print_main_tags(tags: dict):
     if 'RATING' in tags: print(f'RATING: {tags["RATING"]}')
     if 'COMMENT' in tags: print(f'COMMENT: {tags["COMMENT"]}')
     if 'BARCODE' in tags: print(f'BARCODE: {tags["BARCODE"]}')
-    if 'LENGTH' in tags: print(f'LENGTH: {tags["LENGTH"]}')
+    if 'SPOTY_LENGTH' in tags: print(f'SPOTY_LENGTH: {tags["SPOTY_LENGTH"]}')
     if 'SPOTIFY_TRACK_ID' in tags: print(f'SPOTIFY_TRACK_ID: {tags["SPOTIFY_TRACK_ID"]}')
     if 'SOURCE' in tags: print(f'SOURCE: {tags["SOURCE"]}')
     if 'SOURCEID' in tags: print(f'SOURCEID: {tags["SOURCEID"]}')
@@ -405,7 +408,7 @@ def get_missing_tags(exist_tags: dict, new_tags: dict):
     missing_tags = {}
 
     for key, value in new_tags.items():
-        if key == 'LENGTH':
+        if key == 'SPOTY_LENGTH':
             continue
 
         if key in spoty_tags:
@@ -444,3 +447,44 @@ def find_empty_file_name(exist_file_name: str):
         new_file_name = os.path.join(dir_name, base_name + f' {i}' + ext)
         if not os.path.isfile(new_file_name):
             return new_file_name
+
+
+def clean_tags_list_before_write(tags_list):
+    for tags in tags_list:
+        if 'SPOTY_PLAYLIST_INDEX' in tags:
+            del tags['SPOTY_PLAYLIST_INDEX']
+
+
+def clean_tags_list_after_read(tags_list):
+    for i, tags in tags_list:
+        tags_list[i] = clean_tags_after_read(tags)
+
+
+def clean_tags_after_read(tags):
+    # local files from deemix
+
+    if 'SOURCEID' in tags and 'DEEZER_TRACK_ID' not in tags \
+            and 'SOURCE' in tags and tags['SOURCE'].upper() == "DEEZER":
+        tags['DEEZER_TRACK_ID'] = tags['SOURCEID']
+
+    # missing deezer track id
+
+    if 'SPOTY_SOURCE' in tags and tags['SPOTY_SOURCE'].upper() == "DEEZER":
+
+        if 'SPOTY_TRACK_ID' not in tags and 'DEEZER_TRACK_ID' in tags:
+            tags['SPOTY_TRACK_ID'] = tags['DEEZER_TRACK_ID']
+
+        if 'DEEZER_TRACK_ID' not in tags and 'SPOTY_TRACK_ID' in tags:
+            tags['DEEZER_TRACK_ID'] = tags['SPOTY_TRACK_ID']
+
+    # missing spotify track id
+
+    if 'SPOTY_SOURCE' in tags and tags['SPOTY_SOURCE'].upper() == "SPOTIFY":
+
+        if 'SPOTY_TRACK_ID' not in tags and 'SPOTIFY_TRACK_ID' in tags:
+            tags['SPOTY_TRACK_ID'] = tags['SPOTIFY_TRACK_ID']
+
+        if 'SPOTIFY_TRACK_ID' not in tags and 'SPOTY_TRACK_ID' in tags:
+            tags['SPOTIFY_TRACK_ID'] = tags['SPOTY_TRACK_ID']
+
+    return tags
