@@ -92,13 +92,21 @@ Import track list to Deezer Library
 
     # print summery
 
-    context.summary.append(f'{len(imported_tags_list)} tracks imported in {len(playlist_ids)} Deezer playlists.')
+    context.summary.append("Importing to Deezer:")
     if len(source_duplicates_tags_list) > 0:
-        context.summary.append(f'{len(source_duplicates_tags_list)} duplicates in collected tracks skipped.')
+        context.summary.append(f'  {len(source_duplicates_tags_list)} duplicates in collected tracks skipped.')
     if len(already_exist_tags_list) > 0:
-        context.summary.append(f'{len(already_exist_tags_list)} tracks already exist in Deezer playlists and skipped.')
+        context.summary.append(f'  {len(already_exist_tags_list)} tracks already exist in Deezer playlists and skipped.')
     if len(not_found_tags_list) > 0:
-        context.summary.append(f'{len(not_found_tags_list)} tracks not found by tags.')
+        context.summary.append(f'  {len(not_found_tags_list)} tracks not found by tags.')
+
+    if len(imported_tags_list) == 0:
+        context.summary.append(f'  No tracks to import.')
+    else:
+        if len(playlist_ids) == 1:
+            context.summary.append(f'  {len(imported_tags_list)} tracks imported in Deezer playlist.')
+        else:
+            context.summary.append(f'  {len(imported_tags_list)} tracks imported in {len(playlist_ids)} Deezer playlists.')
 
     click.echo('\n------------------------------------------------------------')
     click.echo('\n'.join(context.summary))

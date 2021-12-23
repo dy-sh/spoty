@@ -314,31 +314,34 @@ def find_missing_track_ids(tags_list: list):
 
     with click.progressbar(tags_list, length=len(tracks_without_id),
                            label=f'Identifying {len(tracks_without_id)} tracks') as bar:
-        for tags in bar:
+        for tags in tags_list:
             if DEEZER_TRACK_ID_TAG in tags:
                 found.append(tags)
                 continue
 
-            elif "SPOTY_TRACK_ID" in tags and tags.get("SPOTY_SOURCE", None) == "DEEZER":
-                tags[DEEZER_TRACK_ID_TAG] = tags['SPOTY_TRACK_ID']
-                found.append(tags)
+            # elif "SPOTY_TRACK_ID" in tags and tags.get("SPOTY_SOURCE", None) == "DEEZER":
+            #     tags[DEEZER_TRACK_ID_TAG] = tags['SPOTY_TRACK_ID']
+            #     found.append(tags)
 
-            elif "ISRC" in tags:
+            if "ISRC" in tags:
                 id = find_track_id_by_isrc(tags['ISRC'])
                 if id is not None:
                     tags[DEEZER_TRACK_ID_TAG] = id
                     found.append(tags)
+                    bar.update(1)
+                    continue
 
-            elif "TITLE" in tags and "ARTIST" in tags:
+            if "TITLE" in tags and "ARTIST" in tags:
                 id = find_track_id_by_artist_and_title(tags['ARTIST'], tags['TITLE'], tags.get('ALBUM', None))
                 if id is not None:
                     tags[DEEZER_TRACK_ID_TAG] = id
                     found.append(tags)
+                    bar.update(1)
+                    continue
 
-            else:
-                not_found.append(tags)
-
+            not_found.append(tags)
             bar.update(1)
+
 
     return found, not_found
 
@@ -686,6 +689,10 @@ def read_tags_from_deezer_track(track: dict):
     #     tags['YEAR'] = track['album']['release_date'] # get release date from album request
     # except:
     #     pass
+
+    for tag in spoty.utils.spoty_tags:
+        if tag in track:
+            tags[tag] = track[tag]
 
     tags = spoty.utils.clean_tags_after_read(tags)
 
