@@ -102,16 +102,20 @@ Add another source with this command options.
     all_exist1 = {}
     all_exist2 = {}
     for tags in tags_to_compare:
-        new, exist = spoty.utils.remove_exist_tags(tags_list1, tags_list2, tags, False)
-        for item in exist:
-            id = item['SPOTY_TEMP_ID']
-            if id in all_new2:
-                all_exist2[id] = item
-                del all_new2[id]
-        new, exist = spoty.utils.remove_exist_tags(tags_list2, tags_list1, tags, False)
-        for item in exist:
-            id = item['SPOTY_TEMP_ID']
-            if id in all_new1:
-                all_exist1[id] = item
-                del all_new1[id]
+        compare_by_tags(tags_list1, tags_list2, tags, all_new2, all_exist2)
+        compare_by_tags(tags_list2, tags_list1, tags, all_new1, all_exist1)
+
     print()
+
+def compare_by_tags(tags_list1,tags_list2, tags, all_new2, all_exist2 ):
+    new, exist = spoty.utils.remove_exist_tags(tags_list1, tags_list2, tags, False)
+    for item in exist:
+        if not 'SPOTY_TEMP_DUPLICATE_BY_TAGS' in item:
+            item['SPOTY_TEMP_DUPLICATE_BY_TAGS'] = []
+
+        item['SPOTY_TEMP_DUPLICATE_BY_TAGS'].append(tags)
+
+        id = item['SPOTY_TEMP_ID']
+        if id in all_new2:
+            all_exist2[id] = item
+            del all_new2[id]
