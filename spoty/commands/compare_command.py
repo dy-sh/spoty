@@ -69,24 +69,22 @@ Add another source with this command options.
     tags_list1 = context.tags_list
     tags_list2 = context2.obj.tags_list
 
-    tags_to_compare = \
-        [
-            'DEEZER_TRACK_ID',
-            'SPOTIFY_TRACK_ID',
-            'ISRC',
-            'ARTIST,TITLE,SPOTY_LENGTH'
-        ]
+    tags_to_compare_def = settings.SPOTY.COMPARE_TAGS_DEFINITELY_DUPLICATE
+    tags_to_compare_prob = settings.SPOTY.COMPARE_TAGS_PROBABLY_DUPLICATE
 
-    for i, tags in enumerate(tags_to_compare):
-        tags_to_compare[i] = tags.split(',')
+    for i, tags in enumerate(tags_to_compare_def):
+        tags_to_compare_def[i] = tags.split(',')
 
-    all_tags_list1_dup = []
-    all_tags_list2_dup = []
-    for tags in tags_to_compare:
+    for i, tags in enumerate(tags_to_compare_prob):
+        tags_to_compare_prob[i] = tags.split(',')
+
+    all_tags_list1_def_dup = []
+    all_tags_list2_def_dup = []
+    for tags in tags_to_compare_def:
         tags_list1, dup = spoty.utils.remove_tags_duplicates(tags_list1, tags, False)
-        all_tags_list1_dup.extend(dup)
+        all_tags_list1_def_dup.extend(dup)
         tags_list2, dup = spoty.utils.remove_tags_duplicates(tags_list2, tags, False)
-        all_tags_list2_dup.extend(dup)
+        all_tags_list2_def_dup.extend(dup)
 
     all_new1 = {}
     all_new2 = {}
@@ -101,7 +99,7 @@ Add another source with this command options.
 
     all_exist1 = {}
     all_exist2 = {}
-    for tags in tags_to_compare:
+    for tags in tags_to_compare_def:
         compare_by_tags(tags_list1, tags_list2, tags, all_new2, all_exist2)
         compare_by_tags(tags_list2, tags_list1, tags, all_new1, all_exist1)
 
