@@ -1,5 +1,5 @@
 import os.path
-
+from spoty import settings
 
 class SpotyContext:
     tags_list: list = []
@@ -184,7 +184,7 @@ def compare_tags(src_tags: dict, dest_tags: dict, tags_to_compare: list, allow_m
                 return False
 
         if tag == 'SPOTY_LENGTH':
-            if abs(int(src_tags['SPOTY_LENGTH']) - int(dest_tags['SPOTY_LENGTH'])) > 5:
+            if abs(int(src_tags['SPOTY_LENGTH']) - int(dest_tags['SPOTY_LENGTH'])) > settings.SPOTY.COMPARE_LENGTH_DIFF_SECS:
                 return False
             else:
                 continue

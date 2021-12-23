@@ -55,20 +55,63 @@ Add another source with this command options.
 
     context2 = FakeContext()
     get_group.get_tracks_wrapper(context2,
-               spotify_playlist,
-               spotify_entire_library,
-               spotify_entire_library_regex,
-               deezer_playlist,
-               deezer_entire_library,
-               deezer_entire_library_regex,
-               audio,
-               csv,
-               no_recursive,
-               )
+                                 spotify_playlist,
+                                 spotify_entire_library,
+                                 spotify_entire_library_regex,
+                                 deezer_playlist,
+                                 deezer_entire_library,
+                                 deezer_entire_library_regex,
+                                 audio,
+                                 csv,
+                                 no_recursive,
+                                 )
 
     tags_list1 = context.tags_list
     tags_list2 = context2.obj.tags_list
 
-    tags_to_compare=[spoty.deezer_api.DEEZER_TRACK_ID_TAG,]
+    tags_to_compare = \
+        [
+            'DEEZER_TRACK_ID',
+            'SPOTIFY_TRACK_ID',
+            'ISRC',
+            'ARTIST,TITLE,SPOTY_LENGTH'
+        ]
 
-    tags_list1 = spoty.utils.remove_tags_duplicates(tags_list1)
+    for i, tags in enumerate(tags_to_compare):
+        tags_to_compare[i] = tags.split(',')
+
+    all_tags_list1_dup = []
+    all_tags_list2_dup = []
+    for tags in tags_to_compare:
+        tags_list1, dup = spoty.utils.remove_tags_duplicates(tags_list1, tags, False)
+        all_tags_list1_dup.extend(dup)
+        tags_list2, dup = spoty.utils.remove_tags_duplicates(tags_list2, tags, False)
+        all_tags_list2_dup.extend(dup)
+
+    all_new1 = {}
+    all_new2 = {}
+    for i, tags in enumerate(tags_list1):
+        tags_list1[i]['SPOTY_TEMP_ID'] = i
+        all_new1[i] = tags_list1[i]
+
+    for i, tags in enumerate(tags_list2):
+        tags_list2[i]['SPOTY_TEMP_ID'] = i
+        all_new2[i] = tags_list2[i]
+
+
+    all_exist1 = {}
+    all_exist2 = {}
+    for tags in tags_to_compare:
+        new, exist = spoty.utils.remove_exist_tags(tags_list1, tags_list2, tags, False)
+        for item in exist:
+            id = item['SPOTY_TEMP_ID']
+            if id in all_new2:
+                all_exist2[id] = item
+                del all_new2[id]
+        new, exist = spoty.utils.remove_exist_tags(tags_list2, tags_list1, tags, False)
+        for item in exist:
+            id = item['SPOTY_TEMP_ID']
+            if id in all_new1:
+                all_exist1[id] = item
+                del all_new1[id]
+    print()
