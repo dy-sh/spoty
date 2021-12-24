@@ -1,6 +1,7 @@
 import os.path
 from spoty import settings
 
+
 class SpotyContext:
     tags_list: list = []
     summary: list = []
@@ -98,9 +99,10 @@ def tuple_to_list(some_tuple: tuple):
     l.extend(some_tuple)
     return l
 
+
 def dict_to_list(some_dics: dict):
     l = []
-    for key,value in some_dics.items():
+    for key, value in some_dics.items():
         l.append(value)
     return l
 
@@ -193,7 +195,8 @@ def compare_tags(src_tags: dict, dest_tags: dict, tags_to_compare: list, allow_m
                 return False
 
         if tag == 'SPOTY_LENGTH':
-            if abs(int(src_tags['SPOTY_LENGTH']) - int(dest_tags['SPOTY_LENGTH'])) > settings.SPOTY.COMPARE_LENGTH_DIFF_SECS:
+            if abs(int(src_tags['SPOTY_LENGTH']) - int(
+                    dest_tags['SPOTY_LENGTH'])) > settings.SPOTY.COMPARE_LENGTH_DIFF_SECS:
                 return False
             else:
                 continue
@@ -497,3 +500,109 @@ def clean_tags_after_read(tags):
             tags['SPOTIFY_TRACK_ID'] = tags['SPOTY_TRACK_ID']
 
     return tags
+
+
+def compare_tags_lists(source_list, dest_list, add_dup_tags=False):
+    # get tags to compare from config
+
+    tags_to_compare_def = settings.SPOTY.COMPARE_TAGS_DEFINITELY_DUPLICATE
+    tags_to_compare_prob = settings.SPOTY.COMPARE_TAGS_PROBABLY_DUPLICATE
+
+    for i, tags in enumerate(tags_to_compare_def):
+        tags_to_compare_def[i] = tags.split(',')
+
+    for i, tags in enumerate(tags_to_compare_prob):
+        tags_to_compare_prob[i] = tags.split(',')
+
+    # add temporary ids
+
+    source_unique = {}
+    dest_unique = {}
+    for i, tags in enumerate(source_list):
+        id = str(i)
+        source_list[i]['SPOTY_DUP_ID'] = id
+        source_unique[id] = source_list[i]
+
+    for i, tags in enumerate(dest_list):
+        id = str(i)
+        dest_list[i]['SPOTY_DUP_ID'] = id
+        dest_unique[id] = dest_list[i]
+
+    # find definitely duplicates
+
+    source_def_dups = {}
+    dest_def_dups = {}
+    for tags in tags_to_compare_def:
+        compare_by_tags(source_list, dest_list, tags, dest_unique, dest_def_dups, 'SPOTY_DEF_DUP', add_dup_tags)
+        compare_by_tags(dest_list, source_list, tags, source_unique, source_def_dups, 'SPOTY_DEF_DUP', add_dup_tags)
+
+    # find probably duplicates
+
+    source_prob_dups = {}
+    dest_prob_dups = {}
+    for tags in tags_to_compare_prob:
+        dest_list2 = dict_to_list(dest_unique)
+        compare_by_tags(source_list, dest_list2, tags, dest_unique, dest_prob_dups, 'SPOTY_PROP_DUP', add_dup_tags)
+        source_list2 = dict_to_list(source_unique)
+        compare_by_tags(dest_list, source_list2, tags, source_unique, source_prob_dups, 'SPOTY_PROP_DUP', add_dup_tags)
+
+    source_unique = dict_to_list(source_unique)
+    dest_unique = dict_to_list(dest_unique)
+    source_def_dups = dict_to_list(source_def_dups)
+    dest_def_dups = dict_to_list(dest_def_dups)
+    source_prob_dups = dict_to_list(source_prob_dups)
+    dest_prob_dups = dict_to_list(dest_prob_dups)
+
+    # remove temporary ids
+    if not add_dup_tags:
+        for tags in source_unique:
+            if 'SPOTY_DUP_ID' in tags:
+                del tags['SPOTY_DUP_ID']
+        for tags in dest_unique:
+            if 'SPOTY_DUP_ID' in tags:
+                del tags['SPOTY_DUP_ID']
+        for tags in source_def_dups:
+            if 'SPOTY_DUP_ID' in tags:
+                del tags['SPOTY_DUP_ID']
+        for tags in dest_def_dups:
+            if 'SPOTY_DUP_ID' in tags:
+                del tags['SPOTY_DUP_ID']
+        for tags in source_prob_dups:
+            if 'SPOTY_DUP_ID' in tags:
+                del tags['SPOTY_DUP_ID']
+        for tags in dest_prob_dups:
+            if 'SPOTY_DUP_ID' in tags:
+                del tags['SPOTY_DUP_ID']
+        for tags in source_list:
+            if 'SPOTY_DUP_ID' in tags:
+                del tags['SPOTY_DUP_ID']
+        for tags in dest_list:
+            if 'SPOTY_DUP_ID' in tags:
+                del tags['SPOTY_DUP_ID']
+
+    return source_unique, dest_unique, source_def_dups, dest_def_dups, source_prob_dups, dest_prob_dups
+
+
+def compare_by_tags(source_list, dest_list, tags_to_compare, dest_unique, dest_dups, dup_tag, add_dup_tags=False):
+    unique = []
+    dups = []
+    for dest_tags in dest_list:
+        found = False
+        for source_tags in source_list:
+            if compare_tags(source_tags, dest_tags, tags_to_compare, False):
+                found = True
+                if add_dup_tags:
+                    if dup_tag not in dest_tags:
+                        dest_tags[dup_tag] = ""
+                    dest_tags[dup_tag] += f'{source_tags["SPOTY_DUP_ID"]} : {",".join(tags_to_compare)}\n'
+        if found:
+            dups.append(dest_tags)
+        else:
+            unique.append(dest_tags)
+
+    # move duplicates from unique to dups
+    for item in dups:
+        id = item['SPOTY_DUP_ID']
+        if id in dest_unique:
+            dest_dups[id] = item
+            del dest_unique[id]
