@@ -13,7 +13,7 @@ import spoty.utils
 import click
 
 
-@click.group("filter")
+@click.group("filter-second")
 # @click.option('--playlist-names', '--p', multiple=True,
 #               help='Leave only playlists whose names matches this regex filter')
 @click.option('--leave-have-tags', '--lht', multiple=True,

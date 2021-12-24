@@ -11,7 +11,7 @@ from spoty.utils import SpotyContext
 import click
 
 
-@click.command("compare")
+@click.group("get-second")
 @click.option('--spotify-playlist', '--sp', multiple=True,
               help='Get tracks from Spotify playlist URI or ID.')
 @click.option('--spotify-entire-library', '--s', multiple=True,
