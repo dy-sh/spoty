@@ -82,7 +82,7 @@ def playlist_read(playlist_ids):
 
 
 @playlist.command("create")
-@click.argument("name", type=str)
+@click.argument("name")
 def playlist_create(name):
     r"""
     Create a new empty playlist with the specified name.
@@ -93,6 +93,48 @@ def playlist_create(name):
     """
     id = spoty.spotify_api.create_playlist(name)
     click.echo(f'New playlist created (id: {id}, name: "{name}")')
+
+
+@playlist.command("delete")
+@click.argument("playlist_ids", nargs=-1)
+@click.option('--confirm', '-y', type=bool, is_flag=True, default=False,
+              help='Do not ask for confirmation')
+def playlist_delete(playlist_ids, confirm):
+    r"""
+    Delete playlists by ID.
+
+        Examples:
+
+        spoty spotify playlist delete 37i9dQZF1DX8z1UW9HQvSq
+
+        spoty spotify playlist delete 37i9dQZF1DX8z1UW9HQvSq 37i9dQZF1DX7jNFrjYQurt
+
+        spoty spotify playlist delete https://open.spotify.com/playlist/37i9dQZF1DX8z1UW9HQvSq
+    """
+
+    if len(playlist_ids) == 0:
+        return
+
+    click.echo("Found playlists: ")
+    for playlist_id in playlist_ids:
+        playlist = spoty.spotify_api.get_playlist(playlist_id)
+        if playlist is not None:
+            click.echo("  " + playlist['name'])
+        else:
+            click.echo(f'  Playlist {playlist_id} not found')
+
+    if not confirm:
+        if not click.confirm(f'Are you sure you want to delete {len(playlist_ids)} playlists?', abort=True):
+            click.echo("\nCanceled")
+            return False
+        # click.echo()  # for new line
+
+    for playlist_id in playlist_ids:
+        res = spoty.spotify_api.delete_playlist(playlist_id, True)
+        if res:
+            click.echo(f'Playlist {playlist_id} deleted')
+        else:
+            click.echo(f'Playlist {playlist_id} not deleted')
 
 
 @playlist.command("copy")
@@ -128,7 +170,7 @@ def playlist_copy(playlist_ids):
 
 
 @playlist.command("add-tracks")
-@click.argument("playlist_id", type=str)
+@click.argument("playlist_id")
 @click.argument("track_ids", nargs=-1)
 @click.option('--allow-duplicates', '-d', type=bool, is_flag=True, default=False,
               help='Add tracks that are already in the playlist.')
@@ -151,12 +193,12 @@ def playlist_add_tracks(playlist_id, track_ids, allow_duplicates):
     """
     track_ids = list(track_ids)
     tracks_added, import_duplicates, already_exist = spoty.spotify_api.add_tracks_to_playlist(playlist_id, track_ids,
-                                                                                          allow_duplicates)
+                                                                                              allow_duplicates)
     click.echo(f'{len(tracks_added)} tracks added to playlist {playlist_id}')
 
 
 @playlist.command("remove-tracks")
-@click.argument("playlist_id", type=str)
+@click.argument("playlist_id")
 @click.argument("track_ids", nargs=-1)
 def playlist_remove_tracks(playlist_id, track_ids):
     r"""
