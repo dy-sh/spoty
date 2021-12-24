@@ -79,7 +79,8 @@ if __name__ == '__main__':
         # 'move-duplicates', '--a', r'.\music\TEST2',
         # '-yr',
          # '--gp','pl',
-         'export','-a',
+         # 'export','-a',
          # 'export','-t',
+         'import-deezer','-ary',
          # '-y',
          ])

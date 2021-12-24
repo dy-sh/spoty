@@ -394,7 +394,7 @@ def add_tracks_to_playlist_by_tags(playlist_id: str, tags_list: list, allow_dupl
     if not allow_duplicates:
         tracks, playlist = get_playlist_with_full_list_of_tracks(playlist_id)
         tags_in_playlist = read_tags_from_deezer_tracks(tracks)
-        tags_list, already_exist = spoty.utils.remove_exist_tags(tags_in_playlist, tags_list, ['SPOTIFY_TRACK_ID'])
+        tags_list, already_exist = spoty.utils.remove_exist_tags(tags_in_playlist, tags_list, ['DEEZER_TRACK_ID'])
         if len(already_exist) > 0:
             log.debug(f'{len(already_exist)} tracks already exist and will be skipped.')
 
@@ -521,10 +521,10 @@ def import_playlist_from_tags_list(playlist_name: str, tags_list: list, overwrit
                 if len(found_playlists) > 1:
                     if confirm:
                         click.echo(
-                            f'\n{len(found_playlists)} playlists with name "{playlist_name}" found in Spotify library. Choosing the first one and appending it.')
+                            f'\n{len(found_playlists)} playlists with name "{playlist_name}" found in Deezer library. Choosing the first one and appending it.')
                     else:
                         if not click.confirm(
-                                f'\n{len(found_playlists)} playlists with name "{playlist_name}" found in Spotify library. Choose the first one and append it?'):
+                                f'\n{len(found_playlists)} playlists with name "{playlist_name}" found in Deezer library. Choose the first one and append it?'):
                             click.echo("\nCanceled")
                             log.info(f'Canceled by user (more than one playlists found with name "{playlist_name})"')
                             return [], [], [], []
@@ -533,20 +533,20 @@ def import_playlist_from_tags_list(playlist_name: str, tags_list: list, overwrit
                 if len(found_playlists) > 1:
                     if confirm:
                         click.echo(
-                            f'\n{len(found_playlists)} playlists with name "{playlist_name}" found in Spotify library. Choosing the first one and overwriting it.')
+                            f'\n{len(found_playlists)} playlists with name "{playlist_name}" found in Deezer library. Choosing the first one and overwriting it.')
                     else:
                         if not click.confirm(
-                                f'\n{len(found_playlists)} playlists with name "{playlist_name}" found in Spotify library. Choose the first one and overwrite it?'):
+                                f'\n{len(found_playlists)} playlists with name "{playlist_name}" found in Deezer library. Choose the first one and overwrite it?'):
                             click.echo("\nCanceled")
                             log.info(f'Canceled by user (more than one playlists found with name "{playlist_name})"')
                             return [], [], [], []
                         click.echo()  # for new line
                 else:
                     if confirm:
-                        click.echo(f'\nPlaylist "{playlist_name}" exist in Spotify library. Overwriting it.')
+                        click.echo(f'\nPlaylist "{playlist_name}" exist in Deezer library. Overwriting it.')
                     else:
                         if not click.confirm(
-                                f'\nPlaylist "{playlist_name}" exist in Spotify library. Overwrite it?'):
+                                f'\nPlaylist "{playlist_name}" exist in Deezer library. Overwrite it?'):
                             click.echo("\nCanceled")
                             log.info(f'Canceled by user (playlist found with name "{playlist_name})"')
                             return [], [], [], []

@@ -18,9 +18,6 @@ from datetime import datetime
               help='Add tracks to an existing playlist if already exists. If this option is not specified, a new playlist will always be created.')
 @click.option('--overwrite', '-o', is_flag=True,
               help='Overwrite existing playlist')
-# @click.option('--duplicates-compare-tags', '--dct', show_default=True, multiple=True,
-#               default=settings.SPOTY.COMPARE_TAGS_DEFINITELY_DUPLICATE,
-#               help='Compare duplicates by this tags. It is optional. You can also change the list of tags in the config file.')
 @click.option('--yes-all', '-y', is_flag=True,
               help='Confirm all questions with a positive answer automatically.')
 @click.option('--export-result', '-r', is_flag=True,
@@ -34,7 +31,6 @@ def import_spotify(context: SpotyContext,
                    duplicates,
                    append,
                    overwrite,
-                   # duplicates_compare_tags,
                    yes_all,
                    export_result,
                    result_path
