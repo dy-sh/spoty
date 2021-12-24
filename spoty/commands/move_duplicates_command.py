@@ -23,12 +23,20 @@ from datetime import datetime
               help='Move unique files too (to a separate folder).')
 @click.option('--move-source', '-s', is_flag=True,
               help='Move source files too (to a separate folder).')
+@click.option('--compare-tags-def', '--ctd', show_default=True, multiple=True,
+              default=settings.SPOTY.COMPARE_TAGS_DEFINITELY_DUPLICATE,
+              help='Compare definitely duplicates by this tags. It is optional. You can also change the list of tags in the config file.')
+@click.option('--compare-tags-prob', '--ctp', show_default=True, multiple=True,
+              default=settings.SPOTY.COMPARE_TAGS_PROBABLY_DUPLICATE,
+              help='Compare probably duplicates by this tags. It is optional. You can also change the list of tags in the config file.')
 @click.pass_obj
 def move_duplicates(context: SpotyContext,
                     result_path,
                     grouping_pattern,
                     move_unique,
-                    move_source
+                    move_source,
+                    compare_tags_def,
+                    compare_tags_prob,
                     ):
     """
 Compare the tracks in two lists and move duplicated audio files to a new folder.
@@ -37,8 +45,11 @@ Compare the tracks in two lists and move duplicated audio files to a new folder.
     source_list = context.tags_lists[0]
     dest_list = context.tags_lists[1]
 
+    compare_tags_def = spoty.utils.tuple_to_list(compare_tags_def)
+    compare_tags_prob = spoty.utils.tuple_to_list(compare_tags_prob)
+
     source_unique, dest_unique, source_def_dups, dest_def_dups, source_prob_dups, dest_prob_dups = \
-        spoty.utils.compare_tags_lists(source_list, dest_list, True)
+        spoty.utils.compare_tags_lists(source_list, dest_list, compare_tags_def, compare_tags_prob, True)
 
     # export result to  csv files
     result_path = os.path.abspath(result_path)

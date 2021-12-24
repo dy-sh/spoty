@@ -22,8 +22,8 @@ import click
               help='Remove duplicates.')
 @click.option('--leave-duplicates', '--ld', '-l', type=bool, is_flag=True, default=False,
               help='Leave only duplicates.')
-@click.option('--duplicates-compare-tags', '--dct', show_default=True,
-              default=settings.SPOTY.DEFAULT_COMPARE_TAGS,
+@click.option('--duplicates-compare-tags', '--dct', show_default=True, multiple=True,
+              default=settings.SPOTY.COMPARE_TAGS_DEFINITELY_DUPLICATE,
               help='Compare duplicates by this tags. It is optional. You can also change the list of tags in the config file.')
 @click.pass_obj
 def filter_tracks(context: SpotyContext,

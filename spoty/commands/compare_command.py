@@ -19,10 +19,18 @@ from datetime import datetime
 @click.option('--grouping-pattern', '--gp', show_default=True,
               default=settings.SPOTY.DEFAULT_GROUPING_PATTERN,
               help='Tracks will be grouped to playlists according to this pattern.')
+@click.option('--compare-tags-def', '--ctd', show_default=True, multiple=True,
+              default=settings.SPOTY.COMPARE_TAGS_DEFINITELY_DUPLICATE,
+              help='Compare definitely duplicates by this tags. It is optional. You can also change the list of tags in the config file.')
+@click.option('--compare-tags-prob', '--ctp', show_default=True, multiple=True,
+              default=settings.SPOTY.COMPARE_TAGS_PROBABLY_DUPLICATE,
+              help='Compare probably duplicates by this tags. It is optional. You can also change the list of tags in the config file.')
 @click.pass_obj
 def compare(context: SpotyContext,
             result_path,
-            grouping_pattern
+            grouping_pattern,
+            compare_tags_def,
+            compare_tags_prob,
             ):
     """
 Compare tracks on two lists and export the result (unique tracks, duplicates) to csv files.
@@ -31,8 +39,11 @@ Compare tracks on two lists and export the result (unique tracks, duplicates) to
     source_list = context.tags_lists[0]
     dest_list = context.tags_lists[1]
 
+    compare_tags_def = spoty.utils.tuple_to_list(compare_tags_def)
+    compare_tags_prob = spoty.utils.tuple_to_list(compare_tags_prob)
+
     source_unique, dest_unique, source_def_dups, dest_def_dups, source_prob_dups, dest_prob_dups = \
-        spoty.utils.compare_tags_lists(source_list, dest_list, True)
+        spoty.utils.compare_tags_lists(source_list, dest_list, compare_tags_def, compare_tags_prob, True)
 
     # export result to  csv files
     result_path = os.path.abspath(result_path)

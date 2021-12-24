@@ -192,7 +192,7 @@ def compare_tags(src_tags: dict, dest_tags: dict, tags_to_compare: list, allow_m
 
         if tag == 'SPOTY_LENGTH':
             if abs(int(src_tags['SPOTY_LENGTH']) - int(
-                    dest_tags['SPOTY_LENGTH'])) > settings.SPOTY.COMPARE_LENGTH_DIFF_SECS:
+                    dest_tags['SPOTY_LENGTH'])) > settings.SPOTY.COMPARE_LENGTH_TOLERANCE_SEC:
                 return False
             else:
                 continue
@@ -498,17 +498,14 @@ def clean_tags_after_read(tags):
     return tags
 
 
-def compare_tags_lists(source_list, dest_list, add_dup_tags=False):
+def compare_tags_lists(source_list: list, dest_list: list, compare_tags_def: list, compare_tags_prob: list, add_dup_tags=False):
     # get tags to compare from config
 
-    tags_to_compare_def = settings.SPOTY.COMPARE_TAGS_DEFINITELY_DUPLICATE
-    tags_to_compare_prob = settings.SPOTY.COMPARE_TAGS_PROBABLY_DUPLICATE
+    for i, tags in enumerate(compare_tags_def):
+        compare_tags_def[i] = tags.split(',')
 
-    for i, tags in enumerate(tags_to_compare_def):
-        tags_to_compare_def[i] = tags.split(',')
-
-    for i, tags in enumerate(tags_to_compare_prob):
-        tags_to_compare_prob[i] = tags.split(',')
+    for i, tags in enumerate(compare_tags_prob):
+        compare_tags_prob[i] = tags.split(',')
 
     # add temporary ids
 
@@ -528,7 +525,7 @@ def compare_tags_lists(source_list, dest_list, add_dup_tags=False):
 
     source_def_dups = {}
     dest_def_dups = {}
-    for tags in tags_to_compare_def:
+    for tags in compare_tags_def:
         compare_by_tags(source_list, dest_list, tags, dest_unique, dest_def_dups, 'SPOTY_DEF_DUP', add_dup_tags)
         compare_by_tags(dest_list, source_list, tags, source_unique, source_def_dups, 'SPOTY_DEF_DUP', add_dup_tags)
 
@@ -536,7 +533,7 @@ def compare_tags_lists(source_list, dest_list, add_dup_tags=False):
 
     source_prob_dups = {}
     dest_prob_dups = {}
-    for tags in tags_to_compare_prob:
+    for tags in compare_tags_prob:
         dest_list2 = dict_to_list(dest_unique)
         compare_by_tags(source_list, dest_list2, tags, dest_unique, dest_prob_dups, 'SPOTY_PROP_DUP', add_dup_tags)
         source_list2 = dict_to_list(source_unique)
@@ -589,7 +586,7 @@ def compare_tags_lists(source_list, dest_list, add_dup_tags=False):
     return source_unique, dest_unique, source_def_dups, dest_def_dups, source_prob_dups, dest_prob_dups
 
 
-def compare_by_tags(source_list, dest_list, tags_to_compare, dest_unique, dest_dups, dup_tag, add_dup_tags=False):
+def compare_by_tags(source_list: list, dest_list: list, tags_to_compare: list, dest_unique: dict, dest_dups: dict, dup_tag: str, add_dup_tags=False):
     unique = []
     dups = []
     for dest_tags in dest_list:

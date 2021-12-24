@@ -23,8 +23,8 @@ from datetime import datetime
               help='The path on disk where to export csv files.')
 @click.option('--timestamp', '-t', is_flag=True,
               help='Create a new subfolder with the current date and time for saved csv files')
-@click.option('--duplicates-compare-tags', '--dct', show_default=True,
-              default=settings.SPOTY.DEFAULT_COMPARE_TAGS,
+@click.option('--duplicates-compare-tags', '--dct', show_default=True, multiple=True,
+              default=settings.SPOTY.COMPARE_TAGS_DEFINITELY_DUPLICATE,
               help='Compare duplicates by this tags. It is optional. You can also change the list of tags in the config file.')
 @click.option('--yes-all', '-y', is_flag=True,
               help='Confirm all questions with a positive answer automatically.')
