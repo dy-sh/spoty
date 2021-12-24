@@ -553,6 +553,16 @@ def compare_tags_lists(source_list, dest_list, add_dup_tags=False):
     source_prob_dups = dict_to_list(source_prob_dups)
     dest_prob_dups = dict_to_list(dest_prob_dups)
 
+    # remove listed twice
+
+    for dup in dest_def_dups:
+        if dup in dest_prob_dups:
+            dest_prob_dups.remove(dup)
+
+    for dup in source_def_dups:
+        if dup in source_prob_dups:
+            source_prob_dups.remove(dup)
+
     # remove temporary ids
     if not add_dup_tags:
         for tags in source_unique:

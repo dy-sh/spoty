@@ -81,17 +81,19 @@ Add another source with this command options.
     date_time_str = datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
     result_path = os.path.join(result_path, 'compare-' + date_time_str)
 
-    if len(source_unique) > 0:
-        spoty.csv_playlist.create_csvs(source_unique, os.path.join(result_path, 'source_unique'), grouping_pattern)
+    if len(dest_def_dups) > 0:
+        spoty.csv_playlist.create_csvs(dest_def_dups, os.path.join(result_path, 'dest_definitely_duplicates'),
+                                       grouping_pattern)
+    if len(dest_prob_dups) > 0:
+        spoty.csv_playlist.create_csvs(dest_prob_dups, os.path.join(result_path, 'dest_probably_duplicates'),
+                                       grouping_pattern)
     if len(dest_unique) > 0:
         spoty.csv_playlist.create_csvs(dest_unique, os.path.join(result_path, 'dest_unique'), grouping_pattern)
     if len(source_def_dups) > 0:
-        spoty.csv_playlist.create_csvs(source_def_dups, os.path.join(result_path, 'source_def_dups'), grouping_pattern)
-    if len(dest_def_dups) > 0:
-        spoty.csv_playlist.create_csvs(dest_def_dups, os.path.join(result_path, 'dest_def_dups'), grouping_pattern)
-    if len(source_prob_dups) > 0:
-        spoty.csv_playlist.create_csvs(source_prob_dups, os.path.join(result_path, 'source_prob_dups'),
+        spoty.csv_playlist.create_csvs(source_def_dups, os.path.join(result_path, 'source_definitely_duplicates'),
                                        grouping_pattern)
-    if len(dest_prob_dups) > 0:
-        spoty.csv_playlist.create_csvs(dest_prob_dups, os.path.join(result_path, 'dest_prob_dups'), grouping_pattern)
-
+    if len(source_prob_dups) > 0:
+        spoty.csv_playlist.create_csvs(source_prob_dups, os.path.join(result_path, 'source_probably_duplicates'),
+                                       grouping_pattern)
+    if len(source_unique) > 0:
+        spoty.csv_playlist.create_csvs(source_unique, os.path.join(result_path, 'source_unique'), grouping_pattern)

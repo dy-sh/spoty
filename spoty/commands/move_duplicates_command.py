@@ -38,6 +38,10 @@ from datetime import datetime
 @click.option('--grouping-pattern', '--gp', show_default=True,
               default=settings.SPOTY.DEFAULT_GROUPING_PATTERN,
               help='Tracks will be grouped to playlists according to this pattern.')
+@click.option('--move-unique', '-u', is_flag=True,
+              help='Move unique files too (to a separate folder).')
+@click.option('--move-source', '-s', is_flag=True,
+              help='Move source files too (to a separate folder).')
 @click.pass_obj
 def move_duplicates(context: SpotyContext,
                     spotify_playlist,
@@ -50,7 +54,9 @@ def move_duplicates(context: SpotyContext,
                     csv,
                     no_recursive,
                     result_path,
-                    grouping_pattern
+                    grouping_pattern,
+                    move_unique,
+                    move_source
                     ):
     """
 Compare tracks on two sources (missing tracks, duplicates) to csv files.
@@ -81,18 +87,25 @@ Add another source with this command options.
     date_time_str = datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
     result_path = os.path.join(result_path, 'move-duplicates-' + date_time_str)
 
-    move_files(source_unique, os.path.join(result_path, 'source_unique'))
-    move_files(dest_unique, os.path.join(result_path, 'dest_unique'))
-    move_files(source_def_dups, os.path.join(result_path, 'source_def_dups'))
-    move_files(dest_def_dups, os.path.join(result_path, 'dest_def_dups'))
-    move_files(source_prob_dups, os.path.join(result_path, 'source_prob_dups'))
-    move_files(dest_prob_dups, os.path.join(result_path, 'dest_prob_dups'))
+    move_files(dest_def_dups, os.path.join(result_path, 'dest_definitely_duplicates'), grouping_pattern)
+    move_files(dest_prob_dups, os.path.join(result_path, 'dest_probably_duplicates'), grouping_pattern)
+    if move_unique:
+        move_files(dest_unique, os.path.join(result_path, 'dest_unique'), grouping_pattern)
+    if move_source:
+        move_files(source_def_dups, os.path.join(result_path, 'source_definitely_duplicates'), grouping_pattern)
+        move_files(source_prob_dups, os.path.join(result_path, 'source_probably_duplicates'), grouping_pattern)
+        if move_unique:
+            move_files(source_unique, os.path.join(result_path, 'source_unique'), grouping_pattern)
 
 
-def move_files(tags_list, path):
+def move_files(tags_list, path, grouping_pattern):
     if len(tags_list) > 0:
-        os.makedirs(path, exist_ok=True)
-        for tags in tags_list:
-            file_name = tags['SPOTY_FILE_NAME']
-            new_file_name = os.path.join(path, os.path.basename(file_name) )
-            os.rename(file_name, new_file_name)
+        grouped_tags = spoty.utils.group_tags_by_pattern(tags_list, grouping_pattern)
+
+        for group, tags_l in grouped_tags.items():
+            group_path = os.path.join(path, group)
+            os.makedirs(group_path, exist_ok=True)
+            for tags in tags_list:
+                file_name = tags['SPOTY_FILE_NAME']
+                new_file_name = os.path.join(group_path, os.path.basename(file_name))
+                os.rename(file_name, new_file_name)
