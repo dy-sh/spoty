@@ -51,7 +51,7 @@ def like_add(track_ids):
 
 
 @like.command("export")
-@click.option('--path', '--p', default=settings.SPOTY.DEFAULT_LIBRARY_PATH, help='Path to create file')
+@click.option('--path', '--p', default=settings.SPOTY.DEFAULT_EXPORT_PATH, help='Path to create file')
 @click.option('--file-name','--f',  default=settings.SPOTY.DEFAULT_LIKES_EXPORT_FILE_NAME, help='File name to create')
 @click.option('--overwrite', '-o', type=bool, is_flag=True, default=False,
               help='Overwrite existing files without asking')

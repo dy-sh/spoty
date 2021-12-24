@@ -14,7 +14,7 @@ from datetime import datetime
 
 @click.command("compare")
 @click.option('--result-path', '--rp',
-              default=settings.SPOTY.DEFAULT_LIBRARY_PATH,
+              default=settings.SPOTY.DEFAULT_EXPORT_PATH,
               help='Path to create resulting csv files')
 @click.option('--grouping-pattern', '--gp', show_default=True,
               default=settings.SPOTY.DEFAULT_GROUPING_PATTERN,

@@ -19,7 +19,7 @@ from datetime import datetime
 @click.option('--overwrite', '-o', is_flag=True,
               help='Overwrite existing csv file')
 @click.option('--path', '--p', show_default=True,
-              default=settings.SPOTY.DEFAULT_LIBRARY_PATH,
+              default=settings.SPOTY.DEFAULT_EXPORT_PATH,
               help='The path on disk where to export csv files.')
 @click.option('--timestamp', '-t', is_flag=True,
               help='Create a new subfolder with the current date and time for saved csv files')

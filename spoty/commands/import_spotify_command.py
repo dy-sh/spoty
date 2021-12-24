@@ -26,7 +26,7 @@ from datetime import datetime
 @click.option('--export-result', '-r', is_flag=True,
               help='Export csv files with result (imported, not found, skipped tracks)')
 @click.option('--result-path', '--rp',
-              default=settings.SPOTY.DEFAULT_LIBRARY_PATH,
+              default=settings.SPOTY.DEFAULT_EXPORT_PATH,
               help='Path to create resulting csv files')
 @click.pass_obj
 def import_spotify(context: SpotyContext,
