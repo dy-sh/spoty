@@ -101,7 +101,7 @@ def playlist_create(name):
               help='Do not ask for confirmation')
 def playlist_delete(playlist_ids, confirm):
     r"""
-    Delete playlists by ID.
+    Delete playlists.
 
         Examples:
 
@@ -124,10 +124,7 @@ def playlist_delete(playlist_ids, confirm):
             click.echo(f'  Playlist {playlist_id} not found')
 
     if not confirm:
-        if not click.confirm(f'Are you sure you want to delete {len(playlist_ids)} playlists?', abort=True):
-            click.echo("\nCanceled")
-            return False
-        # click.echo()  # for new line
+        click.confirm(f'Are you sure you want to delete {len(playlist_ids)} playlists?', abort=True)
 
     for playlist_id in playlist_ids:
         res = spoty.spotify_api.delete_playlist(playlist_id, True)
@@ -135,6 +132,48 @@ def playlist_delete(playlist_ids, confirm):
             click.echo(f'Playlist {playlist_id} deleted')
         else:
             click.echo(f'Playlist {playlist_id} not deleted')
+
+
+@playlist.command("delete-all")
+@click.option('--filter-names', '--fn', default=None,
+              help='List only playlists whose names matches this regex filter')
+@click.option('--confirm', '-y', type=bool, is_flag=True, default=False,
+              help='Do not ask for export confirmation')
+def playlist_delete_all(filter_names, confirm):
+    r"""
+    Delete all playlists in the library.
+
+    Examples:
+
+        spoty spotify playlist delete-all
+
+        spoty spotify playlist delete-all --confirm
+    """
+
+    playlists = spoty.spotify_api.get_list_of_playlists()
+
+    if len(playlists) == 0:
+        exit()
+
+    if filter_names is not None:
+        playlists = list(filter(lambda pl: re.findall(filter_names, pl['name']), playlists))
+        click.echo(f'{len(playlists)} playlists matches the filter')
+
+    if len(playlists) == 0:
+        exit()
+
+    click.echo("Found playlists: ")
+    for playlist in playlists:
+        click.echo(f'  {playlist["id"]} "{playlist["name"]}"')
+
+    if not confirm:
+        click.confirm(f'Are you sure you want to delete {len(playlists)} playlists?', abort=True)
+
+    with click.progressbar(playlists, label='Deleting playlists') as bar:
+        for playlist in bar:
+            spoty.spotify_api.delete_playlist(playlist["id"], True)
+
+    click.echo(f'{len(playlists)} playlist deleted')
 
 
 @playlist.command("copy")
@@ -192,8 +231,8 @@ def playlist_add_tracks(playlist_id, track_ids, allow_duplicates):
 
     """
     track_ids = list(track_ids)
-    tracks_added, import_duplicates, already_exist = spoty.spotify_api.add_tracks_to_playlist(playlist_id, track_ids,
-                                                                                              allow_duplicates)
+    tracks_added, import_duplicates, already_exist \
+        = spoty.spotify_api.add_tracks_to_playlist_by_ids(playlist_id, track_ids, allow_duplicates)
     click.echo(f'{len(tracks_added)} tracks added to playlist {playlist_id}')
 
 
