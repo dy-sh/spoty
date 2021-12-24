@@ -31,7 +31,7 @@ def move_duplicates(context: SpotyContext,
                     move_source
                     ):
     """
-Compare tracks on two lists and move duplicates to new folder.
+Compare the tracks in two lists and move duplicated audio files to a new folder.
     """
 
     source_list = context.tags_lists[0]
