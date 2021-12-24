@@ -53,8 +53,11 @@ def get_tracks(
 Get tracks from sources.
     """
 
+    if ctx.obj is None:
+        ctx.obj = SpotyContext()
+
     get_tracks_wrapper(
-        ctx,
+        ctx.obj,
         spotify_playlist,
         spotify_entire_library,
         spotify_entire_library_regex,
@@ -68,7 +71,7 @@ Get tracks from sources.
 
 
 def get_tracks_wrapper(
-        ctx,
+        context:SpotyContext,
         spotify_playlist,
         spotify_entire_library,
         spotify_entire_library_regex,
@@ -206,11 +209,10 @@ def get_tracks_wrapper(
 
     # make context
 
-    if ctx.obj is None:
-        ctx.obj = SpotyContext()
 
-    ctx.obj.summary.extend(summary)
-    ctx.obj.tags_lists.append(all_tags_list)
+
+    context.summary.extend(summary)
+    context.tags_lists.append(all_tags_list)
 
 
 
