@@ -66,7 +66,7 @@ def create_csvs(tags_list, path, grouping_pattern, overwrite=False, append=False
                     csv_file_name = spoty.utils.find_empty_file_name(csv_file_name)
 
             if not allow_duplicates:
-                tags_l, import_duplicates = spoty.utils.remove_tags_duplicates(tags_l, compare_duplicates_tags, True)
+                tags_l, import_duplicates = spoty.utils.remove_tags_duplicates(tags_l, compare_duplicates_tags, False)
                 all_import_duplicates.extend(import_duplicates)
                 if len(import_duplicates) > 0:
                     log.debug(f'{len(import_duplicates)} duplicates found when adding tracks. It will be skipped.')

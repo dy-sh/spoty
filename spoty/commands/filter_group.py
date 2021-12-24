@@ -79,18 +79,25 @@ def filter_tracks_wrapper(context: SpotyContext,
             tags_list = new_tags_list
 
         if remove_duplicates:
-            tags = duplicates_compare_tags.split(',')
-            new_tags_list, dup = spoty.utils.remove_tags_duplicates(tags_list, tags, True)
-            if len(dup) > 0:
-                summary.append(f'  {len(dup)}/{len(tags_list)} tracks removed (duplicates)')
-            tags_list = new_tags_list
+            compare_tags_list = spoty.utils.tuple_to_list(duplicates_compare_tags)
+            for compare_tags_str in compare_tags_list:
+                compare_tags = compare_tags_str.split(',')
+                new_tags_list, dup = spoty.utils.remove_tags_duplicates(tags_list, compare_tags, False)
+                if len(dup) > 0:
+                    summary.append(f'  {len(dup)}/{len(tags_list)} tracks removed (duplicates by tags: {compare_tags_str})')
+                tags_list = new_tags_list
 
         if leave_duplicates:
-            compare_tags = duplicates_compare_tags.split(',')
-            new_tags_list, dup = spoty.utils.remove_tags_duplicates(tags_list, compare_tags, True)
-            if len(new_tags_list) > 0:
-                summary.append(f'   {len(new_tags_list)}/{len(tags_list)} tracks removed (left only duplicates)')
-            tags_list = dup
+            compare_tags_list = spoty.utils.tuple_to_list(duplicates_compare_tags)
+            all_dup=[]
+            for compare_tags_str in compare_tags_list:
+                compare_tags = compare_tags_str.split(',')
+                new_tags_list, dup = spoty.utils.remove_tags_duplicates(tags_list, compare_tags, False)
+                if len(dup) > 0:
+                    summary.append(f'   {len(dup)}/{len(tags_list)} tracks left (duplicates by tags: {compare_tags_str})')
+                tags_list = new_tags_list
+                all_dup.extend(dup)
+            tags_list=all_dup
 
         if len(summary) > 1:
             context.summary.extend(summary)
