@@ -111,8 +111,10 @@ Add another source with this command options.
     source_prob_dups = {}
     dest_prob_dups = {}
     for tags in tags_to_compare_prob:
-        compare_by_tags(source_list, dest_list, tags, dest_unique, dest_prob_dups, 'SPOTY_PROP_DUP')
-        compare_by_tags(dest_list, source_list, tags, source_unique, source_prob_dups, 'SPOTY_PROP_DUP')
+        dest_list2=spoty.utils.dict_to_list(dest_unique)
+        compare_by_tags(source_list, dest_list2, tags, dest_unique, dest_prob_dups, 'SPOTY_PROP_DUP')
+        source_list2 = spoty.utils.dict_to_list(source_unique)
+        compare_by_tags(dest_list, source_list2, tags, source_unique, source_prob_dups, 'SPOTY_PROP_DUP')
 
     # export result to  csv files
     result_path = os.path.abspath(result_path)
@@ -139,6 +141,8 @@ Add another source with this command options.
                                        grouping_pattern)
     if len(dest_prob_dups) > 0:
         spoty.csv_playlist.create_csvs(dest_prob_dups, os.path.join(result_path, 'dest_prob_dups'), grouping_pattern)
+
+
 
 
 def compare_by_tags(source_list, dest_list, tags_to_compare, dest_unique, dest_dups, dup_tag):
