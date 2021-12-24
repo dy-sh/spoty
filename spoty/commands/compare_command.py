@@ -91,13 +91,11 @@ Add another source with this command options.
     for i, tags in enumerate(source_list):
         id = str(i)
         source_list[i]['SPOTY_DUP_ID'] = id
-        source_list[i]['SPOTY_DUP'] = ""
         source_unique[id] = source_list[i]
 
     for i, tags in enumerate(dest_list):
         id = str(i)
         dest_list[i]['SPOTY_DUP_ID'] = id
-        dest_list[i]['SPOTY_DUP'] = ""
         dest_unique[id] = dest_list[i]
 
     # find definitely duplicates
@@ -105,16 +103,16 @@ Add another source with this command options.
     source_def_dups = {}
     dest_def_dups = {}
     for tags in tags_to_compare_def:
-        compare_by_tags(source_list, dest_list, tags, dest_unique, dest_def_dups)
-        compare_by_tags(dest_list, source_list, tags, source_unique, source_def_dups)
+        compare_by_tags(source_list, dest_list, tags, dest_unique, dest_def_dups, 'SPOTY_DEF_DUP')
+        compare_by_tags(dest_list, source_list, tags, source_unique, source_def_dups, 'SPOTY_DEF_DUP')
 
     # find probably duplicates
 
     source_prob_dups = {}
     dest_prob_dups = {}
     for tags in tags_to_compare_prob:
-        compare_by_tags(source_list, dest_list, tags, dest_unique, dest_prob_dups)
-        compare_by_tags(dest_list, source_list, tags, source_unique, source_prob_dups)
+        compare_by_tags(source_list, dest_list, tags, dest_unique, dest_prob_dups, 'SPOTY_PROP_DUP')
+        compare_by_tags(dest_list, source_list, tags, source_unique, source_prob_dups, 'SPOTY_PROP_DUP')
 
     # export result to  csv files
     result_path = os.path.abspath(result_path)
@@ -143,7 +141,7 @@ Add another source with this command options.
         spoty.csv_playlist.create_csvs(dest_prob_dups, os.path.join(result_path, 'dest_prob_dups'), grouping_pattern)
 
 
-def compare_by_tags(source_list, dest_list, tags_to_compare, dest_unique, dest_dups):
+def compare_by_tags(source_list, dest_list, tags_to_compare, dest_unique, dest_dups, dup_tag):
     unique = []
     dups = []
     for dest_tags in dest_list:
@@ -151,7 +149,9 @@ def compare_by_tags(source_list, dest_list, tags_to_compare, dest_unique, dest_d
         for source_tags in source_list:
             if spoty.utils.compare_tags(source_tags, dest_tags, tags_to_compare, False):
                 found = True
-                dest_tags['SPOTY_DUP'] += f'{source_tags["SPOTY_DUP_ID"]} : {",".join(tags_to_compare)}\n'
+                if dup_tag not in dest_tags:
+                    dest_tags[dup_tag] = ""
+                dest_tags[dup_tag] += f'{source_tags["SPOTY_DUP_ID"]} : {",".join(tags_to_compare)}\n'
         if found:
             dups.append(dest_tags)
         else:

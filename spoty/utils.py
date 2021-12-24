@@ -19,7 +19,8 @@ tag_allies = [
 spoty_tags = \
     [
         'SPOTY_DUP_ID',
-        'SPOTY_DUP',
+        'SPOTY_DEF_DUP',
+        'SPOTY_PROP_DUP',
         'SPOTY_DUPLICATE_GROUP',
         'SPOTY_SOURCE',
         'SPOTY_PLAYLIST_NAME',
