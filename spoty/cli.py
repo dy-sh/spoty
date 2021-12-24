@@ -60,9 +60,8 @@ spotify.add_command(spotify_track_commands.track)
 if __name__ == '__main__':
     # cli()
     cli([
-        # 'plug'
         # 'deezer','playlist','list'
-        # 'get',
+        'get',
          # '--sr','me','^BEST',
          # '--dr','me','^BEST',
          # '--d','me',
@@ -71,15 +70,12 @@ if __name__ == '__main__':
          # '--dp', '2507191384',
          # '--sp', 'https://open.spotify.com/playlist/57VYcWAMIc97Ig41vPpev6',
          # '--a', r'.\music',
-         # '--a', r'.\music\TEST1',
-         # '--a', r'.\music\Pop Nutral\24KGoldn - Mood.flac',
-         # '--a', '.\music\Techno Nutral',
+         '--a', r'.\music\TEST1',
          # '--c', '.\MUSIC LIBRARY',
-         # '--c', '.\PLAYLISTS\Pop Nutral.csv',
          # 'filter', '--leave-duplicates',
          # '--lnt', 'isrc',
          # 'import-spotify',
-         # 'compare','--a', r'.\music\TEST2',
+         'compare','--a', r'.\music\TEST2',
         # '-yr',
          # '--gp','pl',
          # 'print',

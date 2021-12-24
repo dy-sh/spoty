@@ -35,6 +35,9 @@ from datetime import datetime
 @click.option('--result-path', '--rp',
               default=settings.SPOTY.DEFAULT_LIBRARY_PATH,
               help='Path to create resulting csv files')
+@click.option('--grouping-pattern', '--gp', show_default=True,
+              default=settings.SPOTY.DEFAULT_GROUPING_PATTERN,
+              help='Tracks will be grouped to playlists according to this pattern.')
 @click.pass_obj
 def compare(context: SpotyContext,
             spotify_playlist,
@@ -46,7 +49,8 @@ def compare(context: SpotyContext,
             audio,
             csv,
             no_recursive,
-            result_path
+            result_path,
+            grouping_pattern
             ):
     """
 Compare tracks on two sources (missing tracks, duplicates) to csv files.
@@ -66,8 +70,10 @@ Add another source with this command options.
                                  no_recursive,
                                  )
 
-    tags_list1 = context.tags_list
-    tags_list2 = context2.obj.tags_list
+    source_list = context.tags_list
+    dest_list = context2.obj.tags_list
+
+    # get tags to compare from config
 
     tags_to_compare_def = settings.SPOTY.COMPARE_TAGS_DEFINITELY_DUPLICATE
     tags_to_compare_prob = settings.SPOTY.COMPARE_TAGS_PROBABLY_DUPLICATE
@@ -78,42 +84,82 @@ Add another source with this command options.
     for i, tags in enumerate(tags_to_compare_prob):
         tags_to_compare_prob[i] = tags.split(',')
 
-    all_tags_list1_def_dup = []
-    all_tags_list2_def_dup = []
+    # add temporary ids
+
+    source_unique = {}
+    dest_unique = {}
+    for i, tags in enumerate(source_list):
+        id = str(i)
+        source_list[i]['SPOTY_DUP_ID'] = id
+        source_list[i]['SPOTY_DUP'] = ""
+        source_unique[id] = source_list[i]
+
+    for i, tags in enumerate(dest_list):
+        id = str(i)
+        dest_list[i]['SPOTY_DUP_ID'] = id
+        dest_list[i]['SPOTY_DUP'] = ""
+        dest_unique[id] = dest_list[i]
+
+    # find definitely duplicates
+
+    source_def_dups = {}
+    dest_def_dups = {}
     for tags in tags_to_compare_def:
-        tags_list1, dup = spoty.utils.remove_tags_duplicates(tags_list1, tags, False)
-        all_tags_list1_def_dup.extend(dup)
-        tags_list2, dup = spoty.utils.remove_tags_duplicates(tags_list2, tags, False)
-        all_tags_list2_def_dup.extend(dup)
+        compare_by_tags(source_list, dest_list, tags, dest_unique, dest_def_dups)
+        compare_by_tags(dest_list, source_list, tags, source_unique, source_def_dups)
 
-    all_new1 = {}
-    all_new2 = {}
-    for i, tags in enumerate(tags_list1):
-        tags_list1[i]['SPOTY_TEMP_ID'] = i
-        all_new1[i] = tags_list1[i]
+    # find probably duplicates
 
-    for i, tags in enumerate(tags_list2):
-        tags_list2[i]['SPOTY_TEMP_ID'] = i
-        all_new2[i] = tags_list2[i]
+    source_prob_dups = {}
+    dest_prob_dups = {}
+    for tags in tags_to_compare_prob:
+        compare_by_tags(source_list, dest_list, tags, dest_unique, dest_prob_dups)
+        compare_by_tags(dest_list, source_list, tags, source_unique, source_prob_dups)
+
+    # export result to  csv files
+    result_path = os.path.abspath(result_path)
+    date_time_str = datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
+    result_path = os.path.join(result_path, 'compare-' + date_time_str)
+
+    source_unique = spoty.utils.dict_to_list(source_unique)
+    dest_unique = spoty.utils.dict_to_list(dest_unique)
+    source_def_dups = spoty.utils.dict_to_list(source_def_dups)
+    dest_def_dups = spoty.utils.dict_to_list(dest_def_dups)
+    source_prob_dups = spoty.utils.dict_to_list(source_prob_dups)
+    dest_prob_dups = spoty.utils.dict_to_list(dest_prob_dups)
+
+    if len(source_unique) > 0:
+        spoty.csv_playlist.create_csvs(source_unique, os.path.join(result_path, 'source_unique'), grouping_pattern)
+    if len(dest_unique) > 0:
+        spoty.csv_playlist.create_csvs(dest_unique, os.path.join(result_path, 'dest_unique'), grouping_pattern)
+    if len(source_def_dups) > 0:
+        spoty.csv_playlist.create_csvs(source_def_dups, os.path.join(result_path, 'source_def_dups'), grouping_pattern)
+    if len(dest_def_dups) > 0:
+        spoty.csv_playlist.create_csvs(dest_def_dups, os.path.join(result_path, 'dest_def_dups'), grouping_pattern)
+    if len(source_prob_dups) > 0:
+        spoty.csv_playlist.create_csvs(source_prob_dups, os.path.join(result_path, 'source_prob_dups'),
+                                       grouping_pattern)
+    if len(dest_prob_dups) > 0:
+        spoty.csv_playlist.create_csvs(dest_prob_dups, os.path.join(result_path, 'dest_prob_dups'), grouping_pattern)
 
 
-    all_exist1 = {}
-    all_exist2 = {}
-    for tags in tags_to_compare_def:
-        compare_by_tags(tags_list1, tags_list2, tags, all_new2, all_exist2)
-        compare_by_tags(tags_list2, tags_list1, tags, all_new1, all_exist1)
+def compare_by_tags(source_list, dest_list, tags_to_compare, dest_unique, dest_dups):
+    unique = []
+    dups = []
+    for dest_tags in dest_list:
+        found = False
+        for source_tags in source_list:
+            if spoty.utils.compare_tags(source_tags, dest_tags, tags_to_compare, False):
+                found = True
+                dest_tags['SPOTY_DUP'] += f'{source_tags["SPOTY_DUP_ID"]} : {",".join(tags_to_compare)}\n'
+        if found:
+            dups.append(dest_tags)
+        else:
+            unique.append(dest_tags)
 
-    print()
-
-def compare_by_tags(tags_list1,tags_list2, tags, all_new2, all_exist2 ):
-    new, exist = spoty.utils.remove_exist_tags(tags_list1, tags_list2, tags, False)
-    for item in exist:
-        if not 'SPOTY_TEMP_DUPLICATE_BY_TAGS' in item:
-            item['SPOTY_TEMP_DUPLICATE_BY_TAGS'] = []
-
-        item['SPOTY_TEMP_DUPLICATE_BY_TAGS'].append(tags)
-
-        id = item['SPOTY_TEMP_ID']
-        if id in all_new2:
-            all_exist2[id] = item
-            del all_new2[id]
+    # move duplicates from unique to dups
+    for item in dups:
+        id = item['SPOTY_DUP_ID']
+        if id in dest_unique:
+            dest_dups[id] = item
+            del dest_unique[id]

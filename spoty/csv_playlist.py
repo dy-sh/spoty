@@ -197,7 +197,7 @@ def read_tags_from_csv(csv_file_name, add_spoty_tags=True):
                     playlist_name = playlist_name[:-4]
                 tags['SPOTY_SOURCE'] = 'CSV'
                 tags['SPOTY_PLAYLIST_NAME'] = playlist_name
-                tags['SPOTY_PLAYLIST_INDEX'] = i
+                tags['SPOTY_PLAYLIST_INDEX'] = str(i)
 
             tags = spoty.utils.clean_tags_after_read(tags)
 

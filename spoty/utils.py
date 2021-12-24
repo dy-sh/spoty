@@ -18,6 +18,8 @@ tag_allies = [
 
 spoty_tags = \
     [
+        'SPOTY_DUP_ID',
+        'SPOTY_DUP',
         'SPOTY_DUPLICATE_GROUP',
         'SPOTY_SOURCE',
         'SPOTY_PLAYLIST_NAME',
@@ -93,6 +95,12 @@ additional_tags = \
 def tuple_to_list(some_tuple: tuple):
     l = []
     l.extend(some_tuple)
+    return l
+
+def dict_to_list(some_dics: dict):
+    l = []
+    for key,value in some_dics.items():
+        l.append(value)
     return l
 
 
@@ -317,7 +325,7 @@ def add_playlist_index_from_playlist_names(tags_list: list):
     groups = group_tags_by_pattern(tags_list, "%SPOTY_PLAYLIST_NAME%")
     for group, g_tags_list in groups.items():
         for i, tags in enumerate(g_tags_list):
-            tags['SPOTY_PLAYLIST_INDEX'] = i + 1
+            tags['SPOTY_PLAYLIST_INDEX'] = str(i + 1)
             res.append(tags)
     return res
 

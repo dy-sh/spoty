@@ -365,7 +365,7 @@ def add_extra_tags_to_tracks(tracks: list, new_tracks: list, playlist_id: str, p
     counter = len(tracks)
     for track in new_tracks:
         track['track']['SPOTY_PLAYLIST_ID'] = playlist_id
-        track['track']['SPOTY_PLAYLIST_INDEX'] = counter + 1
+        track['track']['SPOTY_PLAYLIST_INDEX'] = str(counter + 1)
         track['track']['SPOTY_SOURCE'] = 'SPOTIFY'
         if playlist_name is not None:
             track['track']['SPOTY_PLAYLIST_NAME'] = playlist_name
