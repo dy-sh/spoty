@@ -44,69 +44,69 @@ def import_deezer(context: SpotyContext,
 Import track list to Deezer Library
     """
 
-    tags_list = context.tags_list
+    for tags_list in context.tags_lists:
 
-    if append and overwrite:
-        click.echo(f'Simultaneous use of "--append" and "--overwrite" is not possible',
-                   err=True)
-        exit()
-
-    click.echo('Next playlists will be imported to Deezer library:')
-    grouped_tags = spoty.utils.group_tags_by_pattern(tags_list, grouping_pattern)
-    for group_name, g_tags_list in grouped_tags.items():
-        click.echo("  " + group_name)
-    click.echo(f'Total {len(tags_list)} tracks in {len(grouped_tags)} playlists.')
-
-    if not yes_all:
-        if click.confirm(f'Do you want to continue?'):
-            click.echo("")  # for new line
-        else:
-            click.echo("\nCanceled.")
+        if append and overwrite:
+            click.echo(f'Simultaneous use of "--append" and "--overwrite" is not possible',
+                       err=True)
             exit()
 
-    found_tags_list, not_found_tags_list = spoty.deezer_api.find_missing_track_ids(tags_list)
+        click.echo('Next playlists will be imported to Deezer library:')
+        grouped_tags = spoty.utils.group_tags_by_pattern(tags_list, grouping_pattern)
+        for group_name, g_tags_list in grouped_tags.items():
+            click.echo("  " + group_name)
+        click.echo(f'Total {len(tags_list)} tracks in {len(grouped_tags)} playlists.')
 
-    playlist_ids, imported_tags_list, source_duplicates_tags_list, already_exist_tags_list = \
-        spoty.deezer_api.import_playlists_from_tags_list(
-            found_tags_list, grouping_pattern, overwrite, append, duplicates, yes_all)
+        if not yes_all:
+            if click.confirm(f'Do you want to continue?'):
+                click.echo("")  # for new line
+            else:
+                click.echo("\nCanceled.")
+                exit()
 
-    # create result csv playlists
+        found_tags_list, not_found_tags_list = spoty.deezer_api.find_missing_track_ids(tags_list)
 
-    if export_result:
-        result_path = os.path.abspath(result_path)
-        date_time_str = datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
-        result_path = os.path.join(result_path, 'import-deezer-' + date_time_str)
+        playlist_ids, imported_tags_list, source_duplicates_tags_list, already_exist_tags_list = \
+            spoty.deezer_api.import_playlists_from_tags_list(
+                found_tags_list, grouping_pattern, overwrite, append, duplicates, yes_all)
 
-        if len(imported_tags_list) > 0:
-            path = os.path.join(result_path, 'imported')
-            spoty.csv_playlist.create_csvs(imported_tags_list, path, grouping_pattern)
+        # create result csv playlists
+
+        if export_result:
+            result_path = os.path.abspath(result_path)
+            date_time_str = datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
+            result_path = os.path.join(result_path, 'import-deezer-' + date_time_str)
+
+            if len(imported_tags_list) > 0:
+                path = os.path.join(result_path, 'imported')
+                spoty.csv_playlist.create_csvs(imported_tags_list, path, grouping_pattern)
+            if len(source_duplicates_tags_list) > 0:
+                path = os.path.join(result_path, 'skipped_source_duplicates')
+                spoty.csv_playlist.create_csvs(source_duplicates_tags_list, path, grouping_pattern)
+            if len(already_exist_tags_list) > 0:
+                path = os.path.join(result_path, 'skipped_already_exist')
+                spoty.csv_playlist.create_csvs(already_exist_tags_list, path, grouping_pattern)
+            if len(not_found_tags_list) > 0:
+                path = os.path.join(result_path, 'not_found')
+                spoty.csv_playlist.create_csvs(not_found_tags_list, path, grouping_pattern)
+
+        # print summery
+
+        context.summary.append("Importing to Deezer:")
         if len(source_duplicates_tags_list) > 0:
-            path = os.path.join(result_path, 'skipped_source_duplicates')
-            spoty.csv_playlist.create_csvs(source_duplicates_tags_list, path, grouping_pattern)
+            context.summary.append(f'  {len(source_duplicates_tags_list)} duplicates in collected tracks skipped.')
         if len(already_exist_tags_list) > 0:
-            path = os.path.join(result_path, 'skipped_already_exist')
-            spoty.csv_playlist.create_csvs(already_exist_tags_list, path, grouping_pattern)
+            context.summary.append(f'  {len(already_exist_tags_list)} tracks already exist in Deezer playlists and skipped.')
         if len(not_found_tags_list) > 0:
-            path = os.path.join(result_path, 'not_found')
-            spoty.csv_playlist.create_csvs(not_found_tags_list, path, grouping_pattern)
+            context.summary.append(f'  {len(not_found_tags_list)} tracks not found by tags.')
 
-    # print summery
-
-    context.summary.append("Importing to Deezer:")
-    if len(source_duplicates_tags_list) > 0:
-        context.summary.append(f'  {len(source_duplicates_tags_list)} duplicates in collected tracks skipped.')
-    if len(already_exist_tags_list) > 0:
-        context.summary.append(f'  {len(already_exist_tags_list)} tracks already exist in Deezer playlists and skipped.')
-    if len(not_found_tags_list) > 0:
-        context.summary.append(f'  {len(not_found_tags_list)} tracks not found by tags.')
-
-    if len(imported_tags_list) == 0:
-        context.summary.append(f'  No tracks to import.')
-    else:
-        if len(playlist_ids) == 1:
-            context.summary.append(f'  {len(imported_tags_list)} tracks imported in Deezer playlist.')
+        if len(imported_tags_list) == 0:
+            context.summary.append(f'  No tracks to import.')
         else:
-            context.summary.append(f'  {len(imported_tags_list)} tracks imported in {len(playlist_ids)} Deezer playlists.')
+            if len(playlist_ids) == 1:
+                context.summary.append(f'  {len(imported_tags_list)} tracks imported in Deezer playlist.')
+            else:
+                context.summary.append(f'  {len(imported_tags_list)} tracks imported in {len(playlist_ids)} Deezer playlists.')
 
     click.echo('\n------------------------------------------------------------')
     click.echo('\n'.join(context.summary))

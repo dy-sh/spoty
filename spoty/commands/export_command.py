@@ -43,41 +43,41 @@ def export_tracks(context: SpotyContext,
 Export a list of tracks to csv files (playlists) on disk.
     """
 
-    tags_list = context.tags_list
+    for tags_list in context.tags_lists:
 
-    if append and overwrite:
-        click.echo(f'Simultaneous use of "--append" and "--overwrite" is not possible',
-                   err=True)
-        exit()
+        if append and overwrite:
+            click.echo(f'Simultaneous use of "--append" and "--overwrite" is not possible',
+                       err=True)
+            exit()
 
-    path = os.path.abspath(path)
+        path = os.path.abspath(path)
 
-    if timestamp:
-        now = datetime.now()
-        date_time_str = now.strftime("%Y_%m_%d-%H_%M_%S")
-        path = os.path.join(path, date_time_str)
+        if timestamp:
+            now = datetime.now()
+            date_time_str = now.strftime("%Y_%m_%d-%H_%M_%S")
+            path = os.path.join(path, date_time_str)
 
-    compare_tags = duplicates_compare_tags.split(',')
+        compare_tags = duplicates_compare_tags.split(',')
 
-    file_names, names, added_tracks, import_duplicates, already_exist \
-        = spoty.csv_playlist.create_csvs(tags_list, path, grouping_pattern, overwrite, append, duplicates, yes_all,
-                                         compare_tags)
+        file_names, names, added_tracks, import_duplicates, already_exist \
+            = spoty.csv_playlist.create_csvs(tags_list, path, grouping_pattern, overwrite, append, duplicates, yes_all,
+                                             compare_tags)
 
-    # print summery
+        # print summery
 
-    context.summary.append("Exporting:")
-    if len(import_duplicates) > 0:
-        context.summary.append(f'  {len(import_duplicates)} duplicates in collected tracks skipped.')
-    if len(already_exist) > 0:
-        context.summary.append(f'  {len(already_exist)} tracks already exist in csv files and skipped.')
+        context.summary.append("Exporting:")
+        if len(import_duplicates) > 0:
+            context.summary.append(f'  {len(import_duplicates)} duplicates in collected tracks skipped.')
+        if len(already_exist) > 0:
+            context.summary.append(f'  {len(already_exist)} tracks already exist in csv files and skipped.')
 
-    if len(added_tracks) == 0:
-        context.summary.append(f'  No tracks to export.')
-    else:
-        if len(file_names) == 1:
-            context.summary.append(f'  {len(added_tracks)} tracks written to csv file (path: "{path}").')
+        if len(added_tracks) == 0:
+            context.summary.append(f'  No tracks to export.')
         else:
-            context.summary.append(f'  {len(added_tracks)} tracks written to {len(file_names)} csv files (path: "{path}").')
+            if len(file_names) == 1:
+                context.summary.append(f'  {len(added_tracks)} tracks written to csv file (path: "{path}").')
+            else:
+                context.summary.append(f'  {len(added_tracks)} tracks written to {len(file_names)} csv files (path: "{path}").')
 
 
 

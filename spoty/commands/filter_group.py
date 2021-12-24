@@ -3,8 +3,7 @@ from spoty.commands import print_command
 from spoty.commands import export_command
 from spoty.commands import import_spotify_command
 from spoty.commands import import_deezer_command
-from spoty.commands import compare_command
-from spoty.commands import move_duplicates_command
+from spoty.commands import get_second_group
 from spoty.utils import SpotyContext
 from spoty import settings
 from spoty import log
@@ -39,7 +38,25 @@ def filter_tracks(context: SpotyContext,
 Filter tracks.
     """
 
-    tags_list = context.tags_list
+    filter_tracks_wrapper(context,
+                  # playlist_names,
+                  leave_have_tags,
+                  leave_no_tags,
+                  remove_duplicates,
+                  leave_duplicates,
+                  duplicates_compare_tags)
+
+
+def filter_tracks_wrapper(context: SpotyContext,
+                  # playlist_names,
+                  leave_have_tags,
+                  leave_no_tags,
+                  remove_duplicates,
+                  leave_duplicates,
+                  duplicates_compare_tags
+                  ):
+
+    tags_list = context.tags_lists[-1] # get last tags list
 
     if len(tags_list) > 0:
         summary = []
@@ -78,7 +95,7 @@ Filter tracks.
         if len(summary) > 1:
             context.summary.extend(summary)
 
-    context.tags_list = tags_list
+    context.tags_lists[-1] = tags_list
 
 
 filter_tracks.add_command(count_command.count_tracks)
@@ -86,5 +103,4 @@ filter_tracks.add_command(print_command.print_tracks)
 filter_tracks.add_command(export_command.export_tracks)
 filter_tracks.add_command(import_spotify_command.import_spotify)
 filter_tracks.add_command(import_deezer_command.import_deezer)
-filter_tracks.add_command(compare_command.compare)
-filter_tracks.add_command(move_duplicates_command.move_duplicates)
+filter_tracks.add_command(get_second_group.get_second)

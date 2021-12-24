@@ -17,13 +17,19 @@ def count_tracks(context: SpotyContext,
 Print a number of tracks to console.
     """
 
-    tags_list = context.tags_list
+    for i, tags_list in enumerate(context.tags_lists):
+        grouped_tags = spoty.utils.group_tags_by_pattern(tags_list, grouping_pattern)
 
+        if len(context.tags_lists) == 1:
+            if len(grouped_tags) == 0:
+                context.summary.append(f'Total {len(tags_list)} tracks.')
+            else:
+                context.summary.append(f'Total {len(tags_list)} tracks grouped into {len(grouped_tags)} playlists.')
+        else:
+            if len(grouped_tags) == 0:
+                context.summary.append(f'List {i+1}: Total {len(tags_list)} tracks.')
+            else:
+                context.summary.append(f'List {i+1}: Total {len(tags_list)} tracks grouped into {len(grouped_tags)} playlists.')
 
-    grouped_tags = spoty.utils.group_tags_by_pattern(tags_list, grouping_pattern)
-    if len(grouped_tags) == 0:
-        context.summary.append(f'Total {len(tags_list)} tracks.')
-    else:
-        context.summary.append(f'Total {len(tags_list)} tracks grouped into {len(grouped_tags)} playlists.')
     click.echo('\n------------------------------------------------------------')
     click.echo('\n'.join(context.summary))

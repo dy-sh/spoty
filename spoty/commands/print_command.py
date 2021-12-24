@@ -21,15 +21,29 @@ def print_tracks(context: SpotyContext,
 Print a list of tracks to console.
     """
 
-    tags_list = context.tags_list
+    for i, tags_list in enumerate(context.tags_lists):
+        if len(context.tags_lists) > 1:
+            click.echo()
+            click.echo(
+                f'============================= LIST {i+1}/{len(context.tags_lists)} =============================')
+            click.echo()
 
+        spoty.utils.print_tags_list(tags_list, print_pattern, grouping_pattern)
 
-    spoty.utils.print_tags_list(tags_list, print_pattern, grouping_pattern)
+        grouped_tags = spoty.utils.group_tags_by_pattern(tags_list, grouping_pattern)
 
-    grouped_tags = spoty.utils.group_tags_by_pattern(tags_list, grouping_pattern)
-    if len(grouped_tags) == 0:
-        context.summary.append(f'Total {len(tags_list)} tracks listed.')
-    else:
-        context.summary.append(f'Total {len(tags_list)} tracks listed (grouped into {len(grouped_tags)} playlists).')
+        if len(context.tags_lists) == 1:
+            if len(grouped_tags) == 0:
+                context.summary.append(f'Total {len(tags_list)} tracks listed.')
+            else:
+                context.summary.append(
+                    f'Total {len(tags_list)} tracks listed (grouped into {len(grouped_tags)} playlists).')
+        else:
+            if len(grouped_tags) == 0:
+                context.summary.append(f'List {i+1}: Total {len(tags_list)} tracks listed.')
+            else:
+                context.summary.append(
+                    f'List {i+1}: Total {len(tags_list)} tracks listed (grouped into {len(grouped_tags)} playlists).')
+
     click.echo('\n------------------------------------------------------------')
     click.echo('\n'.join(context.summary))

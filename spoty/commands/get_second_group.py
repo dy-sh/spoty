@@ -1,15 +1,14 @@
-from spoty import settings
-from spoty import log
-import spoty.deezer_api
-import spoty.csv_playlist
-import spoty.deezer_api
-import spoty.spotify_api
-import spoty.utils
+from spoty.commands import count_command
+from spoty.commands import print_command
+from spoty.commands import export_command
+from spoty.commands import import_spotify_command
+from spoty.commands import import_deezer_command
+from spoty.commands import filter_second_group
+from spoty.commands import compare_command
+from spoty.commands import move_duplicates_command
 from spoty.commands import get_group
 from spoty.utils import SpotyContext
 import click
-import os
-from datetime import datetime
 
 
 @click.command("compare")
@@ -31,14 +30,8 @@ from datetime import datetime
               help='Get tracks from csv playlists located at the specified local path. You can specify the scv file name as well.')
 @click.option('--no-recursive', '-r', is_flag=True,
               help='Do not search in subdirectories from the specified path.')
-@click.option('--result-path', '--rp',
-              default=settings.SPOTY.DEFAULT_LIBRARY_PATH,
-              help='Path to create resulting csv files')
-@click.option('--grouping-pattern', '--gp', show_default=True,
-              default=settings.SPOTY.DEFAULT_GROUPING_PATTERN,
-              help='Tracks will be grouped to playlists according to this pattern.')
 @click.pass_obj
-def compare(context: SpotyContext,
+def get_second(context: SpotyContext,
             spotify_playlist,
             spotify_entire_library,
             spotify_entire_library_regex,
@@ -47,17 +40,13 @@ def compare(context: SpotyContext,
             deezer_entire_library_regex,
             audio,
             csv,
-            no_recursive,
-            result_path,
-            grouping_pattern
+            no_recursive
             ):
     """
-Compare tracks on two sources (missing tracks, duplicates) to csv files.
-Add another source with this command options.
+Take another list of tracks that you can use to compare against the first list.
     """
 
-    context2 = FakeContext()
-    get_group.get_tracks_wrapper(context2,
+    get_group.get_tracks_wrapper(context,
                                  spotify_playlist,
                                  spotify_entire_library,
                                  spotify_entire_library_regex,
@@ -69,30 +58,13 @@ Add another source with this command options.
                                  no_recursive,
                                  )
 
-    source_list = context.tags_list
-    dest_list = context2.obj.tags_list
 
-    source_unique, dest_unique, source_def_dups, dest_def_dups, source_prob_dups, dest_prob_dups = \
-        spoty.utils.compare_tags_lists(source_list, dest_list, True)
+get_second.add_command(filter_second_group.filter_second)
 
-    # export result to  csv files
-    result_path = os.path.abspath(result_path)
-    date_time_str = datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
-    result_path = os.path.join(result_path, 'compare-' + date_time_str)
-
-    if len(dest_def_dups) > 0:
-        spoty.csv_playlist.create_csvs(dest_def_dups, os.path.join(result_path, 'dest_definitely_duplicates'),
-                                       grouping_pattern)
-    if len(dest_prob_dups) > 0:
-        spoty.csv_playlist.create_csvs(dest_prob_dups, os.path.join(result_path, 'dest_probably_duplicates'),
-                                       grouping_pattern)
-    if len(dest_unique) > 0:
-        spoty.csv_playlist.create_csvs(dest_unique, os.path.join(result_path, 'dest_unique'), grouping_pattern)
-    if len(source_def_dups) > 0:
-        spoty.csv_playlist.create_csvs(source_def_dups, os.path.join(result_path, 'source_definitely_duplicates'),
-                                       grouping_pattern)
-    if len(source_prob_dups) > 0:
-        spoty.csv_playlist.create_csvs(source_prob_dups, os.path.join(result_path, 'source_probably_duplicates'),
-                                       grouping_pattern)
-    if len(source_unique) > 0:
-        spoty.csv_playlist.create_csvs(source_unique, os.path.join(result_path, 'source_unique'), grouping_pattern)
+get_second.add_command(count_command.count_tracks)
+get_second.add_command(print_command.print_tracks)
+get_second.add_command(export_command.export_tracks)
+get_second.add_command(import_spotify_command.import_spotify)
+get_second.add_command(import_deezer_command.import_deezer)
+get_second.add_command(compare_command.compare)
+get_second.add_command(move_duplicates_command.move_duplicates)

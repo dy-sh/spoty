@@ -3,12 +3,8 @@ from spoty import settings
 
 
 class SpotyContext:
-    tags_list: list = []
+    tags_lists: list = []
     summary: list = []
-
-
-class FakeContext:
-    obj: None
 
 
 tag_allies = [

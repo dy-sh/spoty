@@ -4,8 +4,7 @@ from spoty.commands import export_command
 from spoty.commands import import_spotify_command
 from spoty.commands import import_deezer_command
 from spoty.commands import filter_group
-from spoty.commands import compare_command
-from spoty.commands import move_duplicates_command
+from spoty.commands import get_second_group
 from spoty.utils import SpotyContext
 from spoty import settings
 from spoty import log
@@ -53,6 +52,7 @@ def get_tracks(
     """
 Get tracks from sources.
     """
+
     get_tracks_wrapper(
         ctx,
         spotify_playlist,
@@ -206,11 +206,13 @@ def get_tracks_wrapper(
 
     # make context
 
-    context = SpotyContext()
-    context.summary = summary
-    context.tags_list = all_tags_list
+    if ctx.obj is None:
+        ctx.obj = SpotyContext()
 
-    ctx.obj = context
+    ctx.obj.summary.extend(summary)
+    ctx.obj.tags_lists.append(all_tags_list)
+
+
 
 
 get_tracks.add_command(filter_group.filter_tracks)
@@ -220,5 +222,4 @@ get_tracks.add_command(print_command.print_tracks)
 get_tracks.add_command(export_command.export_tracks)
 get_tracks.add_command(import_spotify_command.import_spotify)
 get_tracks.add_command(import_deezer_command.import_deezer)
-get_tracks.add_command(compare_command.compare)
-get_tracks.add_command(move_duplicates_command.move_duplicates)
+get_tracks.add_command(get_second_group.get_second)
