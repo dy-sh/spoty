@@ -27,17 +27,12 @@ def is_csv(file_name):
     return file_name.upper().endswith('.CSV')
 
 
-
-
-
 def create_csvs(tags_list, path, grouping_pattern, overwrite=False, append=False, allow_duplicates=True,
-                confirm=False, compare_duplicates_tags=None):
+                confirm=False, compare_tags_list=None):
     path = os.path.abspath(path)
 
-    spoty.utils.clean_tags_list_before_write(tags_list)
-
-    if compare_duplicates_tags is None:
-        compare_duplicates_tags = []
+    if compare_tags_list is None:
+        compare_tags_list = []
 
     all_created_csv_file_names = []
     all_created_csv_names = []
@@ -66,15 +61,20 @@ def create_csvs(tags_list, path, grouping_pattern, overwrite=False, append=False
                     csv_file_name = spoty.utils.find_empty_file_name(csv_file_name)
 
             if not allow_duplicates:
-                tags_l, import_duplicates = spoty.utils.remove_tags_duplicates(tags_l, compare_duplicates_tags, False)
-                all_import_duplicates.extend(import_duplicates)
-                if len(import_duplicates) > 0:
-                    log.debug(f'{len(import_duplicates)} duplicates found when adding tracks. It will be skipped.')
+                for compare_tags_str in compare_tags_list:
+                    compare_tags = compare_tags_str.split(',')
+                    tags_l, import_duplicates = spoty.utils.remove_tags_duplicates(tags_l, compare_tags, False)
+                    all_import_duplicates.extend(import_duplicates)
+
+                if len(all_import_duplicates) > 0:
+                    log.debug(f'{len(all_import_duplicates)} duplicates found when adding tracks. It will be skipped.')
+
                 if not create_new_file:
                     exist_tags_list = read_tags_from_csv(csv_file_name)
-                    tags_l, exist_tags = spoty.utils.remove_exist_tags(
-                        exist_tags_list, tags_l, compare_duplicates_tags, True)
-                    all_already_exist.extend(exist_tags)
+                    for compare_tags_str in compare_tags_list:
+                        compare_tags = compare_tags_str.split(',')
+                        tags_l, exist_tags = spoty.utils.remove_exist_tags(exist_tags_list, tags_l, compare_tags, False)
+                        all_already_exist.extend(exist_tags)
 
             write_tags_to_csv(tags_l, csv_file_name, not create_new_file)
 
@@ -113,6 +113,11 @@ def find_csvs_in_path(path, recursive=True):
 
 
 def write_tags_to_csv(tags_list, csv_file_name, append=False):
+    tags_list = spoty.utils.clean_tags_list_before_write(tags_list)
+
+    if tags_list is None or len(tags_list) == 0:
+        return
+
     if append:
         if os.path.isfile(csv_file_name):
             old_tags = read_tags_from_csv(csv_file_name, False)

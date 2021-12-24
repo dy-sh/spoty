@@ -57,11 +57,9 @@ Export a list of tracks to csv files (playlists) on disk.
             date_time_str = now.strftime("%Y_%m_%d-%H_%M_%S")
             path = os.path.join(path, date_time_str)
 
-        compare_tags = duplicates_compare_tags.split(',')
-
         file_names, names, added_tracks, import_duplicates, already_exist \
             = spoty.csv_playlist.create_csvs(tags_list, path, grouping_pattern, overwrite, append, duplicates, yes_all,
-                                             compare_tags)
+                                             duplicates_compare_tags)
 
         # print summery
 

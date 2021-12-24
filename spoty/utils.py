@@ -461,7 +461,9 @@ def clean_tags_list_before_write(tags_list):
     for tags in tags_list:
         if 'SPOTY_PLAYLIST_INDEX' in tags:
             del tags['SPOTY_PLAYLIST_INDEX']
-
+        if 'LENGTH' in tags:
+            del tags['LENGTH']
+    return tags_list
 
 def clean_tags_list_after_read(tags_list):
     for i, tags in enumerate(tags_list):
