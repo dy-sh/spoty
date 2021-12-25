@@ -50,7 +50,7 @@ main_tags = \
         'OCCASION',
         'RATING',
         'COMMENT'
-        'BARCODE',
+        'SOURCE'
         'BPM',
         'QUALITY',
         'TEMPO',

@@ -215,7 +215,6 @@ def create_csv_from_audio_files(csv_file_name, audio_file_names, overwrite=False
     log.info(f'Exporting csv (tracks:{len(audio_file_names)}, file name: {csv_file_name})')
 
     if os.path.isfile(csv_file_name) and not overwrite:
-        time.sleep(0.2)  # waiting progressbar updating
         if not click.confirm(f'\nFile "{csv_file_name}" already exist. Overwrite?'):
             click.echo("\nCanceled")
             log.info(f'Canceled by user (file already exist)')

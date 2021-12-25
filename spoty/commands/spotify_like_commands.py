@@ -77,7 +77,6 @@ def like_export(path, file_name, overwrite, timestamp):
     file_name = os.path.join(path, file_name)
 
     if os.path.isfile(file_name) and not overwrite:
-        time.sleep(0.2)  # waiting progressbar updating
         if not click.confirm(f'\nFile "{file_name}" already exist. Overwrite?'):
             click.echo("Aborted!")
             log.info(f'Canceled by user (file already exist)')
@@ -111,14 +110,11 @@ def like_import(file_names):
                 tracks_in_file = spoty.spotify_api.import_likes_from_file(file_name)
                 all_tracks_in_file += tracks_in_file
             except FileNotFoundError:
-                time.sleep(0.2)  # waiting progressbar updating
                 click.echo(f'\nFile does not exist: "{file_name}"')
             except spoty.csv_playlist.CSVFileEmpty as e:
-                time.sleep(0.2)  # waiting progressbar updating
                 log.warning(f'Cant import file "{file_name}". File is empty.')
                 click.echo(f'\nCant import file "{file_name}". File is empty.')
             except spoty.csv_playlist.CSVFileInvalidHeader as e:
-                time.sleep(0.2)  # waiting progressbar updating
                 mess = f'Cant import file "{file_name}". The header of csv table does not contain any of the required ' \
                        f'fields (isrc, spotify_track_id, title).'
                 log.error(mess)

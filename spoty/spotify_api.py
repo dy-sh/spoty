@@ -543,7 +543,6 @@ def export_playlist_to_file(playlist_id: str, path: str, overwrite=False, avoid_
     file_name = get_playlist_file_name(playlist["name"], playlist_id, path, avoid_filenames)
 
     if os.path.isfile(file_name) and not overwrite:
-        time.sleep(0.2)  # waiting progressbar updating
         if not click.confirm(f'\nFile "{file_name}" already exist. Overwrite?'):
             click.echo("\nCanceled")
             log.info(f'Canceled by user (file already exist)')

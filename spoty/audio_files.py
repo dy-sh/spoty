@@ -4,10 +4,8 @@ import os.path
 import click
 import time
 from mutagen.flac import FLAC
-
-
-# from mutagen.mp3 import MP3
-# from mutagen.id3 import ID3
+from mutagen.mp3 import MP3
+from mutagen.easyid3 import EasyID3
 
 def is_flac(file_name):
     return file_name.upper().endswith('.FLAC')
@@ -15,6 +13,7 @@ def is_flac(file_name):
 
 def is_mp3(file_name):
     return file_name.upper().endswith('.MP3')
+
 
 def is_audio_file(file_name):
     return is_flac(file_name) or is_mp3(file_name)
@@ -34,7 +33,7 @@ def find_audio_files_in_path(path, recursive=True):
     path = os.path.abspath(path)
 
     if not spoty.utils.is_valid_path(path):
-        raise Exception("Path is not valid: "+path)
+        raise Exception("Path is not valid: " + path)
 
     file_names = []
 
@@ -97,29 +96,43 @@ def read_audio_file_tags(file_name, add_spoty_tags=True):
         tags['SPOTY_PLAYLIST_NAME'] = os.path.basename(os.path.normpath(dir))
 
     if is_flac(file_name):
-        f = None
         try:
             f = FLAC(file_name)
+            tags['SPOTY_LENGTH'] = str(int(f.info.length))
+            for tag in f.tags:
+                if len(tag[1]) > 131072 or \
+                        (tag[0] in tags and len(tags[tag[0]]) + len(tag[1]) > 131072):
+                    mess = f'Tag "{tag[0]}" has value larger than csv field limit (131072) and will be skipped in file "{file_name}"'
+                    click.echo('\n' + mess)
+                    log.warning(mess)
+                    continue
+                if tag[0] in tags: # adding same key with one more value
+                    tags[tag[0]] += ';' + tag[1]
+                else:
+                    tags[tag[0]] = tag[1]
         except:
-            time.sleep(0.2)
             click.echo(f"\nCant open file: {file_name}")
             return []
-        for tag in f.tags:
-            if len(tag[1]) > 131072 or \
-                    (tag[0] in tags and len(tags[tag[0]]) + len(tag[1]) > 131072):
-                time.sleep(0.2)
-                mess = f'Tag "{tag[0]}" has value larger than csv field limit (131072) and will be skipped in file "{file_name}"'
-                click.echo('\n' + mess)
-                log.warning(mess)
-                continue
-            if tag[0] in tags:
-                tags[tag[0]] += ';' + tag[1]
-            else:
-                tags[tag[0]] = tag[1]
 
-        tags['SPOTY_LENGTH'] = str(int(f.info.length))
+    if is_mp3(file_name):
+        try:
+            f = MP3(file_name, ID3=EasyID3)
+            tags['SPOTY_LENGTH'] = str(int(f.info.length))
+            f = EasyID3(file_name)
+            for tag in f.valid_keys.keys():
+                if tag in f:
+                    tag_val = ';'.join(f[tag])
+                    if len(tag_val) > 131072:
+                        mess = f'Tag "{tag[0]}" has value larger than csv field limit (131072) and will be skipped in file "{file_name}"'
+                        click.echo('\n' + mess)
+                        log.warning(mess)
+                        continue
+                    tags[tag.upper()] = tag_val
+        except:
+            click.echo(f"\nCant open file: {file_name}")
+            return []
 
-    tags=spoty.utils.clean_tags_after_read(tags)
+    tags = spoty.utils.clean_tags_after_read(tags)
 
     return tags
 
