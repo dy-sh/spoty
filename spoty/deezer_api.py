@@ -316,6 +316,7 @@ def find_missing_track_ids(tags_list: list):
                            label=f'Identifying {len(tracks_without_id)} tracks') as bar:
         for tags in tags_list:
             if DEEZER_TRACK_ID_TAG in tags:
+                tags['SPOTY_FOUND_BY'] = DEEZER_TRACK_ID_TAG
                 found.append(tags)
                 continue
 
@@ -327,6 +328,7 @@ def find_missing_track_ids(tags_list: list):
                 id = find_track_id_by_isrc(tags['ISRC'])
                 if id is not None:
                     tags[DEEZER_TRACK_ID_TAG] = id
+                    tags['SPOTY_FOUND_BY'] = 'ISRC'
                     found.append(tags)
                     bar.update(1)
                     continue
@@ -335,6 +337,7 @@ def find_missing_track_ids(tags_list: list):
                 id = find_track_id_by_artist_and_title(tags['ARTIST'], tags['TITLE'], tags.get('ALBUM', None))
                 if id is not None:
                     tags[DEEZER_TRACK_ID_TAG] = id
+                    tags['SPOTY_FOUND_BY'] = 'TITLE,ARTIST'
                     found.append(tags)
                     bar.update(1)
                     continue

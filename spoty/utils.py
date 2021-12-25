@@ -18,6 +18,7 @@ spoty_tags = \
         'SPOTY_DUP_ID',
         'SPOTY_DEF_DUP',
         'SPOTY_PROP_DUP',
+        'SPOTY_FOUND_BY',
         'SPOTY_DUPLICATE_GROUP',
         'SPOTY_SOURCE',
         'SPOTY_PLAYLIST_NAME',

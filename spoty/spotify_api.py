@@ -139,17 +139,15 @@ def find_missing_track_ids(tags_list: list):
                            label=f'Identifying {len(tracks_without_id)} tracks') as bar:
         for tags in tags_list:
             if "SPOTIFY_TRACK_ID" in tags:
+                tags['SPOTY_FOUND_BY'] = 'SPOTIFY_TRACK_ID'
                 found.append(tags)
                 continue
-
-            # elif "SPOTY_TRACK_ID" in tags and tags.get("SPOTY_SOURCE", None) == "SPOTIFY":
-            #     tags['SPOTIFY_TRACK_ID'] = tags['SPOTY_TRACK_ID']
-            #     found.append(tags)
 
             if "ISRC" in tags:
                 id = find_track_id_by_isrc(tags['ISRC'])
                 if id is not None:
                     tags['SPOTIFY_TRACK_ID'] = id
+                    tags['SPOTY_FOUND_BY'] = 'ISRC'
                     found.append(tags)
                     bar.update(1)
                     continue
@@ -158,6 +156,7 @@ def find_missing_track_ids(tags_list: list):
                 id = find_track_id_by_artist_and_title(tags['ARTIST'], tags['TITLE'])
                 if id is not None:
                     tags['SPOTIFY_TRACK_ID'] = id
+                    tags['SPOTY_FOUND_BY'] = 'TITLE,ARTIST'
                     found.append(tags)
                     bar.update(1)
                     continue
