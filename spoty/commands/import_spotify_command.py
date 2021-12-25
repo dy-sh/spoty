@@ -8,6 +8,7 @@ import click
 import os
 from datetime import datetime
 
+
 @click.command("import-spotify")
 @click.option('--grouping-pattern', '--gp', show_default=True,
               default=settings.SPOTY.DEFAULT_GROUPING_PATTERN,
@@ -20,6 +21,8 @@ from datetime import datetime
               help='Overwrite existing playlist')
 @click.option('--yes-all', '-y', is_flag=True,
               help='Confirm all questions with a positive answer automatically.')
+@click.option('--ignore-duration', '-i', is_flag=True,
+              help='Dont match track duration)')
 @click.option('--export-result', '-r', is_flag=True,
               help='Export csv files with result (imported, not found, skipped tracks)')
 @click.option('--result-path', '--rp',
@@ -32,6 +35,7 @@ def import_spotify(context: SpotyContext,
                    append,
                    overwrite,
                    yes_all,
+                   ignore_duration,
                    export_result,
                    result_path
                    ):
@@ -59,7 +63,7 @@ Import track list to Spotify Library
                 click.echo("\nCanceled.")
                 exit()
 
-        found_tags_list, not_found_tags_list = spoty.spotify_api.find_missing_track_ids(tags_list)
+        found_tags_list, not_found_tags_list = spoty.spotify_api.find_missing_track_ids(tags_list, ignore_duration)
 
         playlist_ids, imported_tags_list, source_duplicates_tags_list, already_exist_tags_list = \
             spoty.spotify_api.import_playlists_from_tags_list(
@@ -101,7 +105,8 @@ Import track list to Spotify Library
             if len(playlist_ids) == 1:
                 context.summary.append(f'  {len(imported_tags_list)} tracks imported in Spotify playlist.')
             else:
-                context.summary.append(f'  {len(imported_tags_list)} tracks imported in {len(playlist_ids)} Spotify playlists.')
+                context.summary.append(
+                    f'  {len(imported_tags_list)} tracks imported in {len(playlist_ids)} Spotify playlists.')
 
     click.echo('\n------------------------------------------------------------')
     click.echo('\n'.join(context.summary))

@@ -77,8 +77,6 @@ def get_tracks_of_spotify_user(user_id: str, playlists_names_regex: str = None):
     return tracks, tags, playlists
 
 
-
-
 def find_track_by_isrc(isrc: str, length=None, length_tolerance=settings.SPOTY.COMPARE_LENGTH_TOLERANCE_SEC):
     track = find_track_by_query(f'isrc:{isrc}', length, length_tolerance)
     return track
@@ -117,12 +115,13 @@ def find_track_by_query(query: str, length=None, length_tolerance=settings.SPOTY
     return None
 
 
-def find_track_id_by_artist_and_title(artist: str, title: str, length=None, length_tolerance=settings.SPOTY.COMPARE_LENGTH_TOLERANCE_SEC):
+def find_track_id_by_artist_and_title(artist: str, title: str, length=None,
+                                      length_tolerance=settings.SPOTY.COMPARE_LENGTH_TOLERANCE_SEC):
     track = find_track_by_artist_and_title(artist, title, length, length_tolerance)
     return track['id'] if track is not None else None
 
 
-def find_missing_track_ids(tags_list: list):
+def find_missing_track_ids(tags_list: list, ignore_duration=False):
     found = []
     not_found = []
 
@@ -140,7 +139,7 @@ def find_missing_track_ids(tags_list: list):
                 continue
 
             if "ISRC" in tags:
-                if 'SPOTY_LENGTH' in tags:
+                if not ignore_duration and 'SPOTY_LENGTH' in tags:
                     id = find_track_id_by_isrc(tags['ISRC'], tags['SPOTY_LENGTH'])
                 else:
                     id = find_track_id_by_isrc(tags['ISRC'])
@@ -152,7 +151,7 @@ def find_missing_track_ids(tags_list: list):
                     continue
 
             if "TITLE" in tags and "ARTIST" in tags:
-                if 'SPOTY_LENGTH' in tags:
+                if not ignore_duration and 'SPOTY_LENGTH' in tags:
                     id = find_track_id_by_artist_and_title(tags['ARTIST'], tags['TITLE'], tags['SPOTY_LENGTH'])
                 else:
                     id = find_track_id_by_artist_and_title(tags['ARTIST'], tags['TITLE'])

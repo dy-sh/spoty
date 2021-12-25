@@ -21,6 +21,8 @@ from datetime import datetime
               help='Overwrite existing playlist')
 @click.option('--yes-all', '-y', is_flag=True,
               help='Confirm all questions with a positive answer automatically.')
+@click.option('--ignore-duration', '-i', is_flag=True,
+              help='Dont match track duration)')
 @click.option('--export-result', '-r', is_flag=True,
               help='Export csv files with result (imported, not found, skipped tracks)')
 @click.option('--result-path', '--rp',
@@ -33,6 +35,7 @@ def import_deezer(context: SpotyContext,
                   append,
                   overwrite,
                   yes_all,
+                  ignore_duration,
                   export_result,
                   result_path
                   ):
@@ -60,7 +63,7 @@ Import track list to Deezer Library
                 click.echo("\nCanceled.")
                 exit()
 
-        found_tags_list, not_found_tags_list = spoty.deezer_api.find_missing_track_ids(tags_list)
+        found_tags_list, not_found_tags_list = spoty.deezer_api.find_missing_track_ids(tags_list, ignore_duration)
 
         playlist_ids, imported_tags_list, source_duplicates_tags_list, already_exist_tags_list = \
             spoty.deezer_api.import_playlists_from_tags_list(
@@ -92,7 +95,8 @@ Import track list to Deezer Library
         if len(source_duplicates_tags_list) > 0:
             context.summary.append(f'  {len(source_duplicates_tags_list)} duplicates in collected tracks skipped.')
         if len(already_exist_tags_list) > 0:
-            context.summary.append(f'  {len(already_exist_tags_list)} tracks already exist in Deezer playlists and skipped.')
+            context.summary.append(
+                f'  {len(already_exist_tags_list)} tracks already exist in Deezer playlists and skipped.')
         if len(not_found_tags_list) > 0:
             context.summary.append(f'  {len(not_found_tags_list)} tracks not found by tags.')
 
@@ -102,7 +106,8 @@ Import track list to Deezer Library
             if len(playlist_ids) == 1:
                 context.summary.append(f'  {len(imported_tags_list)} tracks imported in Deezer playlist.')
             else:
-                context.summary.append(f'  {len(imported_tags_list)} tracks imported in {len(playlist_ids)} Deezer playlists.')
+                context.summary.append(
+                    f'  {len(imported_tags_list)} tracks imported in {len(playlist_ids)} Deezer playlists.')
 
     click.echo('\n------------------------------------------------------------')
     click.echo('\n'.join(context.summary))
