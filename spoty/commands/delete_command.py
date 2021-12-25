@@ -16,19 +16,19 @@ import os
 @click.option('--print-pattern', '--pp', show_default=True,
               default=settings.SPOTY.DEFAULT_PRINT_PATTERN,
               help='Print a list of tracks according to this formatting pattern.')
-@click.option('--export-result', '-r', is_flag=True,
-              help='Export csv files with result (list of deleted tracks)')
-@click.option('--result-path', '--rp',
-              default=settings.SPOTY.DEFAULT_EXPORT_PATH,
-              help='Path to create resulting csv files')
+# @click.option('--export-result', '-r', is_flag=True,
+#               help='Export csv files with result (list of deleted tracks)')
+# @click.option('--result-path', '--rp',
+#               default=settings.SPOTY.DEFAULT_EXPORT_PATH,
+#               help='Path to create resulting csv files')
 @click.option('--confirm', '-y', type=bool, is_flag=True, default=False,
               help='Do not ask for confirmation')
 @click.pass_obj
 def delete_tracks(context: SpotyContext,
                   grouping_pattern,
                   print_pattern,
-                  export_result,
-                  result_path,
+                  # export_result,
+                  # result_path,
                   confirm
                   ):
     """
@@ -79,6 +79,8 @@ Delete tracks.
 
         if tags['SPOTY_SOURCE'] == 'LOCAL':
             local_audio_files.append(tags['SPOTY_FILE_NAME'])
+
+    # todo: delete from csv
 
     deleted_spotify_tracks=[]
     if len(spotify_playlists.keys()) > 0:
