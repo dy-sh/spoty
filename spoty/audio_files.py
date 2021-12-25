@@ -74,6 +74,13 @@ def write_audio_file_tags(file_name, new_tags):
             for key, value in new_tags.items():
                 f[key] = str(value)
             f.save()
+        if is_mp3(file_name):
+            f = EasyID3(file_name)
+            for key, value in new_tags.items():
+                if key not in f.valid_keys:
+                    click.echo(f'MP3 tag {key} is not valid tag')
+                f[key.lower()] = str(value)
+            f.save(v2_version=3)
 
 
 def read_audio_files_tags(file_names, add_spoty_tags=True):
