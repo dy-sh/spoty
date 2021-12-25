@@ -5,6 +5,7 @@ from spoty.commands import import_spotify_command
 from spoty.commands import import_deezer_command
 from spoty.commands import filter_group
 from spoty.commands import get_second_group
+from spoty.commands import delete_command
 from spoty.utils import SpotyContext
 from spoty import settings
 from spoty import log
@@ -225,3 +226,4 @@ get_tracks.add_command(export_command.export_tracks)
 get_tracks.add_command(import_spotify_command.import_spotify)
 get_tracks.add_command(import_deezer_command.import_deezer)
 get_tracks.add_command(get_second_group.get_second)
+get_tracks.add_command(delete_command.delete_tracks)

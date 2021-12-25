@@ -605,8 +605,13 @@ def remove_tracks_from_playlist(playlist_id: str, track_ids: list):
 
     log.info(f'Removing {len(track_ids)} tracks from playlist {playlist_id}')
 
-    get_dz().gw.remove_songs_from_playlist(playlist_id, track_ids)
+    with click.progressbar(track_ids, label=f'Deleting {len(track_ids)} tracks') as bar:
+        for track_id in bar:
+            get_dz().gw.remove_song_from_playlist(playlist_id, track_id)
 
+    # get_dz().gw.remove_songs_from_playlist(playlist_id, track_ids)
+
+    # split request by 100 songs
     # i = 0
     # next_tracks = []
     # while i < len(track_ids):
@@ -616,6 +621,7 @@ def remove_tracks_from_playlist(playlist_id: str, track_ids: list):
     #         get_dz().gw.remove_songs_from_playlist(playlist_id, next_tracks)
     #         next_tracks = []
     #     i += 1
+
 
     log.success(f'Tracks removed from playlist {playlist_id}')
 

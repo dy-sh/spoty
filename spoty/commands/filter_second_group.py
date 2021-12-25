@@ -6,6 +6,7 @@ from spoty.commands import import_deezer_command
 from spoty.commands import compare_command
 from spoty.commands import move_duplicates_command
 from spoty.commands import filter_group
+from spoty.commands import delete_command
 from spoty.utils import SpotyContext
 from spoty import settings
 from spoty import log
@@ -56,3 +57,4 @@ filter_second.add_command(import_spotify_command.import_spotify)
 filter_second.add_command(import_deezer_command.import_deezer)
 filter_second.add_command(compare_command.compare)
 filter_second.add_command(move_duplicates_command.move_duplicates)
+filter_second.add_command(delete_command.delete_tracks)
