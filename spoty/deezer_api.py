@@ -9,7 +9,7 @@ import time
 import re
 import datetime
 
-DEEZER_TRACK_ID_TAG='DEEZER_TRACK_ID'
+DEEZER_TRACK_ID_TAG = 'DEEZER_TRACK_ID'
 
 DEEZER_APP_ID = settings.default.DEEZER_APP_ID
 DEEZER_APP_SECRET = settings.default.DEEZER_APP_SECRET
@@ -320,12 +320,11 @@ def find_missing_track_ids(tags_list: list):
                 found.append(tags)
                 continue
 
-            # elif "SPOTY_TRACK_ID" in tags and tags.get("SPOTY_SOURCE", None) == "DEEZER":
-            #     tags[DEEZER_TRACK_ID_TAG] = tags['SPOTY_TRACK_ID']
-            #     found.append(tags)
-
             if "ISRC" in tags:
-                id = find_track_id_by_isrc(tags['ISRC'])
+                if 'SPOTY_LENGTH' in tags:
+                    id = find_track_id_by_isrc(tags['ISRC'], tags['SPOTY_LENGTH'])
+                else:
+                    id = find_track_id_by_isrc(tags['ISRC'])
                 if id is not None:
                     tags[DEEZER_TRACK_ID_TAG] = id
                     tags['SPOTY_FOUND_BY'] = 'ISRC'
@@ -334,7 +333,10 @@ def find_missing_track_ids(tags_list: list):
                     continue
 
             if "TITLE" in tags and "ARTIST" in tags:
-                id = find_track_id_by_artist_and_title(tags['ARTIST'], tags['TITLE'], tags.get('ALBUM', None))
+                if 'SPOTY_LENGTH' in tags:
+                    id = find_track_id_by_artist_and_title(tags['ARTIST'], tags['TITLE'], tags['SPOTY_LENGTH'])
+                else:
+                    id = find_track_id_by_artist_and_title(tags['ARTIST'], tags['TITLE'])
                 if id is not None:
                     tags[DEEZER_TRACK_ID_TAG] = id
                     tags['SPOTY_FOUND_BY'] = 'TITLE,ARTIST'
@@ -345,16 +347,15 @@ def find_missing_track_ids(tags_list: list):
             not_found.append(tags)
             bar.update(1)
 
-
     return found, not_found
 
 
-def find_track_id_by_isrc(isrc: str):
-    track = find_track_by_isrc(isrc)
+def find_track_id_by_isrc(isrc: str, length=None, length_tolerance=settings.SPOTY.COMPARE_LENGTH_TOLERANCE_SEC):
+    track = find_track_by_isrc(isrc, length, length_tolerance)
     return track['id'] if track is not None else None
 
 
-def find_track_by_isrc(isrc: str):
+def find_track_by_isrc(isrc: str, length=None, length_tolerance=settings.SPOTY.COMPARE_LENGTH_TOLERANCE_SEC):
     try:
         track = get_dz().api.get_track_by_ISRC(isrc)
         log.debug(f'Track found by ISRC: {isrc} (ID: {track["id"]} TITLE: "{get_track_artist_and_title(track)}")')
@@ -366,11 +367,24 @@ def find_track_by_isrc(isrc: str):
     return None
 
 
-def find_track_id_by_artist_and_title(artist: str, title: str, album=None):
-    if album == None:
-        album = ""
-    track_id = get_dz().api.get_track_id_from_metadata(artist, title, album)
-    return track_id if int(track_id) != 0 else None
+def find_track_id_by_artist_and_title(artist: str, title: str, length=None,
+                                      length_tolerance=settings.SPOTY.COMPARE_LENGTH_TOLERANCE_SEC):
+    track = find_track_by_artist_and_title(artist, title, length, length_tolerance)
+    return track['id'] if track is not None else None
+
+
+def find_track_by_artist_and_title(artist: str, title: str, length=None,
+                                   length_tolerance=settings.SPOTY.COMPARE_LENGTH_TOLERANCE_SEC):
+    if length is not None and length != 0:
+        tracks = get_dz().api.advanced_search(artist, "", title, "", int(length) - length_tolerance,
+                                              int(length) + length_tolerance)
+        if len(tracks['data']) > 0:
+            return tracks['data'][0]
+    else:
+        tracks = get_dz().api.advanced_search(artist, "", title)
+        if len(tracks['data']) > 0:
+            return tracks['data'][0]
+    return None
 
 
 def add_tracks_to_playlist_by_tags(playlist_id: str, tags_list: list, allow_duplicates=False):
@@ -698,6 +712,5 @@ def read_tags_from_deezer_track(track: dict):
             tags[tag] = track[tag]
 
     tags = spoty.utils.clean_tags_after_read(tags)
-
 
     return tags
