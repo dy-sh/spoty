@@ -77,52 +77,48 @@ def get_tracks_of_spotify_user(user_id: str, playlists_names_regex: str = None):
     return tracks, tags, playlists
 
 
-def find_track_by_query(query: str):
-    res = get_sp().search(query)
-
-    try:
-        # todo: find for the best matching by album, length and other tags
-        tracks = res['tracks']['items']
-        return tracks
-    except:
-        pass
-
-    return []
 
 
-def find_track_by_isrc(isrc: str):
-    res = get_sp().search(f'isrc:{isrc}')
-
-    try:
-        # todo: find for the best matching by album, length and other tags
-        track = res['tracks']['items'][0]
-        return track
-    except:
-        pass
-
-    return None
+def find_track_by_isrc(isrc: str, length=None, length_tolerance=settings.SPOTY.COMPARE_LENGTH_TOLERANCE_SEC):
+    track = find_track_by_query(f'isrc:{isrc}', length, length_tolerance)
+    return track
 
 
-def find_track_id_by_isrc(isrc: str):
-    track = find_track_by_isrc(isrc)
+def find_track_id_by_isrc(isrc: str, length=None, length_tolerance=settings.SPOTY.COMPARE_LENGTH_TOLERANCE_SEC):
+    track = find_track_by_isrc(isrc, length, length_tolerance)
     return track['id'] if track is not None else None
 
 
-def find_track_by_artist_and_title(artist: str, title: str):
-    res = get_sp().search(f'track:{title} artist:{artist}')
+def find_track_by_artist_and_title(artist: str, title: str, length=None,
+                                   length_tolerance=settings.SPOTY.COMPARE_LENGTH_TOLERANCE_SEC):
+    track = find_track_by_query(f'track:{title} artist:{artist}', length, length_tolerance)
+    return track
 
+
+def find_track_by_query(query: str, length=None, length_tolerance=settings.SPOTY.COMPARE_LENGTH_TOLERANCE_SEC):
+    res = get_sp().search(query)
     try:
-        # todo: find for the best matching by album, length and other tags
-        track = res['tracks']['items'][0]
-        return track
+        tracks = res['tracks']['items']
+        if length is not None:
+            for track in tracks:
+                if abs(int(track['duration_ms']) / 1000 - int(length)) < length_tolerance:
+                    return track
+            while res['tracks']['next']:
+                res = get_sp().next(res['tracks'])
+                tracks = res['tracks']['items']
+                for track in tracks:
+                    if abs(int(track['duration_ms']) / 1000 - int(length)) < length_tolerance:
+                        return track
+            return None
+
+        return tracks[0]
     except:
         pass
-
     return None
 
 
-def find_track_id_by_artist_and_title(artist: str, title: str):
-    track = find_track_by_artist_and_title(artist, title)
+def find_track_id_by_artist_and_title(artist: str, title: str, length=None, length_tolerance=settings.SPOTY.COMPARE_LENGTH_TOLERANCE_SEC):
+    track = find_track_by_artist_and_title(artist, title, length, length_tolerance)
     return track['id'] if track is not None else None
 
 
@@ -144,7 +140,10 @@ def find_missing_track_ids(tags_list: list):
                 continue
 
             if "ISRC" in tags:
-                id = find_track_id_by_isrc(tags['ISRC'])
+                if 'SPOTY_LENGTH' in tags:
+                    id = find_track_id_by_isrc(tags['ISRC'], tags['SPOTY_LENGTH'])
+                else:
+                    id = find_track_id_by_isrc(tags['ISRC'])
                 if id is not None:
                     tags['SPOTIFY_TRACK_ID'] = id
                     tags['SPOTY_FOUND_BY'] = 'ISRC'
@@ -153,7 +152,10 @@ def find_missing_track_ids(tags_list: list):
                     continue
 
             if "TITLE" in tags and "ARTIST" in tags:
-                id = find_track_id_by_artist_and_title(tags['ARTIST'], tags['TITLE'])
+                if 'SPOTY_LENGTH' in tags:
+                    id = find_track_id_by_artist_and_title(tags['ARTIST'], tags['TITLE'], tags['SPOTY_LENGTH'])
+                else:
+                    id = find_track_id_by_artist_and_title(tags['ARTIST'], tags['TITLE'])
                 if id is not None:
                     tags['SPOTIFY_TRACK_ID'] = id
                     tags['SPOTY_FOUND_BY'] = 'TITLE,ARTIST'
