@@ -12,11 +12,12 @@ tag_allies = [
 
 spoty_tags = \
     [
+        'SPOTY_DUP_GROUP',
+        'SPOTY_DEF_DUP_TAGS',
+        'SPOTY_PROB_DUP_TAGS',
+        'SPOTY_DUP_LIST',
         'SPOTY_DUP_ID',
-        'SPOTY_DEF_DUP',
-        'SPOTY_PROP_DUP',
         'SPOTY_FOUND_BY',
-        'SPOTY_DUPLICATE_GROUP',
         'SPOTY_SOURCE',
         'SPOTY_PLAYLIST_NAME',
         'SPOTY_PLAYLIST_ID',
@@ -551,8 +552,8 @@ def clean_tags_after_read(tags):
     return tags
 
 
-def compare_tags_lists(source_list: list, dest_list: list, compare_tags_def: list, compare_tags_prob: list,
-                       add_dup_tags=False):
+def find_duplicates_in_tag_lists(source_list: list, dest_list: list, compare_tags_def: list, compare_tags_prob: list,
+                                 add_dup_tags=False):
     # get tags to compare from config
 
     for i, tags in enumerate(compare_tags_def):
@@ -580,8 +581,9 @@ def compare_tags_lists(source_list: list, dest_list: list, compare_tags_def: lis
     source_def_dups = {}
     dest_def_dups = {}
     for tags in compare_tags_def:
-        compare_by_tags(source_list, dest_list, tags, dest_unique, dest_def_dups, 'SPOTY_DEF_DUP', add_dup_tags)
-        compare_by_tags(dest_list, source_list, tags, source_unique, source_def_dups, 'SPOTY_DEF_DUP', add_dup_tags)
+        compare_by_tags(source_list, dest_list, tags, dest_unique, dest_def_dups, 'SPOTY_DEF_DUP_TAGS', add_dup_tags)
+        compare_by_tags(dest_list, source_list, tags, source_unique, source_def_dups, 'SPOTY_DEF_DUP_TAGS',
+                        add_dup_tags)
 
     # find probably duplicates
 
@@ -589,9 +591,10 @@ def compare_tags_lists(source_list: list, dest_list: list, compare_tags_def: lis
     dest_prob_dups = {}
     for tags in compare_tags_prob:
         dest_list2 = dict_to_list(dest_unique)
-        compare_by_tags(source_list, dest_list2, tags, dest_unique, dest_prob_dups, 'SPOTY_PROP_DUP', add_dup_tags)
+        compare_by_tags(source_list, dest_list2, tags, dest_unique, dest_prob_dups, 'SPOTY_PROB_DUP_TAGS', add_dup_tags)
         source_list2 = dict_to_list(source_unique)
-        compare_by_tags(dest_list, source_list2, tags, source_unique, source_prob_dups, 'SPOTY_PROP_DUP', add_dup_tags)
+        compare_by_tags(dest_list, source_list2, tags, source_unique, source_prob_dups, 'SPOTY_PROB_DUP_TAGS',
+                        add_dup_tags)
 
     source_unique = dict_to_list(source_unique)
     dest_unique = dict_to_list(dest_unique)
@@ -648,8 +651,9 @@ def check_duplicates(source_tags_list, dest_tags, compare_tags_list):
     return None
 
 
-def compare_tags_lists_grouped(source_list: list, dest_list: list, compare_tags_def: list, compare_tags_prob: list,
-                               add_dup_tags=False):
+def find_duplicates_in_tag_lists_grouped(source_list: list, dest_list: list, compare_tags_def: list,
+                                         compare_tags_prob: list,
+                                         add_dup_tags=False):
     # get tags to compare from config
 
     for i, tags in enumerate(compare_tags_def):
@@ -727,12 +731,29 @@ def compare_tags_lists_grouped(source_list: list, dest_list: list, compare_tags_
         if group.has_duplicates():
             duplicates_groups.append(group)
         else:
-            if len(group.source_def_duplicates) > 1:
+            if len(group.source_def_duplicates) > 0:
                 unique_source_tracks.append(group.source_def_duplicates[0])
             else:
                 unique_dest_tracks.append(group.dest_def_duplicates[0])
 
-    # tracks_groups = [group for group in tracks_groups if group.has_duplicates()]
+    if add_dup_tags:
+        for i, group in enumerate(duplicates_groups):
+            for y, tags in enumerate(group.source_def_duplicates):
+                tags['SPOTY_DUP_GROUP'] = i + 1
+                tags['SPOTY_DEF_DUP_TAGS'] = ','.join(group.source_def_found_tags[y])
+                tags['SPOTY_DUP_LIST'] = "SOURCE"
+            for y, tags in enumerate(group.source_prob_duplicates):
+                tags['SPOTY_DUP_GROUP'] = i + 1
+                tags['SPOTY_PROB_DUP_TAGS'] = ','.join(group.source_prob_found_tags[y])
+                tags['SPOTY_DUP_LIST'] = "SOURCE"
+            for y, tags in enumerate(group.dest_def_duplicates):
+                tags['SPOTY_DUP_GROUP'] = i + 1
+                tags['SPOTY_DEF_DUP_TAGS'] = ','.join(group.dest_def_found_tags[y])
+                tags['SPOTY_DUP_LIST'] = "DESTINATION"
+            for y, tags in enumerate(group.dest_prob_duplicates):
+                tags['SPOTY_DUP_GROUP'] = i + 1
+                tags['SPOTY_PROB_DUP_TAGS'] = ','.join(group.dest_prob_found_tags[y])
+                tags['SPOTY_DUP_LIST'] = "DESTINATION"
 
     return duplicates_groups, unique_source_tracks, unique_dest_tracks
 

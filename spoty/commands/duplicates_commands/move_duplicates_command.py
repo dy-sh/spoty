@@ -49,7 +49,7 @@ Compare the tracks in two lists and move duplicated audio files to a new folder.
     compare_tags_prob = spoty.utils.tuple_to_list(compare_tags_prob)
 
     source_unique, dest_unique, source_def_dups, dest_def_dups, source_prob_dups, dest_prob_dups = \
-        spoty.utils.compare_tags_lists(source_list, dest_list, compare_tags_def, compare_tags_prob, True)
+        spoty.utils.find_duplicates_in_tag_lists(source_list, dest_list, compare_tags_def, compare_tags_prob, True)
 
     # export result to  csv files
     result_path = os.path.abspath(result_path)

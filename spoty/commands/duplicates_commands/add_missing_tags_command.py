@@ -44,7 +44,7 @@ Compare tracks on two lists and export the result (unique tracks, duplicates) to
     compare_tags_prob = spoty.utils.tuple_to_list(compare_tags_prob)
 
     duplicates_groups = \
-        spoty.utils.compare_tags_lists_grouped(source_list, dest_list, compare_tags_def, compare_tags_prob, False)
+        spoty.utils.find_duplicates_in_tag_lists_grouped(source_list, dest_list, compare_tags_def, compare_tags_prob, False)
 
     missing_tags = spoty.audio_files.get_missing_tags_from_source_to_dest_audio_files(import_tracks_tags,
                                                                                       export_tracks_tags,

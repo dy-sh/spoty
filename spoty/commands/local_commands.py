@@ -47,7 +47,7 @@ def duplicates_from_dict_to_array(duplicates_dic):
     for tag, tracks in duplicates_dic.items():
         i += 1
         for track in tracks:
-            track['SPOTY_DUPLICATE_GROUP'] = i
+            track['SPOTY_DUP_GROUP'] = i
         duplicates.extend(tracks)
     return duplicates
 
