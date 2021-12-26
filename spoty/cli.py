@@ -87,7 +87,8 @@ if __name__ == '__main__':
          # 'export','-t',
          # 'import-deezer','-ry',
          # 'import-deezer','-ry',
-        'add-missing-tags',
+        'duplicates',
+        'print',
         # 'delete'
          # '-y',
          ])

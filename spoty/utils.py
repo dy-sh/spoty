@@ -88,37 +88,39 @@ additional_tags = \
     ]
 
 
-
 class DuplicatesGroup:
     source_def_duplicates: list
     dest_def_duplicates: list
-    source_prop_duplicates: list
-    dest_prop_duplicates: list
+    source_prob_duplicates: list
+    dest_prob_duplicates: list
 
     def __init__(self):
         self.source_def_duplicates = []
         self.dest_def_duplicates = []
-        self.source_prop_duplicates = []
-        self.dest_prop_duplicates = []
+        self.source_prob_duplicates = []
+        self.dest_prob_duplicates = []
 
     def get_duplicates_count(self):
         return len(self.source_def_duplicates) + len(self.dest_def_duplicates) \
-               + len(self.source_prop_duplicates) + len(self.dest_prop_duplicates)
+               + len(self.source_prob_duplicates) + len(self.dest_prob_duplicates)
 
     def has_duplicates(self):
         return self.get_duplicates_count() > 1
-
 
 
 class SpotyContext:
     tags_lists: list
     summary: list
     duplicates_groups: List[DuplicatesGroup]
+    unique_source_tracks: list
+    unique_dest_tracks: list
 
     def __init__(self):
         self.tags_lists = []
         self.summary = []
         self.duplicates_groups = []
+        self.unique_source_tracks = []
+        self.unique_dest_tracks = []
 
 
 def tuple_to_list(some_tuple: tuple):
@@ -309,7 +311,7 @@ def print_main_tags(tags: dict):
     if 'YEAR' in tags: print(f'YEAR: {tags["YEAR"]}')
 
 
-def print_tags_list(tags_list: list, print_pattern: str, grouping_pattern: str):
+def print_tags_list_grouped(tags_list: list, print_pattern: str, grouping_pattern: str):
     if len(tags_list) == 0:
         return
 
@@ -317,9 +319,16 @@ def print_tags_list(tags_list: list, print_pattern: str, grouping_pattern: str):
 
     for group, tags_l in grouped_tags.items():
         print(f'\n------------------------- {group}:')
-        for i, tags in enumerate(tags_l):
-            txt = parse_pattern(tags, print_pattern)
-            print(txt)
+        print_tags_list(tags_list, print_pattern)
+
+
+def print_tags_list(tags_list: list, print_pattern: str):
+    if len(tags_list) == 0:
+        return
+
+    for tags in tags_list:
+        txt = parse_pattern(tags, print_pattern)
+        print("  "+txt)
 
 
 def check_tag_has_allies(tag: str):
@@ -629,8 +638,7 @@ def check_duplicates(source_tags_list, dest_tags, compare_tags_list):
     return False
 
 
-def compare_tags_lists_grouped(source_list: list, dest_list: list, compare_tags_def: list, compare_tags_prob: list,
-                               add_unique=False):
+def compare_tags_lists_grouped(source_list: list, dest_list: list, compare_tags_def: list, compare_tags_prob: list):
     # get tags to compare from config
 
     for i, tags in enumerate(compare_tags_def):
@@ -639,56 +647,69 @@ def compare_tags_lists_grouped(source_list: list, dest_list: list, compare_tags_
     for i, tags in enumerate(compare_tags_prob):
         compare_tags_prob[i] = tags.split(',')
 
-    duplicates_groups: List[DuplicatesGroup] = []
+    tracks_groups: List[DuplicatesGroup] = []
 
     # find duplicates in sources
 
     for source_tags in source_list:
         found = False
-        for dup in duplicates_groups:
+        for dup in tracks_groups:
             if check_duplicates(dup.source_def_duplicates, source_tags, compare_tags_def):
                 dup.source_def_duplicates.append(source_tags)
                 found = True
                 break
             elif check_duplicates(dup.source_def_duplicates, source_tags, compare_tags_prob):
-                dup.source_prop_duplicates.append(source_tags)
+                dup.source_prob_duplicates.append(source_tags)
                 found = True
                 break
-            elif check_duplicates(dup.source_prop_duplicates, source_tags, compare_tags_prob):
-                dup.source_prop_duplicates.append(source_tags)
+            elif check_duplicates(dup.source_prob_duplicates, source_tags, compare_tags_prob):
+                dup.source_prob_duplicates.append(source_tags)
                 found = True
                 break
         if not found:
             d = DuplicatesGroup()
             d.source_def_duplicates.append(source_tags)
-            duplicates_groups.append(d)
+            tracks_groups.append(d)
 
     # find duplicates in dest
 
     for dest_tags in dest_list:
         found = False
-        for dup in duplicates_groups:
+        for dup in tracks_groups:
             if check_duplicates(dup.source_def_duplicates, dest_tags, compare_tags_def):
                 dup.dest_def_duplicates.append(dest_tags)
                 found = True
                 break
             elif check_duplicates(dup.source_def_duplicates, dest_tags, compare_tags_prob):
-                dup.dest_prop_duplicates.append(dest_tags)
+                dup.dest_prob_duplicates.append(dest_tags)
                 found = True
                 break
-            elif check_duplicates(dup.source_prop_duplicates, dest_tags, compare_tags_prob):
-                dup.dest_prop_duplicates.append(dest_tags)
+            elif check_duplicates(dup.source_prob_duplicates, dest_tags, compare_tags_prob):
+                dup.dest_prob_duplicates.append(dest_tags)
                 found = True
                 break
         if not found:
             d = DuplicatesGroup()
             d.dest_def_duplicates.append(dest_tags)
-            duplicates_groups.append(d)
+            tracks_groups.append(d)
 
-    if not add_unique:
-        duplicates_groups = [group for group in duplicates_groups if group.has_duplicates()]
+    # remove unique
 
-    return duplicates_groups
+    unique_source_tracks = []
+    unique_dest_tracks = []
+    duplicates_groups = []
+    for group in tracks_groups:
+        if group.has_duplicates():
+            duplicates_groups.append(group)
+        else:
+            if len(group.source_def_duplicates) > 1:
+                unique_source_tracks.append(group.source_def_duplicates[0])
+            else:
+                unique_dest_tracks.append(group.dest_def_duplicates[0])
+
+    # tracks_groups = [group for group in tracks_groups if group.has_duplicates()]
+
+    return duplicates_groups, unique_source_tracks, unique_dest_tracks
 
 
 def compare_by_tags(source_list: list, dest_list: list, tags_to_compare: list, dest_unique: dict, dest_dups: dict,

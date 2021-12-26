@@ -1,13 +1,13 @@
-from spoty.commands import count_command
-from spoty.commands import print_command
-from spoty.commands import export_command
-from spoty.commands import import_spotify_command
-from spoty.commands import import_deezer_command
+from spoty.commands.first_list_commands import \
+    count_command, \
+    delete_command, \
+    export_command, \
+    import_deezer_command, \
+    import_spotify_command, \
+    print_command
 from spoty.commands import get_second_group
-from spoty.commands import delete_command
 from spoty.utils import SpotyContext
 from spoty import settings
-from spoty import log
 import spoty.utils
 import click
 

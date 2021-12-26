@@ -1,21 +1,20 @@
-from spoty.commands import count_command
-from spoty.commands import print_command
-from spoty.commands import export_command
-from spoty.commands import import_spotify_command
-from spoty.commands import import_deezer_command
-from spoty.commands import filter_group
-from spoty.commands import get_second_group
-from spoty.commands import delete_command
+from spoty.commands.first_list_commands import \
+    count_command, \
+    delete_command, \
+    export_command, \
+    import_deezer_command, \
+    import_spotify_command, \
+    print_command
+from spoty.commands import \
+    filter_group, \
+    get_second_group
 from spoty.utils import SpotyContext
-from spoty import settings
-from spoty import log
 import spoty.spotify_api
 import spoty.deezer_api
 import spoty.audio_files
 import spoty.csv_playlist
 import spoty.utils
 import click
-import time
 
 
 @click.group("get")
@@ -72,7 +71,7 @@ Get tracks from sources.
 
 
 def get_tracks_wrapper(
-        context:SpotyContext,
+        context: SpotyContext,
         spotify_playlist,
         spotify_entire_library,
         spotify_entire_library_regex,
@@ -210,12 +209,8 @@ def get_tracks_wrapper(
 
     # make context
 
-
-
     context.summary.extend(summary)
     context.tags_lists.append(all_tags_list)
-
-
 
 
 get_tracks.add_command(filter_group.filter_tracks)

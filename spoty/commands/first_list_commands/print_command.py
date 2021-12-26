@@ -28,7 +28,7 @@ Print a list of tracks to console.
                 f'============================= LIST {i+1}/{len(context.tags_lists)} =============================')
             click.echo()
 
-        spoty.utils.print_tags_list(tags_list, print_pattern, grouping_pattern)
+        spoty.utils.print_tags_list_grouped(tags_list, print_pattern, grouping_pattern)
 
         grouped_tags = spoty.utils.group_tags_by_pattern(tags_list, grouping_pattern)
 

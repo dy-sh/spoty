@@ -1,17 +1,16 @@
-from spoty.commands import count_command
-from spoty.commands import print_command
-from spoty.commands import export_command
-from spoty.commands import import_spotify_command
-from spoty.commands import import_deezer_command
-from spoty.commands import compare_command
-from spoty.commands import move_duplicates_command
+from spoty.commands.first_list_commands import \
+    count_command, \
+    delete_command, \
+    export_command, \
+    import_deezer_command, \
+    import_spotify_command, \
+    print_command
+from spoty.commands.second_list_commands import \
+    find_duplicates_command
 from spoty.commands import filter_group
-from spoty.commands import delete_command
-from spoty.commands import add_missing_tags_command
+from spoty.commands.duplicates_commands import add_missing_tags_command, move_duplicates_command, compare_command
 from spoty.utils import SpotyContext
 from spoty import settings
-from spoty import log
-import spoty.utils
 import click
 
 
@@ -60,4 +59,5 @@ filter_second.add_command(compare_command.compare)
 filter_second.add_command(move_duplicates_command.move_duplicates)
 filter_second.add_command(delete_command.delete_tracks)
 filter_second.add_command(add_missing_tags_command.add_missing_tags)
+filter_second.add_command(find_duplicates_command.find_duplicates)
 
