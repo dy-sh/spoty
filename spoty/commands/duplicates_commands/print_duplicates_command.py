@@ -7,7 +7,7 @@ import click
 
 @click.command("print")
 @click.option('--print-pattern', '--pp', show_default=True,
-              help='Print a list of tracks according to this formatting pattern. If not specified, DUPLICATE_PRINT_PATTERNS setting from the config file will be used.')
+              help='Print a list of tracks according to this formatting pattern. If not specified, DUPLICATE_PRINT_PATTERN setting from the config file will be used.')
 @click.pass_obj
 def print_duplicates(context: SpotyContext,
                      print_pattern,

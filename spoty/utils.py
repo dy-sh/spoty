@@ -341,13 +341,14 @@ def print_tags_list(tags_list: list, print_pattern: str):
         txt = parse_pattern(tags, print_pattern)
         print("  " + txt)
 
-def print_duplicates_tags_list(tags_list: list, print_pattern: str=None):
+
+def print_duplicates_tags_list(tags_list: list, print_pattern: str = None):
     if len(tags_list) == 0:
         return
 
     for tags in tags_list:
         if print_pattern is None:
-            print_pattern = settings.DUPLICATE_PRINT_PATTERNS[tags['SPOTY_SOURCE']]
+            print_pattern = settings.DUPLICATE_PRINT_PATTERN[tags['SPOTY_SOURCE']]
         txt = parse_pattern(tags, print_pattern)
         print("  " + txt)
 
@@ -794,3 +795,19 @@ def compare_by_tags(source_list: list, dest_list: list, tags_to_compare: list, d
             del dest_unique[id]
 
 
+def move_audio_files_to_path(tags_list, path):
+    moved_files = []
+    for tags in tags_list:
+        if 'SPOTY_FILE_NAME' in tags:
+            old_file_name = tags['SPOTY_FILE_NAME']
+
+            base_name = os.path.basename(old_file_name)
+
+            new_file_name = os.path.join(path, base_name)
+            if os.path.isfile(new_file_name):
+                new_file_name = find_empty_file_name(new_file_name)
+
+            os.rename(old_file_name, new_file_name)
+            moved_files.append(new_file_name)
+
+    return moved_files

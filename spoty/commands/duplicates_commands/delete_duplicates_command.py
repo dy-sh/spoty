@@ -8,7 +8,7 @@ import click
 
 @click.command("delete")
 @click.option('--print-pattern', '--pp', show_default=True,
-              help='Print a list of tracks according to this formatting pattern. If not specified, DUPLICATE_PRINT_PATTERNS setting from the config file will be used.')
+              help='Print a list of tracks according to this formatting pattern. If not specified, DUPLICATE_PRINT_PATTERN setting from the config file will be used.')
 @click.option('--confirm', '-y', type=bool, is_flag=True, default=False,
               help='Do not ask for confirmation')
 @click.pass_obj

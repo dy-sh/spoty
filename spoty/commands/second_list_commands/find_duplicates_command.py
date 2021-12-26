@@ -81,5 +81,5 @@ Find duplicates between the first and second list of tracks.
 # find_duplicates.add_command(compare_command.compare)
 find_duplicates.add_command(delete_duplicates_command.delete_duplicates)
 find_duplicates.add_command(export_duplicates_command.export_duplicates)
-# find_duplicates.add_command(move_duplicates_command.move_duplicates)
+find_duplicates.add_command(move_duplicates_command.move_duplicates)
 find_duplicates.add_command(print_duplicates_command.print_duplicates)
