@@ -1,11 +1,8 @@
 import os.path
+from random import random
+
 from spoty import settings
-
-
-class SpotyContext:
-    tags_lists: list = []
-    summary: list = []
-
+from typing import List
 
 tag_allies = [
     ['YEAR', 'DATE'],
@@ -89,6 +86,39 @@ additional_tags = \
         'UPC',
         'WRITER',
     ]
+
+
+
+class DuplicatesGroup:
+    source_def_duplicates: list
+    dest_def_duplicates: list
+    source_prop_duplicates: list
+    dest_prop_duplicates: list
+
+    def __init__(self):
+        self.source_def_duplicates = []
+        self.dest_def_duplicates = []
+        self.source_prop_duplicates = []
+        self.dest_prop_duplicates = []
+
+    def get_duplicates_count(self):
+        return len(self.source_def_duplicates) + len(self.dest_def_duplicates) \
+               + len(self.source_prop_duplicates) + len(self.dest_prop_duplicates)
+
+    def has_duplicates(self):
+        return self.get_duplicates_count() > 1
+
+
+
+class SpotyContext:
+    tags_lists: list
+    summary: list
+    duplicates_groups: List[DuplicatesGroup]
+
+    def __init__(self):
+        self.tags_lists = []
+        self.summary = []
+        self.duplicates_groups = []
 
 
 def tuple_to_list(some_tuple: tuple):
@@ -466,6 +496,7 @@ def clean_tags_list_before_write(tags_list):
             del tags['LENGTH']
     return tags_list
 
+
 def clean_tags_list_after_read(tags_list):
     for i, tags in enumerate(tags_list):
         tags_list[i] = clean_tags_after_read(tags)
@@ -501,7 +532,8 @@ def clean_tags_after_read(tags):
     return tags
 
 
-def compare_tags_lists(source_list: list, dest_list: list, compare_tags_def: list, compare_tags_prob: list, add_dup_tags=False):
+def compare_tags_lists(source_list: list, dest_list: list, compare_tags_def: list, compare_tags_prob: list,
+                       add_dup_tags=False):
     # get tags to compare from config
 
     for i, tags in enumerate(compare_tags_def):
@@ -589,7 +621,78 @@ def compare_tags_lists(source_list: list, dest_list: list, compare_tags_def: lis
     return source_unique, dest_unique, source_def_dups, dest_def_dups, source_prob_dups, dest_prob_dups
 
 
-def compare_by_tags(source_list: list, dest_list: list, tags_to_compare: list, dest_unique: dict, dest_dups: dict, dup_tag: str, add_dup_tags=False):
+def check_duplicates(source_tags_list, dest_tags, compare_tags_list):
+    for source_tags in source_tags_list:
+        for tags_to_compare in compare_tags_list:
+            if compare_tags(source_tags, dest_tags, tags_to_compare, False):
+                return True
+    return False
+
+
+def compare_tags_lists_grouped(source_list: list, dest_list: list, compare_tags_def: list, compare_tags_prob: list,
+                               add_unique=False):
+    # get tags to compare from config
+
+    for i, tags in enumerate(compare_tags_def):
+        compare_tags_def[i] = tags.split(',')
+
+    for i, tags in enumerate(compare_tags_prob):
+        compare_tags_prob[i] = tags.split(',')
+
+    duplicates_groups: List[DuplicatesGroup] = []
+
+    # find duplicates in sources
+
+    for source_tags in source_list:
+        found = False
+        for dup in duplicates_groups:
+            if check_duplicates(dup.source_def_duplicates, source_tags, compare_tags_def):
+                dup.source_def_duplicates.append(source_tags)
+                found = True
+                break
+            elif check_duplicates(dup.source_def_duplicates, source_tags, compare_tags_prob):
+                dup.source_prop_duplicates.append(source_tags)
+                found = True
+                break
+            elif check_duplicates(dup.source_prop_duplicates, source_tags, compare_tags_prob):
+                dup.source_prop_duplicates.append(source_tags)
+                found = True
+                break
+        if not found:
+            d = DuplicatesGroup()
+            d.source_def_duplicates.append(source_tags)
+            duplicates_groups.append(d)
+
+    # find duplicates in dest
+
+    for dest_tags in dest_list:
+        found = False
+        for dup in duplicates_groups:
+            if check_duplicates(dup.source_def_duplicates, dest_tags, compare_tags_def):
+                dup.dest_def_duplicates.append(dest_tags)
+                found = True
+                break
+            elif check_duplicates(dup.source_def_duplicates, dest_tags, compare_tags_prob):
+                dup.dest_prop_duplicates.append(dest_tags)
+                found = True
+                break
+            elif check_duplicates(dup.source_prop_duplicates, dest_tags, compare_tags_prob):
+                dup.dest_prop_duplicates.append(dest_tags)
+                found = True
+                break
+        if not found:
+            d = DuplicatesGroup()
+            d.dest_def_duplicates.append(dest_tags)
+            duplicates_groups.append(d)
+
+    if not add_unique:
+        duplicates_groups = [group for group in duplicates_groups if group.has_duplicates()]
+
+    return duplicates_groups
+
+
+def compare_by_tags(source_list: list, dest_list: list, tags_to_compare: list, dest_unique: dict, dest_dups: dict,
+                    dup_tag: str, add_dup_tags=False):
     unique = []
     dups = []
     for dest_tags in dest_list:
