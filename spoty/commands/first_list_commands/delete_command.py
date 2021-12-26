@@ -53,13 +53,31 @@ Delete tracks.
 
         spoty.utils.print_tags_list_grouped(tags_list, print_pattern, grouping_pattern)
 
-
-
     if not confirm:
         click.confirm(f'Are you sure you want to delete {len(all_tags_list)} tracks?', abort=True)
 
     context.summary.append('Deleting:')
 
+    deleted_spotify_tracks, deleted_deezer_tracks, deleted_audio_files, deleted_csv_tracks = \
+        delete_tracks_from_all_sources(all_tags_list)
+
+    if len(deleted_spotify_tracks) > 0:
+        context.summary.append(f'  {len(deleted_spotify_tracks)} tracks deleted from Spotify.')
+
+    if len(deleted_deezer_tracks) > 0:
+        context.summary.append(f'  {len(deleted_deezer_tracks)} tracks deleted from Deezer.')
+
+    if len(deleted_audio_files) > 0:
+        context.summary.append(f'  {len(deleted_audio_files)} audio files deleted.')
+
+    if len(deleted_csv_tracks) > 0:
+        context.summary.append(f'  {len(deleted_csv_tracks)} tracks from csv deleted.')
+
+    click.echo('\n------------------------------------------------------------')
+    click.echo('\n'.join(context.summary))
+
+
+def delete_tracks_from_all_sources(all_tags_list):
     spotify_playlists = {}
     deezer_playlists = {}
     local_audio_files = []
@@ -82,19 +100,17 @@ Delete tracks.
 
     # todo: delete from csv
 
-    deleted_spotify_tracks=[]
+    deleted_spotify_tracks = []
     if len(spotify_playlists.keys()) > 0:
         for playlist_id, track_ids in spotify_playlists.items():
             spoty.spotify_api.remove_tracks_from_playlist(playlist_id, track_ids)
             deleted_spotify_tracks.extend(track_ids)
-        context.summary.append(f'  {len(deleted_spotify_tracks)} tracks deleted from Spotify.')
 
-    deleted_deezer_tracks=[]
+    deleted_deezer_tracks = []
     if len(deezer_playlists.keys()) > 0:
         for playlist_id, track_ids in deezer_playlists.items():
             spoty.deezer_api.remove_tracks_from_playlist(playlist_id, track_ids)
             deleted_deezer_tracks.extend(track_ids)
-        context.summary.append(f'  {len(deleted_deezer_tracks)} tracks deleted from Deezer.')
 
     deleted_audio_files = []
     if len(local_audio_files) > 0:
@@ -102,7 +118,7 @@ Delete tracks.
             if spoty.utils.is_valid_file(file_name):
                 os.remove(file_name)
                 deleted_audio_files.append(file_name)
-        context.summary.append(f'  {len(deleted_audio_files)} audio files deleted.')
 
-    click.echo('\n------------------------------------------------------------')
-    click.echo('\n'.join(context.summary))
+    deleted_csv_tracks = []
+
+    return deleted_spotify_tracks, deleted_deezer_tracks, deleted_audio_files, deleted_csv_tracks
