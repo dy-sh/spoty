@@ -7,8 +7,7 @@ import click
 
 @click.command("print")
 @click.option('--print-pattern', '--pp', show_default=True,
-              default=settings.SPOTY.DEFAULT_PRINT_DUPLICATES_PATTERN,
-              help='Print a list of tracks according to this formatting pattern.')
+              help='Print a list of tracks according to this formatting pattern. If not specified, DUPLICATE_PRINT_PATTERNS setting from the config file will be used.')
 @click.pass_obj
 def print_duplicates(context: SpotyContext,
                      print_pattern,
@@ -25,19 +24,19 @@ Print a list of duplicates to console.
                 click.echo("Source:")
             else:
                 click.echo("Source definitely duplicates:")
-            spoty.utils.print_tags_list(group.source_def_duplicates, print_pattern)
+            spoty.utils.print_duplicates_tags_list(group.source_def_duplicates, print_pattern)
 
         if len(group.source_prob_duplicates) > 0:
             click.echo("Source probably duplicates:")
-            spoty.utils.print_tags_list(group.source_prob_duplicates, print_pattern)
+            spoty.utils.print_duplicates_tags_list(group.source_prob_duplicates, print_pattern)
 
         if len(group.dest_def_duplicates) > 0:
             click.echo("Destination definitely duplicates:")
-            spoty.utils.print_tags_list(group.dest_def_duplicates, print_pattern)
+            spoty.utils.print_duplicates_tags_list(group.dest_def_duplicates, print_pattern)
 
         if len(group.dest_prob_duplicates) > 0:
             click.echo("Destination probably duplicates:")
-            spoty.utils.print_tags_list(group.dest_prob_duplicates, print_pattern)
+            spoty.utils.print_duplicates_tags_list(group.dest_prob_duplicates, print_pattern)
 
 
     click.echo('\n------------------------------------------------------------')

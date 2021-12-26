@@ -8,8 +8,7 @@ import click
 
 @click.command("delete")
 @click.option('--print-pattern', '--pp', show_default=True,
-              default=settings.SPOTY.DEFAULT_PRINT_DUPLICATES_PATTERN,
-              help='Print a list of tracks according to this formatting pattern.')
+              help='Print a list of tracks according to this formatting pattern. If not specified, DUPLICATE_PRINT_PATTERNS setting from the config file will be used.')
 @click.option('--confirm', '-y', type=bool, is_flag=True, default=False,
               help='Do not ask for confirmation')
 @click.pass_obj
@@ -34,9 +33,9 @@ Delete duplicates in destination path.
 
     for i, group in enumerate(context.duplicates_groups):
         if len(group.dest_def_duplicates) > 0:
-            spoty.utils.print_tags_list(group.dest_def_duplicates, print_pattern)
+            spoty.utils.print_duplicates_tags_list(group.dest_def_duplicates, print_pattern)
         if len(group.dest_prob_duplicates) > 0:
-            spoty.utils.print_tags_list(group.dest_prob_duplicates, print_pattern)
+            spoty.utils.print_duplicates_tags_list(group.dest_prob_duplicates, print_pattern)
 
     if not confirm:
         click.confirm(f'Are you sure you want to delete {len(all_tags_list)} tracks?', abort=True)

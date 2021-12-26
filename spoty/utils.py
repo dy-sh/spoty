@@ -341,6 +341,16 @@ def print_tags_list(tags_list: list, print_pattern: str):
         txt = parse_pattern(tags, print_pattern)
         print("  " + txt)
 
+def print_duplicates_tags_list(tags_list: list, print_pattern: str=None):
+    if len(tags_list) == 0:
+        return
+
+    for tags in tags_list:
+        if print_pattern is None:
+            print_pattern = settings.DUPLICATE_PRINT_PATTERNS[tags['SPOTY_SOURCE']]
+        txt = parse_pattern(tags, print_pattern)
+        print("  " + txt)
+
 
 def check_tag_has_allies(tag: str):
     for allies in tag_allies:

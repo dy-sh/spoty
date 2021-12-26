@@ -90,6 +90,6 @@ if __name__ == '__main__':
         # 'duplicates','-p',
         'duplicates',
         'delete',
-        # 'delete'
+        # 'print'
          # '-y',
          ])
