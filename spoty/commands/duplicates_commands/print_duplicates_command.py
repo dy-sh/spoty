@@ -17,11 +17,6 @@ def print_duplicates(context: SpotyContext,
 Print a list of duplicates to console.
     """
 
-    total_source_def_duplicates_count = 0
-    total_dest_def_duplicates_count = 0
-    total_source_prob_duplicates_count = 0
-    total_dest_prob_duplicates_count = 0
-
     for i, group in enumerate(context.duplicates_groups):
         click.echo()
         click.echo(f"--------------------------- GROUP {i+1}/{len(context.duplicates_groups)} ---------------------------")
@@ -43,13 +38,6 @@ Print a list of duplicates to console.
         if len(group.dest_prob_duplicates) > 0:
             click.echo("Destination probably duplicates:")
             spoty.utils.print_tags_list(group.dest_prob_duplicates, print_pattern)
-
-        total_source_def_duplicates_count = len(group.source_def_duplicates) - 1
-        total_dest_def_duplicates_count = len(group.dest_prob_duplicates)
-        total_source_prob_duplicates_count = len(group.dest_def_duplicates)
-        total_dest_prob_duplicates_count = len(group.dest_prob_duplicates)
-
-
 
 
     click.echo('\n------------------------------------------------------------')

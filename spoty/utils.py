@@ -94,11 +94,21 @@ class DuplicatesGroup:
     source_prob_duplicates: list
     dest_prob_duplicates: list
 
+    source_def_found_tags: list
+    dest_def_found_tags: list
+    source_prob_found_tags: list
+    dest_prob_found_tags: list
+
     def __init__(self):
         self.source_def_duplicates = []
         self.dest_def_duplicates = []
         self.source_prob_duplicates = []
         self.dest_prob_duplicates = []
+
+        self.source_def_found_tags = []
+        self.dest_def_found_tags = []
+        self.source_prob_found_tags = []
+        self.dest_prob_found_tags = []
 
     def get_duplicates_count(self):
         return len(self.source_def_duplicates) + len(self.dest_def_duplicates) \
@@ -328,7 +338,7 @@ def print_tags_list(tags_list: list, print_pattern: str):
 
     for tags in tags_list:
         txt = parse_pattern(tags, print_pattern)
-        print("  "+txt)
+        print("  " + txt)
 
 
 def check_tag_has_allies(tag: str):
@@ -634,11 +644,12 @@ def check_duplicates(source_tags_list, dest_tags, compare_tags_list):
     for source_tags in source_tags_list:
         for tags_to_compare in compare_tags_list:
             if compare_tags(source_tags, dest_tags, tags_to_compare, False):
-                return True
-    return False
+                return tags_to_compare
+    return None
 
 
-def compare_tags_lists_grouped(source_list: list, dest_list: list, compare_tags_def: list, compare_tags_prob: list):
+def compare_tags_lists_grouped(source_list: list, dest_list: list, compare_tags_def: list, compare_tags_prob: list,
+                               add_dup_tags=False):
     # get tags to compare from config
 
     for i, tags in enumerate(compare_tags_def):
@@ -654,21 +665,28 @@ def compare_tags_lists_grouped(source_list: list, dest_list: list, compare_tags_
     for source_tags in source_list:
         found = False
         for dup in tracks_groups:
-            if check_duplicates(dup.source_def_duplicates, source_tags, compare_tags_def):
+            found_tags = check_duplicates(dup.source_def_duplicates, source_tags, compare_tags_def)
+            if found_tags is not None:
                 dup.source_def_duplicates.append(source_tags)
+                dup.source_def_found_tags.append(found_tags)
                 found = True
                 break
-            elif check_duplicates(dup.source_def_duplicates, source_tags, compare_tags_prob):
+            found_tags = check_duplicates(dup.source_def_duplicates, source_tags, compare_tags_prob)
+            if found_tags is not None:
                 dup.source_prob_duplicates.append(source_tags)
+                dup.source_prob_found_tags.append(found_tags)
                 found = True
                 break
-            elif check_duplicates(dup.source_prob_duplicates, source_tags, compare_tags_prob):
+            found_tags = check_duplicates(dup.source_prob_duplicates, source_tags, compare_tags_prob)
+            if found_tags is not None:
                 dup.source_prob_duplicates.append(source_tags)
+                dup.source_prob_found_tags.append(found_tags)
                 found = True
                 break
         if not found:
             d = DuplicatesGroup()
             d.source_def_duplicates.append(source_tags)
+            d.source_def_found_tags.append([])
             tracks_groups.append(d)
 
     # find duplicates in dest
@@ -676,21 +694,28 @@ def compare_tags_lists_grouped(source_list: list, dest_list: list, compare_tags_
     for dest_tags in dest_list:
         found = False
         for dup in tracks_groups:
-            if check_duplicates(dup.source_def_duplicates, dest_tags, compare_tags_def):
+            found_tags = check_duplicates(dup.source_def_duplicates, dest_tags, compare_tags_def)
+            if found_tags is not None:
                 dup.dest_def_duplicates.append(dest_tags)
+                dup.dest_def_found_tags.append(found_tags)
                 found = True
                 break
-            elif check_duplicates(dup.source_def_duplicates, dest_tags, compare_tags_prob):
+            found_tags = check_duplicates(dup.source_def_duplicates, dest_tags, compare_tags_prob)
+            if found_tags is not None:
                 dup.dest_prob_duplicates.append(dest_tags)
+                dup.dest_prob_found_tags.append(found_tags)
                 found = True
                 break
-            elif check_duplicates(dup.source_prob_duplicates, dest_tags, compare_tags_prob):
+            found_tags = check_duplicates(dup.source_prob_duplicates, dest_tags, compare_tags_prob)
+            if found_tags is not None:
                 dup.dest_prob_duplicates.append(dest_tags)
+                dup.dest_prob_found_tags.append(found_tags)
                 found = True
                 break
         if not found:
             d = DuplicatesGroup()
             d.dest_def_duplicates.append(dest_tags)
+            d.dest_def_found_tags.append([])
             tracks_groups.append(d)
 
     # remove unique
