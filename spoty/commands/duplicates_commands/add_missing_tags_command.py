@@ -22,14 +22,14 @@ def add_missing_tags(context: SpotyContext,
                      confirm
             ):
     """
-Collect tags from all duplicated tracks and update them all.
+Collect tags from all duplicated tracks and add missing tags (update them all).
     """
 
     tags_to_add={}
     with click.progressbar(context.duplicates_groups, label='Collecting missing tags') as bar:
         for group in bar:
             # collect all tags
-            all_group_tags=group.source_tags
+            all_group_tags=group.source_tags.copy()
             for tags in group.def_duplicates:
                 new_tags = spoty.utils.get_missing_tags(all_group_tags, tags)
                 for key,value in new_tags.items():

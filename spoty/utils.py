@@ -630,17 +630,6 @@ def find_duplicates_in_tag_list2(tags_list: list, compare_tags_def_list: list, c
         else:
             unique_tracks.append(group.source_tags)
 
-    # move source to dup
-
-    for group in groups:
-        if len(group.def_duplicates) > 0:
-            group.def_duplicates.insert(0, group.source_tags)
-            group.def_found_tags.insert(0, [])
-        else:
-            group.prob_duplicates.insert(0, group.source_tags)
-            group.prob_found_tags.insert(0, [])
-        group.source_tags = {}
-
     if add_dup_tags:
         for i, group in enumerate(duplicates_groups):
             if len(group.source_tags.items()) > 0:
