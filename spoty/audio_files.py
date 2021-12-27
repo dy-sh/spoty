@@ -2,7 +2,7 @@ from spoty import log
 import spoty.utils
 import os.path
 import click
-import time
+import time, datetime
 from mutagen.flac import FLAC
 from mutagen.mp3 import MP3
 from mutagen.easyid3 import EasyID3
@@ -84,6 +84,7 @@ def read_audio_file_tags(file_name, add_spoty_tags=True):
         tags['SPOTY_FILE_NAME'] = file_name
         tags['SPOTY_SOURCE'] = "LOCAL"
         tags['SPOTY_PLAYLIST_NAME'] = os.path.basename(os.path.normpath(dir))
+        tags['SPOTY_TRACK_ADDED'] =  datetime.datetime.fromtimestamp(os.path.getctime(file_name)).strftime('%Y-%m-%d %H:%M:%S')
 
     if is_flac(file_name):
         try:
