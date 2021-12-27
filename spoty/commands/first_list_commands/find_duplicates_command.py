@@ -49,7 +49,7 @@ Find duplicates.
                                                                                 compare_tags_prob, True)
 
     context.duplicates_groups = duplicates_groups
-    context.unique_source_tracks = unique_tracks
+    context.unique_first_tracks = unique_tracks
 
     total_def_duplicates_count = 0
     total_prob_duplicates_count = 0

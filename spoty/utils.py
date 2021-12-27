@@ -121,15 +121,15 @@ class SpotyContext:
     tags_lists: list
     summary: list
     duplicates_groups: List[DuplicatesGroup]
-    unique_source_tracks: list
-    unique_dest_tracks: list
+    unique_first_tracks: list
+    unique_second_tracks: list
 
     def __init__(self):
         self.tags_lists = []
         self.summary = []
         self.duplicates_groups = []
-        self.unique_source_tracks = []
-        self.unique_dest_tracks = []
+        self.unique_first_tracks = []
+        self.unique_second_tracks = []
 
 
 def tuple_to_list(some_tuple: tuple):

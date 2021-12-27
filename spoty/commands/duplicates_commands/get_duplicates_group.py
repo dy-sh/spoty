@@ -29,19 +29,21 @@ Get duplicates for further actions (see next commands).
         click.echo(f'Simultaneous use of "--only-def" and "--only-prob" is not possible', err=True)
         exit()
 
-    all_tags_list = []
+    context.tags_lists.clear()
+    context.tags_lists.append([])
+
     for group in context.duplicates_groups:
         if not only_prob:
-            all_tags_list.extend(group.def_duplicates)
+            context.tags_lists[0].extend(group.def_duplicates)
         if not only_def:
-            all_tags_list.extend(group.prob_duplicates)
+            context.tags_lists[0].extend(group.prob_duplicates)
 
-    context.tags_lists.clear()
-    context.tags_lists.append(all_tags_list)
+    context.summary.append("Collecting duplicates:")
+    context.summary.append(f'  {len(context.tags_lists[0])} duplicates collected.')
 
-    context.summary.append("Collecting:")
-    context.summary.append(f'  {len(all_tags_list)} duplicates collected.')
-
+    context.duplicates_groups = []
+    context.unique_first_tracks = []
+    context.unique_second_tracks = []
 
 get_duplicates.add_command(count_command.count_tracks)
 get_duplicates.add_command(print_command.print_tracks)
