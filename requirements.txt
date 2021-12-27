@@ -7,3 +7,4 @@ deezersdk
 Flask
 deemix
 toml
+python-dateutil

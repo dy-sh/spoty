@@ -74,6 +74,7 @@ if __name__ == '__main__':
          # '--a', r'.\music\TEST2\qqq',
          # '--c', '.\MUSIC LIBRARY',
          # 'filter', '--leave-duplicates',
+         'filter', '--leave-added-after','2021-12-19 21:11:53',
          # '--lnt', 'isrc',
          # 'import-spotify',
         # 'get-second',
@@ -88,9 +89,9 @@ if __name__ == '__main__':
          # 'import-deezer','-ry',
          # 'import-deezer','-ry',
         # 'duplicates','-p',
-        'duplicates',
-        'add-missing-tags',
-        # 'print'
+        # 'duplicates',
+        # 'add-missing-tags',
+        'print'
         # 'export'
         # '-y',
          ])

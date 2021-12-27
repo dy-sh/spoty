@@ -21,9 +21,9 @@ import click
               help='Leave only tracks that have all of the specified tags.')
 @click.option('--leave-no-tags', '--lnt', multiple=True,
               help='Leave only tracks that do not have any of the specified tags.')
-@click.option('--remove-duplicates', '--rd', '-d', type=bool, is_flag=True, default=False,
+@click.option('--remove-duplicates', '--rd', '-d', is_flag=True,
               help='Remove duplicates.')
-@click.option('--leave-duplicates', '--ld', '-l', type=bool, is_flag=True, default=False,
+@click.option('--leave-duplicates', '--ld', '-l', is_flag=True,
               help='Leave only duplicates.')
 @click.option('--duplicates-compare-tags', '--dct', show_default=True, multiple=True,
               default=settings.SPOTY.COMPARE_TAGS_DEFINITELY_DUPLICATE,
@@ -50,6 +50,7 @@ Filter tracks.
                                        duplicates_compare_tags
                                        )
 
+
 filter_second.add_command(count_command.count_tracks)
 filter_second.add_command(print_command.print_tracks)
 filter_second.add_command(export_command.export_tracks)
@@ -59,4 +60,3 @@ filter_second.add_command(move_duplicates_command.move_duplicates)
 filter_second.add_command(delete_command.delete_tracks)
 filter_second.add_command(add_missing_tags_command.add_missing_tags)
 filter_second.add_command(find_duplicates_second_command.find_duplicates_second)
-

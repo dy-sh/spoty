@@ -1,8 +1,11 @@
 import os.path
-from random import random
+from datetime import datetime
+
+import click
 
 from spoty import settings
 from typing import List
+import dateutil.parser
 
 tag_allies = [
     ['YEAR', 'DATE'],
@@ -400,6 +403,44 @@ def filter_tags_list_have_no_tags(tags_list: list, filter_tags: list):
     for tags in tags_list:
         if not check_all_tags_exist(tags, filter_tags):
             filtered.append(tags)
+    return filtered
+
+
+def filter_added_after_date(tags_list: list, date: str, add_if_date_tag_missing=False):
+    filtered = []
+    for tags in tags_list:
+        if 'SPOTY_TRACK_ADDED' in tags:
+            track_added = datetime.strptime(tags['SPOTY_TRACK_ADDED'], "%Y-%m-%d %H:%M:%S")
+            # specified_date = datetime.strptime(added_after_time, "%Y-%m-%d %H:%M:%S")
+            try:
+                specified_date = dateutil.parser.parse(date)
+            except:
+                click.echo(f'Cant parse date: "{date}". Use this format: "2018-06-29 08:15:27"', err=True)
+                exit()
+            if track_added > specified_date:
+                filtered.append(tags)
+        else:
+            if add_if_date_tag_missing:
+                filtered.append(tags)
+    return filtered
+
+
+def filter_added_before_date(tags_list: list, date: str, add_if_date_tag_missing=False):
+    filtered = []
+    for tags in tags_list:
+        if 'SPOTY_TRACK_ADDED' in tags:
+            track_added = datetime.strptime(tags['SPOTY_TRACK_ADDED'], "%Y-%m-%d %H:%M:%S")
+            # specified_date = datetime.strptime(added_after_time, "%Y-%m-%d %H:%M:%S")
+            try:
+                specified_date = dateutil.parser.parse(date)
+            except:
+                click.echo(f'Cant parse date: "{date}". Use this format: "2018-06-29 08:15:27"', err=True)
+                exit()
+            if track_added < specified_date:
+                filtered.append(tags)
+        else:
+            if add_if_date_tag_missing:
+                filtered.append(tags)
     return filtered
 
 
