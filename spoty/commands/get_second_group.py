@@ -14,7 +14,7 @@ from spoty.utils import SpotyContext
 import click
 
 
-@click.group("get-second")
+@click.group("get")
 @click.option('--spotify-playlist', '--sp', multiple=True,
               help='Get tracks from Spotify playlist URI or ID.')
 @click.option('--spotify-entire-library', '--s', multiple=True,
@@ -46,9 +46,10 @@ def get_second(context: SpotyContext,
             no_recursive
             ):
     """
-Take another list of tracks that you can use to compare against the first list.
+Collect second list of tracks for further actions (see next commands).
     """
 
+    context.summary.append("Collecting second list:")
     get_group.get_tracks_wrapper(context,
                                  spotify_playlist,
                                  spotify_entire_library,

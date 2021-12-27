@@ -3,7 +3,8 @@ from spoty.commands.duplicates_commands import \
     delete_duplicates_command, \
     export_duplicates_command, \
     move_duplicates_command, \
-    print_duplicates_command
+    print_duplicates_command, \
+    get_duplicates_group
 from spoty.utils import SpotyContext
 from spoty import settings
 from spoty import log
@@ -64,13 +65,16 @@ Find duplicates between the first and second list of tracks.
 
     context.summary.append("Finding duplicates:")
     if total_def_duplicates_count > 0:
-        context.summary.append(f'  {total_def_duplicates_count} definitely duplicates found')
+        context.summary.append(f'  {total_def_duplicates_count} definitely duplicates found.')
     if total_prob_duplicates_count > 0:
-        context.summary.append(f'  {total_prob_duplicates_count} probably duplicates found')
+        context.summary.append(f'  {total_prob_duplicates_count} probably duplicates found.')
 
+    if total_def_duplicates_count == 0 and total_prob_duplicates_count == 0:
+        context.summary.append(f'  0 duplicates found.')
 
 find_duplicates_second.add_command(add_missing_tags_command.add_missing_tags)
 find_duplicates_second.add_command(delete_duplicates_command.delete_duplicates)
 find_duplicates_second.add_command(export_duplicates_command.export_duplicates)
 find_duplicates_second.add_command(move_duplicates_command.move_duplicates)
 find_duplicates_second.add_command(print_duplicates_command.print_duplicates)
+find_duplicates_second.add_command(get_duplicates_group.get_duplicates)

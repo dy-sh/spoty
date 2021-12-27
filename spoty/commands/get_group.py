@@ -51,11 +51,13 @@ def get_tracks(
         no_recursive,
 ):
     """
-Get tracks from sources.
+Get tracks from sources for further actions (see next commands).
     """
 
     if ctx.obj is None:
         ctx.obj = SpotyContext()
+
+    ctx.obj.summary.append("Collecting:")
 
     get_tracks_wrapper(
         ctx.obj,
@@ -192,25 +194,26 @@ def get_tracks_wrapper(
 
     summary = []
 
-    summary.append("Collecting:")
     if len(tags_list_from_spotify) > 0:
-        summary.append(f'  {len(tags_list_from_spotify)} tracks found in {len(spotify_playlists)} Spotify playlists.')
+        context.summary.append(f'  {len(tags_list_from_spotify)} tracks found in {len(spotify_playlists)} Spotify playlists.')
     if len(tags_list_from_deezer) > 0:
-        summary.append(f'  {len(tags_list_from_deezer)} tracks found in {len(deezer_playlists)} Deezer playlists.')
+        context.summary.append(f'  {len(tags_list_from_deezer)} tracks found in {len(deezer_playlists)} Deezer playlists.')
     if len(tags_list_from_audio) > 0:
-        summary.append(f'  {len(tags_list_from_audio)} audio files found in local path.')
+        context.summary.append(f'  {len(tags_list_from_audio)} audio files found in local path.')
     if len(tags_list_from_csv) > 0:
-        summary.append(f'  {len(tags_list_from_csv)} tracks found in {len(csv_files)} csv playlists.')
+        context.summary.append(f'  {len(tags_list_from_csv)} tracks found in {len(csv_files)} csv playlists.')
 
     if not (len(tags_list_from_spotify) == len(all_tags_list) or len(tags_list_from_spotify) == 0) \
             or not (len(tags_list_from_deezer) == len(all_tags_list) or len(tags_list_from_deezer) == 0) \
             or not (len(tags_list_from_audio) == len(all_tags_list) or len(tags_list_from_audio) == 0) \
             or not (len(tags_list_from_csv) == len(all_tags_list) or len(tags_list_from_csv) == 0):
-        summary.append(f'  {len(all_tags_list)} total tracks collected.')
+        context.summary.append(f'  {len(all_tags_list)} total tracks collected.')
+
+    if len(all_tags_list) == 0:
+        context.summary.append(f'  {len(all_tags_list)} total tracks collected.')
 
     # make context
 
-    context.summary.extend(summary)
     context.tags_lists.append(all_tags_list)
 
 
