@@ -17,13 +17,13 @@ def delete_duplicates(context: SpotyContext,
                       confirm
                      ):
     """
-Delete duplicates in destination path.
+Delete duplicates.
     """
 
     all_tags_list = []
     for group in context.duplicates_groups:
-        all_tags_list.extend(group.dest_def_duplicates)
-        all_tags_list.extend(group.dest_prob_duplicates)
+        all_tags_list.extend(group.def_duplicates)
+        all_tags_list.extend(group.prob_duplicates)
 
     if len(all_tags_list) == 0:
         click.echo("No tracks to delete.")
@@ -32,10 +32,10 @@ Delete duplicates in destination path.
     click.echo('Next tracks will be deleted:')
 
     for i, group in enumerate(context.duplicates_groups):
-        if len(group.dest_def_duplicates) > 0:
-            spoty.utils.print_duplicates_tags_list(group.dest_def_duplicates, print_pattern)
-        if len(group.dest_prob_duplicates) > 0:
-            spoty.utils.print_duplicates_tags_list(group.dest_prob_duplicates, print_pattern)
+        if len(group.def_duplicates) > 0:
+            spoty.utils.print_duplicates_tags_list(group.def_duplicates, print_pattern)
+        if len(group.prob_duplicates) > 0:
+            spoty.utils.print_duplicates_tags_list(group.prob_duplicates, print_pattern)
 
     if not confirm:
         click.confirm(f'Are you sure you want to delete {len(all_tags_list)} tracks?', abort=True)

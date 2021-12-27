@@ -9,7 +9,7 @@ from spoty.commands.second_list_commands import \
     find_duplicates_command
 from spoty.commands import filter_second_group
 from spoty.commands import get_group
-from spoty.commands.duplicates_commands import add_missing_tags_command, move_duplicates_command, compare_command
+from spoty.commands.duplicates_commands import add_missing_tags_command, move_duplicates_command
 from spoty.utils import SpotyContext
 import click
 
@@ -69,7 +69,6 @@ get_second.add_command(print_command.print_tracks)
 get_second.add_command(export_command.export_tracks)
 get_second.add_command(import_spotify_command.import_spotify)
 get_second.add_command(import_deezer_command.import_deezer)
-get_second.add_command(compare_command.compare)
 get_second.add_command(move_duplicates_command.move_duplicates)
 get_second.add_command(delete_command.delete_tracks)
 get_second.add_command(add_missing_tags_command.add_missing_tags)

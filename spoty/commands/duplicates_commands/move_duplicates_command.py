@@ -21,15 +21,15 @@ def move_duplicates(context: SpotyContext,
                     confirm
                     ):
     """
-Move duplicated audio files from destination path to specified path.
+Move duplicated audio files to specified path.
     """
     # export result to  csv files
     path = os.path.abspath(path)
 
     all_tags_list = []
     for group in context.duplicates_groups:
-        all_tags_list.extend(group.dest_def_duplicates)
-        all_tags_list.extend(group.dest_prob_duplicates)
+        all_tags_list.extend(group.def_duplicates)
+        all_tags_list.extend(group.prob_duplicates)
 
     if len(all_tags_list) == 0:
         click.echo("No audio files to move.")
@@ -38,10 +38,10 @@ Move duplicated audio files from destination path to specified path.
     click.echo(f'Next audio files will be moved to "{path}":')
 
     for i, group in enumerate(context.duplicates_groups):
-        if len(group.dest_def_duplicates) > 0:
-            spoty.utils.print_duplicates_tags_list(group.dest_def_duplicates, print_pattern)
-        if len(group.dest_prob_duplicates) > 0:
-            spoty.utils.print_duplicates_tags_list(group.dest_prob_duplicates, print_pattern)
+        if len(group.def_duplicates) > 0:
+            spoty.utils.print_duplicates_tags_list(group.def_duplicates, print_pattern)
+        if len(group.prob_duplicates) > 0:
+            spoty.utils.print_duplicates_tags_list(group.prob_duplicates, print_pattern)
 
     if not confirm:
         click.confirm(f'Are you sure you want to move {len(all_tags_list)} audio files?', abort=True)

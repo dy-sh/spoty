@@ -19,24 +19,16 @@ Print a list of duplicates to console.
     for i, group in enumerate(context.duplicates_groups):
         click.echo()
         click.echo(f"--------------------------- GROUP {i+1}/{len(context.duplicates_groups)} ---------------------------")
-        if len(group.source_def_duplicates) > 0:
-            if len(group.source_def_duplicates) == 1:
-                click.echo("Source:")
-            else:
-                click.echo("Source definitely duplicates:")
-            spoty.utils.print_duplicates_tags_list(group.source_def_duplicates, print_pattern)
+        click.echo("Source:")
+        spoty.utils.print_duplicates_tags_list([group.source_tags], print_pattern)
 
-        if len(group.source_prob_duplicates) > 0:
-            click.echo("Source probably duplicates:")
-            spoty.utils.print_duplicates_tags_list(group.source_prob_duplicates, print_pattern)
+        if len(group.def_duplicates) > 0:
+            click.echo("Duplicates:")
+            spoty.utils.print_duplicates_tags_list(group.def_duplicates, print_pattern)
 
-        if len(group.dest_def_duplicates) > 0:
-            click.echo("Destination definitely duplicates:")
-            spoty.utils.print_duplicates_tags_list(group.dest_def_duplicates, print_pattern)
-
-        if len(group.dest_prob_duplicates) > 0:
-            click.echo("Destination probably duplicates:")
-            spoty.utils.print_duplicates_tags_list(group.dest_prob_duplicates, print_pattern)
+        if len(group.prob_duplicates) > 0:
+            click.echo("Probably duplicates:")
+            spoty.utils.print_duplicates_tags_list(group.prob_duplicates, print_pattern)
 
 
     click.echo('\n------------------------------------------------------------')

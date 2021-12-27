@@ -1,6 +1,5 @@
 from spoty.commands.duplicates_commands import \
     add_missing_tags_command, \
-    compare_command, \
     delete_duplicates_command, \
     export_duplicates_command, \
     move_duplicates_command, \
@@ -48,37 +47,29 @@ Find duplicates between the first and second list of tracks.
         compare_tags_prob = []
 
     duplicates_groups, unique_source_tracks, unique_dest_tracks = \
-        spoty.utils.find_duplicates_in_tag_lists_grouped(source_list, dest_list, compare_tags_def, compare_tags_prob,
-                                                         True)
+        spoty.utils.find_duplicates_in_tag_lists(source_list, dest_list, compare_tags_def, compare_tags_prob,
+                                                 True)
 
     context.duplicates_groups = duplicates_groups
     context.unique_source_tracks = unique_source_tracks
     context.unique_dest_tracks = unique_dest_tracks
 
-    total_source_def_duplicates_count = 0
-    total_dest_def_duplicates_count = 0
-    total_source_prob_duplicates_count = 0
-    total_dest_prob_duplicates_count = 0
+    total_def_duplicates_count = 0
+    total_prob_duplicates_count = 0
 
     for group in context.duplicates_groups:
-        total_source_def_duplicates_count += len(group.source_def_duplicates) - 1
-        total_dest_def_duplicates_count += len(group.dest_def_duplicates)
-        total_source_prob_duplicates_count += len(group.source_prob_duplicates)
-        total_dest_prob_duplicates_count += len(group.dest_prob_duplicates)
+        total_def_duplicates_count += len(group.def_duplicates)
+        total_prob_duplicates_count += len(group.prob_duplicates)
+
 
     context.summary.append("Finding duplicates:")
-    if total_source_def_duplicates_count > 0:
-        context.summary.append(f'  {total_source_def_duplicates_count} definitely duplicates in source list')
-    if total_source_prob_duplicates_count > 0:
-        context.summary.append(f'  {total_source_prob_duplicates_count} probably duplicates in source list')
-    if total_dest_def_duplicates_count > 0:
-        context.summary.append(f'  {total_dest_def_duplicates_count} definitely duplicates in destination list')
-    if total_dest_prob_duplicates_count > 0:
-        context.summary.append(f'  {total_dest_prob_duplicates_count} probably duplicates in destination list')
+    if total_def_duplicates_count > 0:
+        context.summary.append(f'  {total_def_duplicates_count} definitely duplicates found')
+    if total_prob_duplicates_count > 0:
+        context.summary.append(f'  {total_prob_duplicates_count} probably duplicates found')
 
 
 find_duplicates.add_command(add_missing_tags_command.add_missing_tags)
-# find_duplicates.add_command(compare_command.compare)
 find_duplicates.add_command(delete_duplicates_command.delete_duplicates)
 find_duplicates.add_command(export_duplicates_command.export_duplicates)
 find_duplicates.add_command(move_duplicates_command.move_duplicates)
