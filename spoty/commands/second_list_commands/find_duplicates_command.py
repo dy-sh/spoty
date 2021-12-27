@@ -77,7 +77,7 @@ Find duplicates between the first and second list of tracks.
         context.summary.append(f'  {total_dest_prob_duplicates_count} probably duplicates in destination list')
 
 
-# find_duplicates.add_command(add_missing_tags_command.add_missing_tags)
+find_duplicates.add_command(add_missing_tags_command.add_missing_tags)
 # find_duplicates.add_command(compare_command.compare)
 find_duplicates.add_command(delete_duplicates_command.delete_duplicates)
 find_duplicates.add_command(export_duplicates_command.export_duplicates)

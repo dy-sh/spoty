@@ -14,64 +14,73 @@ from datetime import datetime
 
 
 @click.command("add-missing-tags")
-@click.option('--result-path', '--rp',
-              default=settings.SPOTY.DEFAULT_EXPORT_PATH,
-              help='Path to create resulting csv files')
-@click.option('--grouping-pattern', '--gp', show_default=True,
-              default=settings.SPOTY.DEFAULT_GROUPING_PATTERN,
-              help='Tracks will be grouped to playlists according to this pattern.')
-@click.option('--compare-tags-def', '--ctd', show_default=True, multiple=True,
-              default=settings.SPOTY.COMPARE_TAGS_DEFINITELY_DUPLICATE,
-              help='Compare definitely duplicates by this tags. It is optional. You can also change the list of tags in the config file.')
-@click.option('--compare-tags-prob', '--ctp', show_default=True, multiple=True,
-              default=settings.SPOTY.COMPARE_TAGS_PROBABLY_DUPLICATE,
-              help='Compare probably duplicates by this tags. It is optional. You can also change the list of tags in the config file.')
+@click.option('--confirm', '-y', is_flag=True,
+              help='Do not ask for confirmation')
+@click.option('--no-dest-tags', '-d', is_flag=True,
+              help='No not collect tags from duplicates in destination folder too (only from source path).')
 @click.pass_obj
 def add_missing_tags(context: SpotyContext,
-            result_path,
-            grouping_pattern,
-            compare_tags_def,
-            compare_tags_prob,
+                     no_dest_tags,
+                     confirm
             ):
     """
-Compare tracks on two lists and export the result (unique tracks, duplicates) to csv files.
+Add missing tags from source tracks to audio files in destination path.
     """
 
-    source_list = context.tags_lists[0]
-    dest_list = context.tags_lists[1]
+    tags_to_add={}
+    with click.progressbar(context.duplicates_groups, label='Collecting missing tags') as bar:
+        for group in bar:
+            all_group_tags={}
+            for tags in group.source_def_duplicates:
+                new_tags = spoty.utils.get_missing_tags(all_group_tags, tags)
+                for key,value in new_tags.items():
+                    all_group_tags[key]=value
+            if not no_dest_tags:
+                for tags in group.dest_def_duplicates:
+                    new_tags = spoty.utils.get_missing_tags(all_group_tags, tags)
+                    for key,value in new_tags.items():
+                        all_group_tags[key]=value
+            for tags in group.source_prob_duplicates:
+                new_tags = spoty.utils.get_missing_tags(all_group_tags, tags)
+                for key,value in new_tags.items():
+                    all_group_tags[key]=value
+            if not no_dest_tags:
+                for tags in group.dest_prob_duplicates:
+                    new_tags = spoty.utils.get_missing_tags(all_group_tags, tags)
+                    for key,value in new_tags.items():
+                        all_group_tags[key]=value
 
-    compare_tags_def = spoty.utils.tuple_to_list(compare_tags_def)
-    compare_tags_prob = spoty.utils.tuple_to_list(compare_tags_prob)
+            for tags in group.dest_def_duplicates:
+                if 'SPOTY_FILE_NAME' in tags:
+                    new_tags = spoty.utils.get_missing_tags(tags,all_group_tags)
+                    if len(new_tags.keys())>0:
+                        tags_to_add[tags['SPOTY_FILE_NAME']]=new_tags
+            for tags in group.dest_prob_duplicates:
+                if 'SPOTY_FILE_NAME' in tags:
+                    new_tags = spoty.utils.get_missing_tags(tags,all_group_tags)
+                    if len(new_tags.keys())>0:
+                        tags_to_add[tags['SPOTY_FILE_NAME']]=new_tags
 
-    duplicates_groups = \
-        spoty.utils.find_duplicates_in_tag_lists_grouped(source_list, dest_list, compare_tags_def, compare_tags_prob, False)
+    if len(tags_to_add.items()) == 0:
+        click.echo("No missing tags found")
+        exit()
 
-    missing_tags = spoty.audio_files.get_missing_tags_from_source_to_dest_audio_files(import_tracks_tags,
-                                                                                      export_tracks_tags,
-                                                                                      compare_tags_arr)
-    for file_name, tags in missing_tags.items():
+    click.echo('Next audio files will be edited:')
+
+    for file_name, tags in tags_to_add.items():
+        click.echo(f'  {file_name}:\n    {",".join(tags.keys())}')
+
+
+
+    if not confirm:
+        click.confirm(f'Are you sure you want to edit tags in {len(tags_to_add.items())} audio files?', abort=True)
+
+    for file_name, tags in tags_to_add.items():
         spoty.audio_files.write_audio_file_tags(file_name, tags)
 
-    click.echo(f'Edited tracks: {len(missing_tags)}/{len(export_tracks_tags)}')
+    context.summary.append('Adding missing tags:')
+    context.summary.append(f'  {len(tags_to_add.items())} audio files edited.')
 
-    # export result to  csv files
-    result_path = os.path.abspath(result_path)
-    date_time_str = datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
-    result_path = os.path.join(result_path, 'compare-' + date_time_str)
 
-    if len(dest_def_dups) > 0:
-        spoty.csv_playlist.create_csvs(dest_def_dups, os.path.join(result_path, 'dest_definitely_duplicates'),
-                                       grouping_pattern)
-    if len(dest_prob_dups) > 0:
-        spoty.csv_playlist.create_csvs(dest_prob_dups, os.path.join(result_path, 'dest_probably_duplicates'),
-                                       grouping_pattern)
-    if len(dest_unique) > 0:
-        spoty.csv_playlist.create_csvs(dest_unique, os.path.join(result_path, 'dest_unique'), grouping_pattern)
-    if len(source_def_dups) > 0:
-        spoty.csv_playlist.create_csvs(source_def_dups, os.path.join(result_path, 'source_definitely_duplicates'),
-                                       grouping_pattern)
-    if len(source_prob_dups) > 0:
-        spoty.csv_playlist.create_csvs(source_prob_dups, os.path.join(result_path, 'source_probably_duplicates'),
-                                       grouping_pattern)
-    if len(source_unique) > 0:
-        spoty.csv_playlist.create_csvs(source_unique, os.path.join(result_path, 'source_unique'), grouping_pattern)
+    click.echo('\n------------------------------------------------------------')
+    click.echo('\n'.join(context.summary))

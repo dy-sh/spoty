@@ -26,15 +26,19 @@ spoty_tags = \
         'SPOTY_TRACK_ID',
         'SPOTY_TRACK_ADDED',
         'SPOTY_LENGTH',
-        # spotify specific
-        'SPOTIFY_TRACK_ID',
-        'SPOTIFY_ALBUM_ID',
-        # deezer specific
-        'DEEZER_TRACK_ID',
-        'DEEZER_ALBUM_ID',
-        'DEEZER_ARTIST_ID',
-        'DEEZER_LYRICS_ID',
     ]
+
+spotify_tags = [
+    'SPOTIFY_TRACK_ID',
+    'SPOTIFY_ALBUM_ID',
+]
+
+deezer_tags=[
+    'DEEZER_TRACK_ID',
+    'DEEZER_ALBUM_ID',
+    'DEEZER_ARTIST_ID',
+    'DEEZER_LYRICS_ID',
+]
 
 main_tags = \
     [
@@ -461,6 +465,14 @@ def reorder_tag_keys_main_first(keys: list):
         if key in keys:
             res.append(key)
 
+    for key in spotify_tags:
+        if key in keys:
+            res.append(key)
+
+    for key in deezer_tags:
+        if key in keys:
+            res.append(key)
+
     # reorder main tags first
     for key in main_tags:
         if key in keys:
@@ -478,7 +490,7 @@ def get_missing_tags(exist_tags: dict, new_tags: dict):
     missing_tags = {}
 
     for key, value in new_tags.items():
-        if key == 'SPOTY_LENGTH':
+        if key == 'LENGTH':
             continue
 
         if key in spoty_tags:
