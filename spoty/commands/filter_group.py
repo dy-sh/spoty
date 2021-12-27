@@ -4,7 +4,8 @@ from spoty.commands.first_list_commands import \
     export_command, \
     import_deezer_command, \
     import_spotify_command, \
-    print_command
+    print_command, \
+    find_duplicates_command
 from spoty.commands import get_second_group
 from spoty.utils import SpotyContext
 from spoty import settings
@@ -40,24 +41,23 @@ Filter tracks.
     """
 
     filter_tracks_wrapper(context,
-                  # playlist_names,
-                  leave_have_tags,
-                  leave_no_tags,
-                  remove_duplicates,
-                  leave_duplicates,
-                  duplicates_compare_tags)
+                          # playlist_names,
+                          leave_have_tags,
+                          leave_no_tags,
+                          remove_duplicates,
+                          leave_duplicates,
+                          duplicates_compare_tags)
 
 
 def filter_tracks_wrapper(context: SpotyContext,
-                  # playlist_names,
-                  leave_have_tags,
-                  leave_no_tags,
-                  remove_duplicates,
-                  leave_duplicates,
-                  duplicates_compare_tags
-                  ):
-
-    tags_list = context.tags_lists[-1] # get last tags list
+                          # playlist_names,
+                          leave_have_tags,
+                          leave_no_tags,
+                          remove_duplicates,
+                          leave_duplicates,
+                          duplicates_compare_tags
+                          ):
+    tags_list = context.tags_lists[-1]  # get last tags list
 
     if len(tags_list) > 0:
         summary = []
@@ -85,20 +85,22 @@ def filter_tracks_wrapper(context: SpotyContext,
                 compare_tags = compare_tags_str.split(',')
                 new_tags_list, dup = spoty.utils.remove_tags_duplicates(tags_list, compare_tags, False)
                 if len(dup) > 0:
-                    summary.append(f'  {len(dup)}/{len(tags_list)} tracks removed (duplicates by tags: {compare_tags_str})')
+                    summary.append(
+                        f'  {len(dup)}/{len(tags_list)} tracks removed (duplicates by tags: {compare_tags_str})')
                 tags_list = new_tags_list
 
         if leave_duplicates:
             compare_tags_list = spoty.utils.tuple_to_list(duplicates_compare_tags)
-            all_dup=[]
+            all_dup = []
             for compare_tags_str in compare_tags_list:
                 compare_tags = compare_tags_str.split(',')
                 new_tags_list, dup = spoty.utils.remove_tags_duplicates(tags_list, compare_tags, False)
                 if len(dup) > 0:
-                    summary.append(f'   {len(dup)}/{len(tags_list)} tracks left (duplicates by tags: {compare_tags_str})')
+                    summary.append(
+                        f'   {len(dup)}/{len(tags_list)} tracks left (duplicates by tags: {compare_tags_str})')
                 tags_list = new_tags_list
                 all_dup.extend(dup)
-            tags_list=all_dup
+            tags_list = all_dup
 
         if len(summary) > 1:
             context.summary.extend(summary)
@@ -113,3 +115,4 @@ filter_tracks.add_command(import_spotify_command.import_spotify)
 filter_tracks.add_command(import_deezer_command.import_deezer)
 filter_tracks.add_command(get_second_group.get_second)
 filter_tracks.add_command(delete_command.delete_tracks)
+filter_tracks.add_command(find_duplicates_command.find_duplicates)

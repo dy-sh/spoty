@@ -76,8 +76,8 @@ if __name__ == '__main__':
          # 'filter', '--leave-duplicates',
          # '--lnt', 'isrc',
          # 'import-spotify',
-        'get-second',
-        '--a', r'.\music\TEST2',
+        # 'get-second',
+        # '--a', r'.\music\TEST2',
         # 'compare','--a', r'.\music\TEST2',
         # 'move-duplicates', '--a', r'.\music\TEST2',
         # '-yr',
@@ -89,7 +89,8 @@ if __name__ == '__main__':
          # 'import-deezer','-ry',
         # 'duplicates','-p',
         'duplicates',
-        'add-missing-tags',
-        # 'print'
-         # '-y',
+        # 'add-missing-tags',
+        'print'
+        # 'export'
+        # '-y',
          ])

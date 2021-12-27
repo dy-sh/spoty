@@ -33,7 +33,7 @@ spotify_tags = [
     'SPOTIFY_ALBUM_ID',
 ]
 
-deezer_tags=[
+deezer_tags = [
     'DEEZER_TRACK_ID',
     'DEEZER_ALBUM_ID',
     'DEEZER_ARTIST_ID',
@@ -94,14 +94,14 @@ additional_tags = \
 
 
 class DuplicatesGroup:
-    source_tags:dict
+    source_tags: dict
     def_duplicates: list
     prob_duplicates: list
     def_found_tags: list
     prob_found_tags: list
 
     def __init__(self):
-        self.source_tags={}
+        self.source_tags = {}
         self.def_duplicates = []
         self.prob_duplicates = []
         self.def_found_tags = []
@@ -566,17 +566,85 @@ def clean_tags_after_read(tags):
     return tags
 
 
-
-
-def find_duplicates_in_groups(check_tags:dict, groups:List[DuplicatesGroup], compare_tags_list:list) -> (DuplicatesGroup,list):
+def find_duplicates_in_groups(check_tags: dict, groups: List[DuplicatesGroup], compare_tags_list: list,
+                              compare_with_def_duplicates=False, compare_with_prob_duplicates=False) -> (
+        DuplicatesGroup, list):
     for tags_to_compare in compare_tags_list:
         for group in groups:
-            if compare_tags(check_tags, group.source_tags, tags_to_compare, False):
-                return group, tags_to_compare
+            if len(group.source_tags.items()) > 0:
+                if compare_tags(check_tags, group.source_tags, tags_to_compare, False):
+                    return group, tags_to_compare
+
+    if compare_with_def_duplicates:
+        for tags_to_compare in compare_tags_list:
+            for group in groups:
+                for tags in group.def_duplicates:
+                    if compare_tags(check_tags, tags, tags_to_compare, False):
+                        return group, tags_to_compare
+
+    if compare_with_prob_duplicates:
+        for tags_to_compare in compare_tags_list:
+            for group in groups:
+                for tags in group.prob_duplicates:
+                    if compare_tags(check_tags, tags, tags_to_compare, False):
+                        return group, tags_to_compare
     return None, None
 
 
+def find_duplicates_in_tag_list2(tags_list: list, compare_tags_def_list: list, compare_tags_prob_list: list,
+                                 add_dup_tags=False):
+    # get tags to compare from config
 
+    for i, tags in enumerate(compare_tags_def_list):
+        compare_tags_def_list[i] = tags.split(',')
+
+    for i, tags in enumerate(compare_tags_prob_list):
+        compare_tags_prob_list[i] = tags.split(',')
+
+    groups: List[DuplicatesGroup] = []
+
+    # find duplicates
+
+    for tags in tags_list:
+        group, found_tags = find_duplicates_in_groups(tags, groups, compare_tags_def_list, True, True)
+        if group is not None:
+            group.def_duplicates.append(tags)
+            group.def_found_tags.append(found_tags)
+        else:
+            group, found_tags = find_duplicates_in_groups(tags, groups, compare_tags_prob_list, True, True)
+            if group is not None:
+                group.prob_duplicates.append(tags)
+                group.prob_found_tags.append(found_tags)
+            else:
+                d = DuplicatesGroup()
+                d.source_tags.append(tags)
+                d.def_found_tags.append([])
+                groups.append(d)
+
+    # remove unique
+
+    unique_tracks = []
+    duplicates_groups: List[DuplicatesGroup] = []
+    for group in groups:
+        if group.get_duplicates_count() > 1:
+            duplicates_groups.append(group)
+        else:
+            unique_tracks.append(group.def_duplicates[0])
+
+
+
+    if add_dup_tags:
+        for i, group in enumerate(duplicates_groups):
+            if len(group.source_tags.items()) > 0:
+                group.source_tags['SPOTY_DUP_GROUP'] = i + 1
+            for y, tags in enumerate(group.def_duplicates):
+                tags['SPOTY_DUP_GROUP'] = i + 1
+                tags['SPOTY_DEF_DUP_TAGS'] = ','.join(group.def_found_tags[y])
+            for y, tags in enumerate(group.prob_duplicates):
+                tags['SPOTY_DUP_GROUP'] = i + 1
+                tags['SPOTY_PROB_DUP_TAGS'] = ','.join(group.prob_found_tags[y])
+
+    return duplicates_groups, unique_tracks
 
 
 def find_duplicates_in_tag_lists(source_list: list, dest_list: list, compare_tags_def_list: list,
@@ -594,7 +662,7 @@ def find_duplicates_in_tag_lists(source_list: list, dest_list: list, compare_tag
 
     for source_tags in source_list:
         d = DuplicatesGroup()
-        d.source_tags=source_tags
+        d.source_tags = source_tags
         groups.append(d)
 
     # find duplicates in dest
@@ -617,7 +685,7 @@ def find_duplicates_in_tag_lists(source_list: list, dest_list: list, compare_tag
     # remove unique source
 
     unique_source_tracks = []
-    duplicates_groups:List[DuplicatesGroup] = []
+    duplicates_groups: List[DuplicatesGroup] = []
     for group in groups:
         if group.has_duplicates():
             duplicates_groups.append(group)
@@ -635,7 +703,6 @@ def find_duplicates_in_tag_lists(source_list: list, dest_list: list, compare_tag
                 tags['SPOTY_PROB_DUP_TAGS'] = ','.join(group.prob_found_tags[y])
 
     return duplicates_groups, unique_source_tracks, unique_dest_tracks
-
 
 
 def compare_by_tags(source_list: list, dest_list: list, tags_to_compare: list, dest_unique: dict, dest_dups: dict,

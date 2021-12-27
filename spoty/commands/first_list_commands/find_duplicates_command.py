@@ -34,11 +34,10 @@ def find_duplicates(context: SpotyContext,
                     no_prob,
                     ):
     """
-Find duplicates between the first and second list of tracks.
+Find duplicates.
     """
 
-    source_list = context.tags_lists[0]
-    dest_list = context.tags_lists[1]
+    tags_list = context.tags_lists[0]
 
     compare_tags_def = spoty.utils.tuple_to_list(compare_tags_def)
     compare_tags_prob = spoty.utils.tuple_to_list(compare_tags_prob)
@@ -46,13 +45,11 @@ Find duplicates between the first and second list of tracks.
     if no_prob:
         compare_tags_prob = []
 
-    duplicates_groups, unique_source_tracks, unique_dest_tracks = \
-        spoty.utils.find_duplicates_in_tag_lists(source_list, dest_list, compare_tags_def, compare_tags_prob,
-                                                 True)
+    duplicates_groups, unique_tracks = spoty.utils.find_duplicates_in_tag_list2(tags_list, compare_tags_def,
+                                                                                compare_tags_prob, True)
 
     context.duplicates_groups = duplicates_groups
-    context.unique_source_tracks = unique_source_tracks
-    context.unique_dest_tracks = unique_dest_tracks
+    context.unique_source_tracks = unique_tracks
 
     total_def_duplicates_count = 0
     total_prob_duplicates_count = 0
@@ -60,7 +57,6 @@ Find duplicates between the first and second list of tracks.
     for group in context.duplicates_groups:
         total_def_duplicates_count += len(group.def_duplicates)
         total_prob_duplicates_count += len(group.prob_duplicates)
-
 
     context.summary.append("Finding duplicates:")
     if total_def_duplicates_count > 0:

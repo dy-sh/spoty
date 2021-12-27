@@ -19,8 +19,9 @@ Print a list of duplicates to console.
     for i, group in enumerate(context.duplicates_groups):
         click.echo()
         click.echo(f"--------------------------- GROUP {i+1}/{len(context.duplicates_groups)} ---------------------------")
-        click.echo("Source:")
-        spoty.utils.print_duplicates_tags_list([group.source_tags], print_pattern)
+        if len(group.source_tags.items())>0:
+            click.echo("Source:")
+            spoty.utils.print_duplicates_tags_list([group.source_tags], print_pattern)
 
         if len(group.def_duplicates) > 0:
             click.echo("Duplicates:")

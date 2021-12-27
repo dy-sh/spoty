@@ -17,31 +17,33 @@ from datetime import datetime
 @click.command("add-missing-tags")
 @click.option('--confirm', '-y', is_flag=True,
               help='Do not ask for confirmation')
-@click.option('--dest-tags', '-d', is_flag=True,
-              help='Collect tags from duplicates in destination folder too.')
 @click.pass_obj
 def add_missing_tags(context: SpotyContext,
-                     dest_tags,
                      confirm
             ):
     """
-Add missing tags from source tracks to audio files in destination path.
+Collect tags from all duplicated tracks and update them all.
     """
 
     tags_to_add={}
     with click.progressbar(context.duplicates_groups, label='Collecting missing tags') as bar:
         for group in bar:
+            # collect all tags
             all_group_tags=group.source_tags
-            if dest_tags:
-                for tags in group.def_duplicates:
-                    new_tags = spoty.utils.get_missing_tags(all_group_tags, tags)
-                    for key,value in new_tags.items():
-                        all_group_tags[key]=value
-                for tags in group.prob_duplicates:
-                    new_tags = spoty.utils.get_missing_tags(all_group_tags, tags)
-                    for key,value in new_tags.items():
-                        all_group_tags[key]=value
+            for tags in group.def_duplicates:
+                new_tags = spoty.utils.get_missing_tags(all_group_tags, tags)
+                for key,value in new_tags.items():
+                    all_group_tags[key]=value
+            for tags in group.prob_duplicates:
+                new_tags = spoty.utils.get_missing_tags(all_group_tags, tags)
+                for key,value in new_tags.items():
+                    all_group_tags[key]=value
 
+            # find missing tags
+            if 'SPOTY_FILE_NAME' in group.source_tags:
+                new_tags = spoty.utils.get_missing_tags(group.source_tags, all_group_tags)
+                if len(new_tags.keys()) > 0:
+                    tags_to_add[group.source_tags['SPOTY_FILE_NAME']] = new_tags
             for tags in group.def_duplicates:
                 if 'SPOTY_FILE_NAME' in tags:
                     new_tags = spoty.utils.get_missing_tags(tags,all_group_tags)
