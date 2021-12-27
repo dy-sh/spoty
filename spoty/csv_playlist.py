@@ -210,32 +210,3 @@ def read_tags_from_csv(csv_file_name, add_spoty_tags=True):
 
     return tags_list
 
-
-def create_csv_from_audio_files(csv_file_name, audio_file_names, overwrite=False):
-    log.info(f'Exporting csv (tracks:{len(audio_file_names)}, file name: {csv_file_name})')
-
-    if os.path.isfile(csv_file_name) and not overwrite:
-        if not click.confirm(f'\nFile "{csv_file_name}" already exist. Overwrite?'):
-            click.echo("\nCanceled")
-            log.info(f'Canceled by user (file already exist)')
-            return None
-        click.echo("")  # for new line
-
-    tags_list = spoty.audio_files.read_audio_files_tags(audio_file_names)
-
-    write_tags_to_csv(tags_list, csv_file_name)
-
-    return tags_list
-
-
-def find_duplicates_in_csvs(path, compare_tags, recursive=True, filter_names=None):
-    tags_list = []
-
-    file_names = find_csvs_in_path(path, recursive, filter_names)
-    for file_name in file_names:
-        tags = read_tags_from_csv(file_name)
-        tags_list.extend(tags)
-
-    duplicates, skipped_tags = spoty.utils.find_duplicates_in_tags(tags_list, compare_tags)
-
-    return duplicates, tags_list, skipped_tags

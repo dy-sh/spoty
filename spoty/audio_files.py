@@ -7,6 +7,7 @@ from mutagen.flac import FLAC
 from mutagen.mp3 import MP3
 from mutagen.easyid3 import EasyID3
 
+
 def is_flac(file_name):
     return file_name.upper().endswith('.FLAC')
 
@@ -47,24 +48,6 @@ def find_audio_files_in_path(path, recursive=True):
             filter(lambda f: is_flac(f) or is_mp3(f), file_names))
 
     return file_names
-
-
-def filter_audio_files_which_have_all_tags(file_names, tags_to_check):
-    filtered = []
-    for file_name in file_names:
-        file_tags = read_audio_file_tags(file_name)
-        if spoty.utils.check_all_tags_exist(file_tags, tags_to_check):
-            filtered.append(file_name)
-    return filtered
-
-
-def filter_audio_files_which_not_have_any_of_tags(file_names, tags_to_check):
-    filtered = []
-    for file_name in file_names:
-        file_tags = read_audio_file_tags(file_name)
-        if not spoty.utils.check_all_tags_exist(file_tags, tags_to_check):
-            filtered.append(file_name)
-    return filtered
 
 
 def write_audio_file_tags(file_name, new_tags):
@@ -113,7 +96,7 @@ def read_audio_file_tags(file_name, add_spoty_tags=True):
                     click.echo('\n' + mess)
                     log.warning(mess)
                     continue
-                if tag[0] in tags: # adding same key with one more value
+                if tag[0] in tags:  # adding same key with one more value
                     tags[tag[0]] += ';' + tag[1]
                 else:
                     tags[tag[0]] = tag[1]
@@ -142,80 +125,3 @@ def read_audio_file_tags(file_name, add_spoty_tags=True):
     tags = spoty.utils.clean_tags_after_read(tags)
 
     return tags
-
-
-def get_missing_tags_in_audio_file(file_name, new_tags):
-    exist_tags = read_audio_file_tags(file_name)
-    missing_tags = spoty.utils.get_missing_tags(exist_tags, new_tags)
-    return missing_tags
-
-
-def get_missing_tags_from_source_to_dest_audio_files(source_tags, dest_tags, compare_tags):
-    missing_tags = {}
-    with click.progressbar(source_tags, label='Searching missing tags in files') as bar:
-        for src_tags in bar:
-            for dest_tags in dest_tags:
-                if spoty.utils.compare_tags(src_tags, dest_tags, compare_tags):
-                    dest_file_name = dest_tags['SPOTY_FILE_NAME']
-                    tags = get_missing_tags_in_audio_file(dest_file_name, src_tags)
-                    if len(tags) > 0:
-                        missing_tags[dest_file_name] = tags
-    return missing_tags
-
-
-def write_missing_tags_to_audio_files(source_tags_list, dest_tags_list, compare_tags):
-    edited_files = []
-    with click.progressbar(source_tags_list, label='Writing missing tags to files') as bar:
-        for src_tags in bar:
-            for dest_tags_list in dest_tags_list:
-                if spoty.utils.compare_tags(src_tags, dest_tags_list, compare_tags):
-                    file_name = dest_tags_list['SPOTY_FILE_NAME']
-                    missing_tags = get_missing_tags_in_audio_file(file_name, src_tags)
-                    if len(missing_tags) > 0:
-                        write_audio_file_tags(file_name, missing_tags)
-                        edited_files.append(file_name)
-                        # click.echo(f'Added {str(added_tags)} to {file_name}')
-                        # log.debug(f'Added {str(added_tags)} to {file_name}')
-    return edited_files, dest_tags_list
-
-
-def fix_invalid_audio_file_tags(path, recursive=True):
-    file_names = find_audio_files_in_paths(path, recursive)
-    tags_list = read_audio_files_tags(file_names)
-
-    edited_files = []
-
-    # replace ',' to ';' in ARTIST tag
-    replace_comma = []
-    for tags in tags_list:
-        if ',' in tags['ARTIST']:
-            replace_comma.append(tags)
-    if len(replace_comma) > 0:
-        for tags in replace_comma:
-            file_name = tags['SPOTY_FILE_NAME']
-            click.echo(f'ARTIST: "{tags["ARTIST"]}" in "{file_name}"')
-        click.echo(f'Total audio files: {len(replace_comma)}')
-        if (click.confirm("Do you want to replace ',' to ';' in this audio files?")):
-            for tags in replace_comma:
-                file_name = tags['SPOTY_FILE_NAME']
-                f = FLAC(file_name)
-                artists = f.tags['ARTIST']
-                for i in range(len(artists)):
-                    artists[i] = artists[i].replace(',', ';')
-                f['ARTIST'] = artists
-                f.save()
-                if tags not in edited_files:
-                    edited_files.append(tags)
-
-    return edited_files, file_names
-
-
-def find_duplicates_in_audio_files(path, compare_tags, recursive=True):
-    if len(compare_tags) == 0:
-        return
-
-    file_names = find_audio_files_in_path(path, recursive)
-    tags_list = read_audio_files_tags(file_names)
-    duplicates, skipped_audio_files = spoty.utils.find_duplicates_in_tags(tags_list, compare_tags)
-
-    return duplicates, tags_list, skipped_audio_files

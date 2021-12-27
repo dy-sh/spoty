@@ -27,7 +27,7 @@ def get_sp():
     return sp
 
 
-def get_tracks_from_playlists(playlist_ids: list, add_extra_tags=True):
+def get_tracks_from_playlists(playlist_ids: list, add_spoty_tags=True):
     all_tracks = []
     all_tags_list = []
     all_received_playlists = []
@@ -42,7 +42,7 @@ def get_tracks_from_playlists(playlist_ids: list, add_extra_tags=True):
                 click.echo(f'Spotify playlist {playlist_id} requested twice. In will be skipped.')
                 continue
 
-            playlist = get_playlist_with_full_list_of_tracks(playlist_id, add_extra_tags)
+            playlist = get_playlist_with_full_list_of_tracks(playlist_id, add_spoty_tags)
             requested_playlists.append(playlist_id)
 
             tracks = playlist['tracks']['items']
@@ -178,7 +178,7 @@ def get_playlist(playlist_id: str):
     return playlist
 
 
-def get_playlist_with_full_list_of_tracks(playlist_id: str, add_extra_tags=True):
+def get_playlist_with_full_list_of_tracks(playlist_id: str, add_spoty_tags=True):
     playlist_id = parse_playlist_id(playlist_id)
 
     log.info(f'Collecting playlist {playlist_id}')
@@ -187,8 +187,8 @@ def get_playlist_with_full_list_of_tracks(playlist_id: str, add_extra_tags=True)
     total_tracks = playlist["tracks"]["total"]
     tracks = playlist["tracks"]["items"]
 
-    if add_extra_tags:
-        add_extra_tags_to_tracks([], tracks, playlist_id, playlist['name'])
+    if add_spoty_tags:
+        add_spoty_tags_to_tracks([], tracks, playlist_id, playlist['name'])
 
     log.debug(f'Playlist {playlist_id} have {total_tracks} tracks (playlist name: "{playlist["name"]}")')
     log.debug(f'Collected {len(tracks)}/{total_tracks} tracks in playlist {playlist_id}')
@@ -200,8 +200,8 @@ def get_playlist_with_full_list_of_tracks(playlist_id: str, add_extra_tags=True)
             result = get_sp().next(result)
         else:
             result = get_sp().next(result["tracks"])
-        if add_extra_tags:
-            add_extra_tags_to_tracks(tracks, result['items'], playlist_id, playlist['name'])
+        if add_spoty_tags:
+            add_spoty_tags_to_tracks(tracks, result['items'], playlist_id, playlist['name'])
         tracks.extend(result['items'])
         log.debug(f'Collected {len(tracks)}/{total_tracks} tracks in playlist {playlist_id}')
 
@@ -318,7 +318,7 @@ def copy_playlist(playlist_id: str):
     return new_playlist_id, tracks_added
 
 
-def get_tracks_of_playlist(playlist_id: str, add_extra_tags=True, playlist_name: str = None):
+def get_tracks_of_playlist(playlist_id: str, add_spoty_tags=True, playlist_name: str = None):
     playlist_id = parse_playlist_id(playlist_id)
 
     log.info(f'Collecting tracks from playlist {playlist_id}')
@@ -328,8 +328,8 @@ def get_tracks_of_playlist(playlist_id: str, add_extra_tags=True, playlist_name:
     result = get_sp().playlist_items(playlist_id, additional_types=['track'], limit=100)
 
     new_tracks = result['items']
-    if (add_extra_tags):
-        add_extra_tags_to_tracks(tracks, new_tracks, playlist_id, playlist_name)
+    if (add_spoty_tags):
+        add_spoty_tags_to_tracks(tracks, new_tracks, playlist_id, playlist_name)
     tracks.extend(new_tracks)
 
     log.debug(f'Collected {len(tracks)}/{result["total"]} tracks')
@@ -339,8 +339,8 @@ def get_tracks_of_playlist(playlist_id: str, add_extra_tags=True, playlist_name:
         result = get_sp().next(result)
 
         new_tracks = result['items']
-        if (add_extra_tags):
-            add_extra_tags_to_tracks(tracks, new_tracks, playlist_id, playlist_name)
+        if (add_spoty_tags):
+            add_spoty_tags_to_tracks(tracks, new_tracks, playlist_id, playlist_name)
         tracks.extend(new_tracks)
 
         log.debug(f'Collected {len(tracks)}/{result["total"]} tracks')
@@ -361,7 +361,7 @@ def get_tracks_of_playlist(playlist_id: str, add_extra_tags=True, playlist_name:
     return new_tracks
 
 
-def add_extra_tags_to_tracks(tracks: list, new_tracks: list, playlist_id: str, playlist_name: str):
+def add_spoty_tags_to_tracks(tracks: list, new_tracks: list, playlist_id: str, playlist_name: str):
     counter = len(tracks)
     for track in new_tracks:
         track['track']['SPOTY_PLAYLIST_ID'] = playlist_id
@@ -531,34 +531,6 @@ def get_invalid_tracks_in_playlist(playlist_id: str):
     return invalid_tracks
 
 
-def export_playlist_to_file(playlist_id: str, path: str, overwrite=False, avoid_filenames: list = None):
-    if avoid_filenames is None:
-        avoid_filenames = []
-    playlist_id = parse_playlist_id(playlist_id)
-
-    log.info(f'Exporting playlist {playlist_id}')
-
-    playlist = get_playlist_with_full_list_of_tracks(playlist_id)
-
-    file_name = get_playlist_file_name(playlist["name"], playlist_id, path, avoid_filenames)
-
-    if os.path.isfile(file_name) and not overwrite:
-        if not click.confirm(f'\nFile "{file_name}" already exist. Overwrite?'):
-            click.echo("\nCanceled")
-            log.info(f'Canceled by user (file already exist)')
-            return None
-        click.echo()  # for new line
-
-    tracks = playlist["tracks"]["items"]
-
-    tag_tracks = read_tags_from_spotify_tracks(tracks)
-    spoty.csv_playlist.write_tags_to_csv(tag_tracks, file_name)
-
-    log.success(f'Playlist {playlist_id} exported (file: "{file_name}")')
-
-    return file_name
-
-
 def import_playlists_from_tags_list(tags_list: list, grouping_pattern: str, overwrite_if_exist=False,
                                     append_if_exist=False,
                                     allow_duplicates=True, confirm=False):
@@ -657,34 +629,6 @@ def like_all_tracks_in_playlist(playlist_id: str):
     log.success(f'{len(not_liked_track_ids)} tracks added to liked tracks in playlist {playlist_id}.')
 
     return not_liked_track_ids
-
-
-def get_tags_from_spotify_library(filter_names: str, user_id: str):
-    if user_id == None:
-        playlists = get_list_of_playlists()
-        click.echo(f'You have {len(playlists)} playlists')
-    else:
-        playlists = get_list_of_user_playlists(user_id)
-        click.echo(f'User has {len(playlists)} playlists')
-
-    if len(playlists) == 0:
-        exit()
-
-    if filter_names is not None:
-        playlists = list(filter(lambda pl: re.findall(filter_names, pl['name']), playlists))
-        click.echo(f'{len(playlists)} playlists matches the filter')
-
-    if len(playlists) == 0:
-        exit()
-
-    all_tracks_tags = []
-    with click.progressbar(playlists, label='Reading tracks from Spotify library') as bar:
-        for playlist in bar:
-            tracks = get_tracks_of_playlist(playlist['id'])
-            tag_tracks = read_tags_from_spotify_tracks(tracks)
-            all_tracks_tags.extend(tag_tracks)
-
-    return all_tracks_tags
 
 
 def get_liked_tracks_count():
@@ -825,14 +769,6 @@ def get_playlists_ids(playlists: list):
         return [item['id'] for item in playlists]
 
 
-def check_is_playlist_URI(uri: str):
-    return uri.startswith("https://open.spotify.com/playlist/")
-
-
-def check_is_user_URI(uri: str):
-    return uri.startswith("https://open.spotify.com/user/")
-
-
 def parse_playlist_id(id_or_uri: str):
     if (id_or_uri.startswith("https://open.spotify.com/playlist/")):
         id_or_uri = id_or_uri.split('/playlist/')[1]
@@ -852,18 +788,6 @@ def parse_user_id(id_or_uri: str):
         id_or_uri = id_or_uri.split('/user/')[1]
         id_or_uri = id_or_uri.split('?')[0]
     return id_or_uri
-
-
-def get_playlist_file_name(playlist_name: str, playlist_id: str, path: str, avoid_filenames: list):
-    playlist_name = spoty.utils.slugify_file_pah(playlist_name)
-    if (len(playlist_name) == 0):
-        playlist_name = playlist_id
-    full_file_name = os.path.join(path, playlist_name + ".csv")
-
-    if full_file_name in avoid_filenames:
-        full_file_name = get_playlist_file_name(playlist_name + " (1)", playlist_id, path, avoid_filenames)
-
-    return full_file_name
 
 
 def read_tags_from_spotify_tracks(tracks: list):
@@ -936,21 +860,3 @@ def read_tags_from_spotify_track(track: dict):
     tags = spoty.utils.clean_tags_after_read(tags)
 
     return tags
-
-
-def filter_spotify_tracks_which_have_all_tags(spotify_track: dict, filter_tags: list):
-    filtered = []
-    for track in spotify_track:
-        tags = read_tags_from_spotify_track(track)
-        if spoty.utils.check_all_tags_exist(tags, filter_tags):
-            filtered.append(track)
-    return filtered
-
-
-def filter_spotify_tracks_which_not_have_any_of_tags(spotify_track: dict, filter_tags: list):
-    filtered = []
-    for track in spotify_track:
-        tags = read_tags_from_spotify_track(track)
-        if not spoty.utils.check_all_tags_exist(tags, filter_tags):
-            filtered.append(track)
-    return filtered

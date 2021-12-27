@@ -46,7 +46,7 @@ def get_arl():
         f.write(arl)
 
 
-def get_tracks_from_playlists(playlist_ids: list, add_extra_tags=True):
+def get_tracks_from_playlists(playlist_ids: list, add_spoty_tags=True):
     all_tracks = []
     all_tags_list = []
     all_received_playlists = []
@@ -61,7 +61,7 @@ def get_tracks_from_playlists(playlist_ids: list, add_extra_tags=True):
                 click.echo(f'Deezer playlist {playlist_id} requested twice. In will be skipped.')
                 continue
 
-            tracks, playlist = get_playlist_with_full_list_of_tracks(playlist_id, add_extra_tags)
+            tracks, playlist = get_playlist_with_full_list_of_tracks(playlist_id, add_spoty_tags)
             requested_playlists.append(playlist_id)
 
             tags = read_tags_from_deezer_tracks(tracks)
@@ -184,7 +184,7 @@ def get_playlist(playlist_id: str):
     return playlist['DATA']
 
 
-def get_playlist_with_full_list_of_tracks(playlist_id: str, add_extra_tags=True):
+def get_playlist_with_full_list_of_tracks(playlist_id: str, add_spoty_tags=True):
     playlist_id = parse_playlist_id(playlist_id)
 
     log.info(f'Collecting playlist {playlist_id}')
@@ -196,8 +196,8 @@ def get_playlist_with_full_list_of_tracks(playlist_id: str, add_extra_tags=True)
 
     log.debug(f'Playlist have {len(tracks)} tracks (playlist name: "{playlist["TITLE"]}")')
 
-    if add_extra_tags:
-        add_extra_tags_to_tracks([], tracks, playlist_id, playlist['TITLE'])
+    if add_spoty_tags:
+        add_spoty_tags_to_tracks([], tracks, playlist_id, playlist['TITLE'])
 
     return tracks, playlist
 
@@ -622,11 +622,10 @@ def remove_tracks_from_playlist(playlist_id: str, track_ids: list):
     #         next_tracks = []
     #     i += 1
 
-
     log.success(f'Tracks removed from playlist {playlist_id}')
 
 
-def add_extra_tags_to_tracks(tracks: list, new_tracks: list, playlist_id: str, playlist_name: str):
+def add_spoty_tags_to_tracks(tracks: list, new_tracks: list, playlist_id: str, playlist_name: str):
     counter = len(tracks)
     for track in new_tracks:
         track['SPOTY_PLAYLIST_ID'] = playlist_id
