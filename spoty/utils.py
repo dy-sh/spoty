@@ -1,11 +1,15 @@
 import os.path
 from datetime import datetime
-
 import click
-
 from spoty import settings
 from typing import List
 import dateutil.parser
+import numpy as np
+from multiprocessing import Process, Lock, Queue, Value, Array
+import sys
+import time
+
+THREADS_COUNT = 4
 
 tag_allies = [
     ['YEAR', 'DATE'],
@@ -130,6 +134,9 @@ class SpotyContext:
         self.duplicates_groups = []
         self.unique_first_tracks = []
         self.unique_second_tracks = []
+
+
+mutex = Lock()
 
 
 def tuple_to_list(some_tuple: tuple):
@@ -697,30 +704,80 @@ def find_duplicates_in_tag_lists(source_list: list, dest_list: list, compare_tag
     for i, tags in enumerate(compare_tags_prob_list):
         compare_tags_prob_list[i] = tags.split(',')
 
+    # find duplicates in dest
+
     groups: List[DuplicatesGroup] = []
+    unique_dest_tracks = []
 
     for source_tags in source_list:
         d = DuplicatesGroup()
         d.source_tags = source_tags
         groups.append(d)
 
-    # find duplicates in dest
-
-    unique_dest_tracks = []
-
-    with click.progressbar(dest_list, label=f'Finding duplicates in {len(source_list) + len(dest_list)} tracks') as bar:
-        for dest_tags in bar:
-            group, found_tags = find_duplicates_in_groups(dest_tags, groups, compare_tags_def_list)
-            if group is not None:
-                group.def_duplicates.append(dest_tags)
-                group.def_found_tags.append(found_tags)
-            else:
-                group, found_tags = find_duplicates_in_groups(dest_tags, groups, compare_tags_prob_list)
+    if len(source_list) + len(dest_list) < 2000:  # single thread
+        with click.progressbar(dest_list,
+                               label=f'Finding duplicates in {len(source_list) + len(dest_list)} tracks') as bar:
+            for dest_tags in bar:
+                group, found_tags = find_duplicates_in_groups(dest_tags, groups, compare_tags_def_list)
                 if group is not None:
-                    group.prob_duplicates.append(dest_tags)
-                    group.prob_found_tags.append(found_tags)
+                    group.def_duplicates.append(dest_tags)
+                    group.def_found_tags.append(found_tags)
                 else:
-                    unique_dest_tracks.append(dest_tags)
+                    group, found_tags = find_duplicates_in_groups(dest_tags, groups, compare_tags_prob_list)
+                    if group is not None:
+                        group.prob_duplicates.append(dest_tags)
+                        group.prob_found_tags.append(found_tags)
+                    else:
+                        unique_dest_tracks.append(dest_tags)
+    else:  # multi thread
+        try:
+            parts = np.array_split(dest_list, 16)
+            threads = []
+            counters = []
+            results = Queue()
+
+            with click.progressbar(length=len(dest_list),
+                                   label=f'Finding duplicates in {len(source_list) + len(dest_list)} tracks') as bar:
+
+                for i, part in enumerate(parts):
+                    counter = Value('i', 0)
+                    counters.append(counter)
+                    dest_list_part = list(part)
+                    thread = Process(target=find_duplicates_in_groups_thread, args=(
+                        dest_list_part, groups, compare_tags_def_list, compare_tags_prob_list, counter, results))
+                    threads.append(thread)
+                    thread.daemon = True  # This thread dies when main thread exits
+                    thread.start()
+
+                    # update bar
+                    total = sum([x.value for x in counters])
+                    added = total - bar.pos
+                    if added > 0:
+                        bar.update(added)
+
+                while not bar.finished:
+                    time.sleep(0.1)
+                    total = sum([x.value for x in counters])
+                    added = total - bar.pos
+                    if added > 0:
+                        bar.update(added)
+
+                for i in range(len(parts)):
+                    res = results.get()
+                    print(len(res['unique_dest_tracks']))
+                    unique_dest_tracks.extend(res['unique_dest_tracks'])
+                    for i, group in enumerate(res['groups']):
+                        if len(group.def_duplicates)>0:
+                            groups[i].def_duplicates.extend(group.def_duplicates)
+                            groups[i].def_found_tags.extend(group.def_found_tags)
+                        if len(group.prob_duplicates)>0:
+                            groups[i].prob_duplicates.extend(group.prob_duplicates)
+                            groups[i].prob_found_tags.extend(group.prob_found_tags)
+
+        except (KeyboardInterrupt, SystemExit):  # aborted by user
+            click.echo()
+            click.echo('Aborted.')
+            sys.exit()
 
     # remove unique source
 
@@ -743,6 +800,33 @@ def find_duplicates_in_tag_lists(source_list: list, dest_list: list, compare_tag
                 tags['SPOTY_PROB_DUP_TAGS'] = ','.join(group.prob_found_tags[y])
 
     return duplicates_groups, unique_source_tracks, unique_dest_tracks
+
+
+def find_duplicates_in_groups_thread(dest_list, groups, compare_tags_def_list, compare_tags_prob_list, counter, result):
+    unique_dest_tracks = []
+
+    for i, dest_tags in enumerate(dest_list):
+        group, found_tags = find_duplicates_in_groups(dest_tags, groups, compare_tags_def_list)
+        if group is not None:
+            group.def_duplicates.append(dest_tags)
+            group.def_found_tags.append(found_tags)
+        else:
+            group, found_tags = find_duplicates_in_groups(dest_tags, groups, compare_tags_prob_list)
+            if group is not None:
+                group.prob_duplicates.append(dest_tags)
+                group.prob_found_tags.append(found_tags)
+            else:
+                unique_dest_tracks.append(dest_tags)
+        if (i + 1) % 10 == 0:
+            counter.value += 10
+        if i + 1 == len(dest_list):
+            counter.value += (i % 10) + 1
+
+    res = {}
+    res['unique_dest_tracks']=unique_dest_tracks
+    res['groups'] = groups
+
+    result.put(res)
 
 
 def compare_by_tags(source_list: list, dest_list: list, tags_to_compare: list, dest_unique: dict, dest_dups: dict,
