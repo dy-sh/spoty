@@ -47,7 +47,6 @@ Find duplicates between the first and second list of tracks.
 
     if no_prob:
         compare_tags_prob = []
-
     duplicates_groups, unique_source_tracks, unique_dest_tracks = \
         spoty.utils.find_duplicates_in_tag_lists(source_list, dest_list, compare_tags_def, compare_tags_prob,
                                                  True)

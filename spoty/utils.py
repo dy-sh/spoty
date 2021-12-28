@@ -646,20 +646,21 @@ def find_duplicates_in_tag_list2(tags_list: list, compare_tags_def_list: list, c
 
     # find duplicates
 
-    for tags in tags_list:
-        group, found_tags = find_duplicates_in_groups(tags, groups, compare_tags_def_list, True, True)
-        if group is not None:
-            group.def_duplicates.append(tags)
-            group.def_found_tags.append(found_tags)
-        else:
-            group, found_tags = find_duplicates_in_groups(tags, groups, compare_tags_prob_list, True, True)
+    with click.progressbar(tags_list, label=f'Finding duplicates in {len(tags_list)} tracks') as bar:
+        for tags in bar:
+            group, found_tags = find_duplicates_in_groups(tags, groups, compare_tags_def_list, True, True)
             if group is not None:
-                group.prob_duplicates.append(tags)
-                group.prob_found_tags.append(found_tags)
+                group.def_duplicates.append(tags)
+                group.def_found_tags.append(found_tags)
             else:
-                d = DuplicatesGroup()
-                d.source_tags = tags
-                groups.append(d)
+                group, found_tags = find_duplicates_in_groups(tags, groups, compare_tags_prob_list, True, True)
+                if group is not None:
+                    group.prob_duplicates.append(tags)
+                    group.prob_found_tags.append(found_tags)
+                else:
+                    d = DuplicatesGroup()
+                    d.source_tags = tags
+                    groups.append(d)
 
     # remove unique
 
@@ -707,18 +708,19 @@ def find_duplicates_in_tag_lists(source_list: list, dest_list: list, compare_tag
 
     unique_dest_tracks = []
 
-    for dest_tags in dest_list:
-        group, found_tags = find_duplicates_in_groups(dest_tags, groups, compare_tags_def_list)
-        if group is not None:
-            group.def_duplicates.append(dest_tags)
-            group.def_found_tags.append(found_tags)
-        else:
-            group, found_tags = find_duplicates_in_groups(dest_tags, groups, compare_tags_prob_list)
+    with click.progressbar(dest_list, label=f'Finding duplicates in {len(source_list) + len(dest_list)} tracks') as bar:
+        for dest_tags in bar:
+            group, found_tags = find_duplicates_in_groups(dest_tags, groups, compare_tags_def_list)
             if group is not None:
-                group.prob_duplicates.append(dest_tags)
-                group.prob_found_tags.append(found_tags)
+                group.def_duplicates.append(dest_tags)
+                group.def_found_tags.append(found_tags)
             else:
-                unique_dest_tracks.append(dest_tags)
+                group, found_tags = find_duplicates_in_groups(dest_tags, groups, compare_tags_prob_list)
+                if group is not None:
+                    group.prob_duplicates.append(dest_tags)
+                    group.prob_found_tags.append(found_tags)
+                else:
+                    unique_dest_tracks.append(dest_tags)
 
     # remove unique source
 

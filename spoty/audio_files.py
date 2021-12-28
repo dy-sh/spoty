@@ -68,9 +68,11 @@ def write_audio_file_tags(file_name, new_tags):
 
 def read_audio_files_tags(file_names, add_spoty_tags=True):
     tags_list = []
-    for file_name in file_names:
-        tags = read_audio_file_tags(file_name, add_spoty_tags)
-        tags_list.append(tags)
+    with click.progressbar(file_names, label=f'Reading tags in {len(file_names)} files') as bar:
+        for file_name in bar:
+            tags = read_audio_file_tags(file_name, add_spoty_tags)
+            if tags is not None:
+                tags_list.append(tags)
     return tags_list
 
 
@@ -103,7 +105,7 @@ def read_audio_file_tags(file_name, add_spoty_tags=True):
                     tags[tag[0]] = tag[1]
         except:
             click.echo(f"\nCant open file: {file_name}")
-            return []
+            return None
 
     if is_mp3(file_name):
         try:
@@ -121,7 +123,7 @@ def read_audio_file_tags(file_name, add_spoty_tags=True):
                     tags[tag.upper()] = tag_val
         except:
             click.echo(f"\nCant open file: {file_name}")
-            return []
+            return None
 
     tags = spoty.utils.clean_tags_after_read(tags)
 
