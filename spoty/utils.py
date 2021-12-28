@@ -9,7 +9,7 @@ from multiprocessing import Process, Lock, Queue, Value, Array
 import sys
 import time
 
-THREADS_COUNT = 4
+THREADS_COUNT = 12
 
 tag_allies = [
     ['YEAR', 'DATE'],
@@ -731,7 +731,7 @@ def find_duplicates_in_tag_lists(source_list: list, dest_list: list, compare_tag
                         unique_dest_tracks.append(dest_tags)
     else:  # multi thread
         try:
-            parts = np.array_split(dest_list, 16)
+            parts = np.array_split(dest_list, THREADS_COUNT)
             threads = []
             counters = []
             results = Queue()
