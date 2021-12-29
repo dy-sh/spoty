@@ -388,7 +388,7 @@ def add_tracks_to_playlist_by_tags(playlist_id: str, tags_list: list, allow_dupl
     import_duplicates = []
 
     if not allow_duplicates:
-        tags_list, import_duplicates = spoty.utils.remove_tags_duplicates(tags_list, ['SPOTIFY_TRACK_ID'])
+        tags_list, import_duplicates = spoty.utils.remove_duplicated_tags(tags_list, ['SPOTIFY_TRACK_ID'])
         if len(import_duplicates) > 0:
             log.debug(f'{len(import_duplicates)} duplicates found when adding tracks. It will be skipped.')
 

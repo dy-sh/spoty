@@ -13,8 +13,6 @@ from datetime import datetime
 @click.option('--grouping-pattern', '--gp', show_default=True,
               default=settings.SPOTY.DEFAULT_GROUPING_PATTERN,
               help='Tracks will be grouped to playlists according to this pattern.')
-@click.option('--duplicates', '-d', type=bool, is_flag=True, default=False,
-              help='Allow duplicates (add tracks that are already exist in the playlist).')
 @click.option('--append', '-a', is_flag=True,
               help='Add tracks to an existing playlist if already exists. If this option is not specified, a new playlist will always be created.')
 @click.option('--overwrite', '-o', is_flag=True,
@@ -31,7 +29,6 @@ from datetime import datetime
 @click.pass_obj
 def import_deezer(context: SpotyContext,
                   grouping_pattern,
-                  duplicates,
                   append,
                   overwrite,
                   yes_all,
@@ -67,7 +64,7 @@ Import track list to Deezer Library
 
         playlist_ids, imported_tags_list, source_duplicates_tags_list, already_exist_tags_list = \
             spoty.deezer_api.import_playlists_from_tags_list(
-                found_tags_list, grouping_pattern, overwrite, append, duplicates, yes_all)
+                found_tags_list, grouping_pattern, overwrite, append, False, yes_all)
 
         # create result csv playlists
 

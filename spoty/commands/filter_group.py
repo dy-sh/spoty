@@ -92,7 +92,7 @@ def filter_tracks_wrapper(context: SpotyContext,
             compare_tags_list = spoty.utils.tuple_to_list(duplicates_compare_tags)
             for compare_tags_str in compare_tags_list:
                 compare_tags = compare_tags_str.split(',')
-                new_tags_list, dup = spoty.utils.remove_tags_duplicates(tags_list, compare_tags, False)
+                new_tags_list, dup = spoty.utils.remove_duplicated_tags(tags_list, compare_tags, False)
                 if len(dup) > 0:
                     summary.append(
                         f'  {len(dup)}/{len(tags_list)} tracks removed (duplicates by tags: {compare_tags_str})')
@@ -103,7 +103,7 @@ def filter_tracks_wrapper(context: SpotyContext,
             all_dup = []
             for compare_tags_str in compare_tags_list:
                 compare_tags = compare_tags_str.split(',')
-                new_tags_list, dup = spoty.utils.remove_tags_duplicates(tags_list, compare_tags, False)
+                new_tags_list, dup = spoty.utils.remove_duplicated_tags(tags_list, compare_tags, False)
                 if len(dup) > 0:
                     summary.append(
                         f'   {len(dup)}/{len(tags_list)} tracks left (duplicates by tags: {compare_tags_str})')

@@ -396,7 +396,7 @@ def add_tracks_to_playlist_by_tags(playlist_id: str, tags_list: list, allow_dupl
     import_duplicates = []
 
     if not allow_duplicates:
-        tags_list, import_duplicates = spoty.utils.remove_tags_duplicates(tags_list, [DEEZER_TRACK_ID_TAG])
+        tags_list, import_duplicates = spoty.utils.remove_duplicated_tags(tags_list, [DEEZER_TRACK_ID_TAG])
         if len(import_duplicates) > 0:
             log.debug(f'{len(import_duplicates)} duplicates found when adding tracks. It will be skipped.')
 
@@ -498,7 +498,7 @@ def find_playlist_by_name(name):
 
 def import_playlists_from_tags_list(tags_list: list, grouping_pattern: str, overwrite_if_exist=False,
                                     append_if_exist=False,
-                                    allow_duplicates=True, confirm=False):
+                                    allow_duplicates=False, confirm=False):
     all_playlist_ids = []
     all_added = []
     all_source_duplicates = []
@@ -520,7 +520,7 @@ def import_playlists_from_tags_list(tags_list: list, grouping_pattern: str, over
 
 
 def import_playlist_from_tags_list(playlist_name: str, tags_list: list, overwrite_if_exist=False, append_if_exist=False,
-                                   allow_duplicates=True, confirm=False):
+                                   allow_duplicates=False, confirm=False):
     if len(tags_list) == 0:
         return [], [], [], []
 

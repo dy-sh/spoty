@@ -63,7 +63,7 @@ def create_csvs(tags_list, path, grouping_pattern, overwrite=False, append=False
             if not allow_duplicates:
                 for compare_tags_str in compare_tags_list:
                     compare_tags = compare_tags_str.split(',')
-                    tags_l, import_duplicates = spoty.utils.remove_tags_duplicates(tags_l, compare_tags, False)
+                    tags_l, import_duplicates = spoty.utils.remove_duplicated_tags(tags_l, compare_tags, False)
                     all_import_duplicates.extend(import_duplicates)
 
                 if len(all_import_duplicates) > 0:

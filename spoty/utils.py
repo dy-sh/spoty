@@ -198,7 +198,7 @@ def remove_exist(exist_arr: list, new_arr: list):
     return new, exist
 
 
-def remove_tags_duplicates(tags_list: list, tags_to_compare: list, allow_missing=False):
+def remove_duplicated_tags(tags_list: list, tags_to_compare: list, allow_missing=False):
     good = []
     duplicates = []
     for new_tags in tags_list:
