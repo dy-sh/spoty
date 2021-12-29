@@ -61,7 +61,7 @@ def write_audio_file_tags(file_name, new_tags):
         if is_mp3(file_name):
             f = EasyID3(file_name)
             for key, value in new_tags.items():
-                if key not in f.valid_keys:
+                if key.lower() not in f.valid_keys:
                     f.RegisterTXXXKey(key.lower(), key.upper())
                 f[key.lower()] = str(value)
             f.save(v2_version=3)
@@ -114,6 +114,7 @@ def read_audio_file_tags(file_name, add_spoty_tags=True, clean_tags=True):
             f = MP3(file_name, ID3=EasyID3)
             tags['SPOTY_LENGTH'] = str(int(f.info.length))
             f = EasyID3(file_name)
+            keys = f.keys()
             for tag in f.valid_keys.keys():
                 if tag in f:
                     tag_val = ';'.join(f[tag])
@@ -123,8 +124,13 @@ def read_audio_file_tags(file_name, add_spoty_tags=True, clean_tags=True):
                         log.warning(mess)
                         continue
                     tags[tag.upper()] = tag_val
+            f = ID3(file_name)
+            for txxx in f.getall("TXXX"): # custom keys
+                tag = txxx.desc.upper()
+                val = ';'.join(txxx.text)
+                tags[tag] = val
         except:
-            click.echo(f"\nCant open file: {file_name}")
+            click.echo(f"\nCant read file: {file_name}")
             return None
 
     if clean_tags:
