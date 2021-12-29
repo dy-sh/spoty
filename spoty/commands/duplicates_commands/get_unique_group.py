@@ -4,7 +4,8 @@ from spoty.commands.first_list_commands import \
     export_command, \
     import_deezer_command, \
     import_spotify_command, \
-    print_command
+    print_command,\
+    create_m3u8_command
 from spoty.commands import \
     filter_group
 from spoty.utils import SpotyContext
@@ -50,6 +51,7 @@ Get unique tracks (not duplicated) for further actions (see next commands).
 
 get_unique.add_command(count_command.count_tracks)
 get_unique.add_command(print_command.print_tracks)
+get_unique.add_command(export_command.export_tracks)
 get_unique.add_command(export_command.export_tracks)
 get_unique.add_command(import_spotify_command.import_spotify)
 get_unique.add_command(import_deezer_command.import_deezer)

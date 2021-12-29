@@ -4,7 +4,8 @@ from spoty.commands.first_list_commands import \
     export_command, \
     import_deezer_command, \
     import_spotify_command, \
-    print_command
+    print_command,\
+    create_m3u8_command
 from spoty.commands.second_list_commands import \
     find_duplicates_second_command
 from spoty.commands import filter_second_group
@@ -68,6 +69,7 @@ get_second.add_command(filter_second_group.filter_second)
 get_second.add_command(count_command.count_tracks)
 get_second.add_command(print_command.print_tracks)
 get_second.add_command(export_command.export_tracks)
+get_second.add_command(create_m3u8_command.export_tracks)
 get_second.add_command(import_spotify_command.import_spotify)
 get_second.add_command(import_deezer_command.import_deezer)
 get_second.add_command(move_duplicates_command.move_duplicates)

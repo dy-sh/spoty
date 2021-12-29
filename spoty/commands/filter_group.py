@@ -5,7 +5,8 @@ from spoty.commands.first_list_commands import \
     import_deezer_command, \
     import_spotify_command, \
     print_command, \
-    find_duplicates_command
+    find_duplicates_command,\
+    create_m3u8_command
 from spoty.commands import get_second_group
 from spoty.utils import SpotyContext
 from spoty import settings
@@ -135,6 +136,7 @@ def filter_tracks_wrapper(context: SpotyContext,
 filter_tracks.add_command(count_command.count_tracks)
 filter_tracks.add_command(print_command.print_tracks)
 filter_tracks.add_command(export_command.export_tracks)
+filter_tracks.add_command(create_m3u8_command.export_tracks)
 filter_tracks.add_command(import_spotify_command.import_spotify)
 filter_tracks.add_command(import_deezer_command.import_deezer)
 filter_tracks.add_command(get_second_group.get_second)
