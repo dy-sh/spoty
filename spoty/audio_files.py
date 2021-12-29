@@ -82,6 +82,10 @@ def read_audio_file_tags(file_name, add_spoty_tags=True, clean_tags=True):
 
     file_name = os.path.abspath(file_name)
 
+    if not spoty.utils.is_valid_file(file_name):
+        click.echo(f"\nFile not found: {file_name}")
+        return None
+
     if add_spoty_tags:
         dir = os.path.dirname(file_name)
         tags['SPOTY_FILE_NAME'] = file_name

@@ -335,7 +335,7 @@ def print_tags_list_grouped(tags_list: list, print_pattern: str, grouping_patter
 
     for group, tags_l in grouped_tags.items():
         print(f'\n------------------------- {group}:')
-        print_tags_list(tags_list, print_pattern)
+        print_tags_list(tags_l, print_pattern)
 
 
 def print_tags_list(tags_list: list, print_pattern: str):

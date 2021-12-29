@@ -8,7 +8,7 @@ import re
 
 
 def is_m3u8(file_name):
-    return file_name.upper().endswith('.m3u8')
+    return file_name.upper().endswith('.M3U8')
 
 
 def create_m3u8s(tags_list, path, grouping_pattern, overwrite=False, append=False, allow_duplicates=True,
@@ -112,31 +112,35 @@ def write_tags_to_m3u8(tags_list, m3u8_file_name, append=False):
     files = []
     for tags in tags_list:
         if 'SPOTY_FILE_NAME' in tags and tags['SPOTY_FILE_NAME'] != "":
-            files.append(tags['SPOTY_FILE_NAME'])
+            files.append(tags['SPOTY_FILE_NAME'] + "\n")
 
     os.makedirs(os.path.dirname(m3u8_file_name), exist_ok=True)
     with open(m3u8_file_name, 'w', encoding='utf-8-sig', newline='') as file:
         file.writelines(files)
 
 
-def read_tags_from_m3u8s(m3u8_file_names, add_spoty_tags=True):
+def read_tags_from_m3u8s(m3u8_file_names, add_spoty_tags=True, clean_tags=True):
     all_tags_lists = []
     for m3u8_file_name in m3u8_file_names:
-        tags_list = read_tags_from_m3u8(m3u8_file_name, add_spoty_tags)
+        tags_list = read_tags_from_m3u8(m3u8_file_name, add_spoty_tags, clean_tags)
         all_tags_lists.extend(tags_list)
 
     return all_tags_lists
 
 
-def read_tags_from_m3u8(m3u8_file_name, add_spoty_tags=True):
+def read_tags_from_m3u8(m3u8_file_name, add_spoty_tags=True, clean_tags=True):
     m3u8_file_name = os.path.abspath(m3u8_file_name)
-    tags_list = []
 
     with open(m3u8_file_name, newline='', encoding='utf-8-sig') as file:
         files_list = file.readlines()
         for i, f in enumerate(files_list):
             files_list[i] = f.rstrip("\n").strip()
 
-    tags_list = spoty.audio_files.read_audio_files_tags(files_list)
+    tags_list = spoty.audio_files.read_audio_files_tags(files_list, add_spoty_tags, clean_tags)
+
+    if add_spoty_tags:
+        for i, tags in enumerate(tags_list):
+            tags['SPOTY_PLAYLIST_NAME'] = os.path.splitext(os.path.basename(os.path.normpath(m3u8_file_name)))[0]
+            tags['SPOTY_PLAYLIST_INDEX'] = str(i + 1)
 
     return tags_list
