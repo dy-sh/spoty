@@ -336,7 +336,10 @@ def find_missing_track_ids(tags_list: list, ignore_duration=False):
                     id = find_track_id_by_artist_and_title(tags['ARTIST'], tags['TITLE'])
                 if id is not None:
                     tags[DEEZER_TRACK_ID_TAG] = id
-                    tags['SPOTY_FOUND_BY'] = 'TITLE,ARTIST'
+                    if not ignore_duration:
+                        tags['SPOTY_FOUND_BY'] = 'TITLE,ARTIST,SPOTY_LENGTH'
+                    else:
+                        tags['SPOTY_FOUND_BY'] = 'TITLE,ARTIST'
                     found.append(tags)
                     bar.update(1)
                     continue

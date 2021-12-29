@@ -8,6 +8,7 @@ from mutagen.mp3 import MP3
 from mutagen.easyid3 import EasyID3
 from mutagen.id3 import ID3, TXXX
 
+
 def is_flac(file_name):
     return file_name.upper().endswith('.FLAC')
 
@@ -61,7 +62,7 @@ def write_audio_file_tags(file_name, new_tags):
             f = EasyID3(file_name)
             for key, value in new_tags.items():
                 if key not in f.valid_keys:
-                    f.RegisterTXXXKey(key.lower(),key.upper())
+                    f.RegisterTXXXKey(key.lower(), key.upper())
                 f[key.lower()] = str(value)
             f.save(v2_version=3)
 
@@ -86,7 +87,8 @@ def read_audio_file_tags(file_name, add_spoty_tags=True):
         tags['SPOTY_FILE_NAME'] = file_name
         tags['SPOTY_SOURCE'] = "LOCAL"
         tags['SPOTY_PLAYLIST_NAME'] = os.path.basename(os.path.normpath(dir))
-        tags['SPOTY_TRACK_ADDED'] =  datetime.datetime.fromtimestamp(os.path.getctime(file_name)).strftime('%Y-%m-%d %H:%M:%S')
+        tags['SPOTY_TRACK_ADDED'] = datetime.datetime.fromtimestamp(os.path.getctime(file_name)).strftime(
+            '%Y-%m-%d %H:%M:%S')
 
     if is_flac(file_name):
         try:
