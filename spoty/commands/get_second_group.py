@@ -4,7 +4,7 @@ from spoty.commands.first_list_commands import \
     export_command, \
     import_deezer_command, \
     import_spotify_command, \
-    print_command,\
+    print_command, \
     create_m3u8_command
 from spoty.commands.second_list_commands import \
     find_duplicates_second_command
@@ -32,20 +32,23 @@ import click
               help='Get audio files located at the specified local path. You can specify the audio file name as well.')
 @click.option('--csv', '--c', multiple=True,
               help='Get tracks from csv playlists located at the specified local path. You can specify the scv file name as well.')
+@click.option('--m3u8', '--m', multiple=True,
+              help='Get tracks from m3u8 playlists located at the specified local path. You can specify the m3u8 file name as well.')
 @click.option('--no-recursive', '-r', is_flag=True,
               help='Do not search in subdirectories from the specified path.')
 @click.pass_obj
 def get_second(context: SpotyContext,
-            spotify_playlist,
-            spotify_entire_library,
-            spotify_entire_library_regex,
-            deezer_playlist,
-            deezer_entire_library,
-            deezer_entire_library_regex,
-            audio,
-            csv,
-            no_recursive
-            ):
+               spotify_playlist,
+               spotify_entire_library,
+               spotify_entire_library_regex,
+               deezer_playlist,
+               deezer_entire_library,
+               deezer_entire_library_regex,
+               audio,
+               csv,
+               m3u8,
+               no_recursive
+               ):
     """
 Collect second list of tracks for further actions (see next commands).
     """
@@ -60,6 +63,7 @@ Collect second list of tracks for further actions (see next commands).
                                  deezer_entire_library_regex,
                                  audio,
                                  csv,
+                                 m3u8,
                                  no_recursive,
                                  )
 

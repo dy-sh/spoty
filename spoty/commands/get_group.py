@@ -5,7 +5,7 @@ from spoty.commands.first_list_commands import \
     import_deezer_command, \
     import_spotify_command, \
     print_command, \
-    find_duplicates_command,\
+    find_duplicates_command, \
     create_m3u8_command
 from spoty.commands import \
     filter_group, \
@@ -15,6 +15,7 @@ import spoty.spotify_api
 import spoty.deezer_api
 import spoty.audio_files
 import spoty.csv_playlist
+import spoty.m3u8_playlist
 import spoty.utils
 import click
 
@@ -36,6 +37,8 @@ import click
               help='Get audio files located at the specified local path. You can specify the audio file name as well.')
 @click.option('--csv', '--c', multiple=True,
               help='Get tracks from csv playlists located at the specified local path. You can specify the scv file name as well.')
+@click.option('--m3u8', '--m', multiple=True,
+              help='Get tracks from m3u8 playlists located at the specified local path. You can specify the m3u8 file name as well.')
 @click.option('--no-recursive', '-r', is_flag=True,
               help='Do not search in subdirectories from the specified path.')
 @click.pass_context
@@ -49,6 +52,7 @@ def get_tracks(
         deezer_entire_library_regex,
         audio,
         csv,
+        m3u8,
         no_recursive,
 ):
     """
@@ -70,6 +74,7 @@ Get tracks from sources for further actions (see next commands).
         deezer_entire_library_regex,
         audio,
         csv,
+        m3u8,
         no_recursive,
     )
 
@@ -84,9 +89,35 @@ def get_tracks_wrapper(
         deezer_entire_library_regex,
         audio,
         csv,
+        m3u8,
         no_recursive,
 ):
     all_tags_list = []
+
+    # get m3u8
+
+    m3u8_files = []
+    tags_list_from_m3u8 = []
+
+    if len(m3u8) > 0:
+        m3u8_paths = []
+        for path in m3u8:
+            if spoty.m3u8_playlist.is_m3u8(path):
+                if spoty.utils.is_valid_file(path):
+                    m3u8_files.append(path)
+            elif spoty.utils.is_valid_path(path):
+                m3u8_paths.append(path)
+            else:
+                click.echo(f'Cant find path or file: "{path}"', err=True)
+                exit()
+
+        file_names = spoty.m3u8_playlist.find_m3u8s_in_paths(m3u8_paths, not no_recursive)
+        m3u8_files.extend(file_names)
+
+        tags_list = spoty.m3u8_playlist.read_tags_from_m3u8s(m3u8_files)
+        tags_list_from_m3u8.extend(tags_list)
+        all_tags_list.extend(tags_list)
+
 
     # get csv
 
@@ -112,10 +143,10 @@ def get_tracks_wrapper(
         tags_list_from_csv.extend(tags_list)
         all_tags_list.extend(tags_list)
 
+    # get audio
+
     audio_files = []
     tags_list_from_audio = []
-
-    # get audio
 
     if len(audio) > 0:
         audio_paths = []
@@ -196,18 +227,23 @@ def get_tracks_wrapper(
     summary = []
 
     if len(tags_list_from_spotify) > 0:
-        context.summary.append(f'  {len(tags_list_from_spotify)} tracks found in {len(spotify_playlists)} Spotify playlists.')
+        context.summary.append(
+            f'  {len(tags_list_from_spotify)} tracks found in {len(spotify_playlists)} Spotify playlists.')
     if len(tags_list_from_deezer) > 0:
-        context.summary.append(f'  {len(tags_list_from_deezer)} tracks found in {len(deezer_playlists)} Deezer playlists.')
+        context.summary.append(
+            f'  {len(tags_list_from_deezer)} tracks found in {len(deezer_playlists)} Deezer playlists.')
     if len(tags_list_from_audio) > 0:
         context.summary.append(f'  {len(tags_list_from_audio)} audio files found in local path.')
     if len(tags_list_from_csv) > 0:
         context.summary.append(f'  {len(tags_list_from_csv)} tracks found in {len(csv_files)} csv playlists.')
+    if len(tags_list_from_m3u8) > 0:
+        context.summary.append(f'  {len(tags_list_from_m3u8)} tracks found in {len(m3u8_files)} m3u8 playlists.')
 
     if not (len(tags_list_from_spotify) == len(all_tags_list) or len(tags_list_from_spotify) == 0) \
             or not (len(tags_list_from_deezer) == len(all_tags_list) or len(tags_list_from_deezer) == 0) \
             or not (len(tags_list_from_audio) == len(all_tags_list) or len(tags_list_from_audio) == 0) \
-            or not (len(tags_list_from_csv) == len(all_tags_list) or len(tags_list_from_csv) == 0):
+            or not (len(tags_list_from_csv) == len(all_tags_list) or len(tags_list_from_csv) == 0)\
+            or not (len(tags_list_from_m3u8) == len(all_tags_list) or len(tags_list_from_m3u8) == 0):
         context.summary.append(f'  {len(all_tags_list)} total tracks collected.')
 
     if len(all_tags_list) == 0:
