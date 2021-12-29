@@ -67,17 +67,17 @@ def write_audio_file_tags(file_name, new_tags):
             f.save(v2_version=3)
 
 
-def read_audio_files_tags(file_names, add_spoty_tags=True):
+def read_audio_files_tags(file_names, add_spoty_tags=True, clean_tags=True):
     tags_list = []
     with click.progressbar(file_names, label=f'Reading tags in {len(file_names)} files') as bar:
         for file_name in bar:
-            tags = read_audio_file_tags(file_name, add_spoty_tags)
+            tags = read_audio_file_tags(file_name, add_spoty_tags, clean_tags)
             if tags is not None:
                 tags_list.append(tags)
     return tags_list
 
 
-def read_audio_file_tags(file_name, add_spoty_tags=True):
+def read_audio_file_tags(file_name, add_spoty_tags=True, clean_tags=True):
     tags = {}
 
     file_name = os.path.abspath(file_name)
@@ -127,6 +127,7 @@ def read_audio_file_tags(file_name, add_spoty_tags=True):
             click.echo(f"\nCant open file: {file_name}")
             return None
 
-    tags = spoty.utils.clean_tags_after_read(tags)
+    if clean_tags:
+        tags = spoty.utils.clean_tags_after_read(tags)
 
     return tags
