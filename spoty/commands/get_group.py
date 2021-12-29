@@ -24,13 +24,13 @@ import click
 @click.option('--spotify-entire-library', '--s', multiple=True,
               help='Get all tracks from Spotify library (by user URI or ID). To request a list for the current authorized user, use "me" as ID.')
 @click.option('--spotify-entire-library-regex', '--sr', nargs=2, multiple=True,
-              help='Works the same as --spotify-entire-library, but you can specify regex filter which will be applied to playlists names. This way you can query any playlists by names.')
+              help='Works the same as --spotify-entire-library, but you can specify regex filter which will be applied to playlists names. This way you can query any playlists by names. First param - user ID, second param - regex query.')
 @click.option('--deezer-playlist', '--dp', multiple=True,
               help='Get tracks from Deezer playlist URI or ID.')
 @click.option('--deezer-entire-library', '--d', multiple=True,
               help='Get all tracks from Deezer library (by user URI or ID). To request a list for the current authorized user, use "me" as ID.')
 @click.option('--deezer-entire-library-regex', '--dr', nargs=2, multiple=True,
-              help='Works the same as --deezer-entire-library, but you can specify regex filter which will be applied to playlists names. This way you can query any playlists by names.')
+              help='Works the same as --deezer-entire-library, but you can specify regex filter which will be applied to playlists names. This way you can query any playlists by names. First param - user ID, second param - regex query.')
 @click.option('--audio', '--a', multiple=True,
               help='Get audio files located at the specified local path. You can specify the audio file name as well.')
 @click.option('--csv', '--c', multiple=True,

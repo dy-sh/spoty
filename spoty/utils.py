@@ -617,6 +617,9 @@ def clean_tags_after_read(tags):
 def find_duplicates_in_groups(check_tags: dict, groups: List[DuplicatesGroup], compare_tags_list: list,
                               compare_with_def_duplicates=False, compare_with_prob_duplicates=False) -> (
         DuplicatesGroup, list):
+    if len(compare_tags_list) == 0:
+        return None, None
+
     for tags_to_compare in compare_tags_list:
         for group in groups:
             if len(group.source_tags.items()) > 0:
@@ -764,13 +767,12 @@ def find_duplicates_in_tag_lists(source_list: list, dest_list: list, compare_tag
 
                 for i in range(len(parts)):
                     res = results.get()
-                    print(len(res['unique_dest_tracks']))
                     unique_dest_tracks.extend(res['unique_dest_tracks'])
                     for i, group in enumerate(res['groups']):
-                        if len(group.def_duplicates)>0:
+                        if len(group.def_duplicates) > 0:
                             groups[i].def_duplicates.extend(group.def_duplicates)
                             groups[i].def_found_tags.extend(group.def_found_tags)
-                        if len(group.prob_duplicates)>0:
+                        if len(group.prob_duplicates) > 0:
                             groups[i].prob_duplicates.extend(group.prob_duplicates)
                             groups[i].prob_found_tags.extend(group.prob_found_tags)
 
@@ -823,7 +825,7 @@ def find_duplicates_in_groups_thread(dest_list, groups, compare_tags_def_list, c
             counter.value += (i % 10) + 1
 
     res = {}
-    res['unique_dest_tracks']=unique_dest_tracks
+    res['unique_dest_tracks'] = unique_dest_tracks
     res['groups'] = groups
 
     result.put(res)

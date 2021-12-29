@@ -25,13 +25,16 @@ from datetime import datetime
 @click.option('--compare-tags-prob', '--ctp', show_default=True, multiple=True,
               default=settings.SPOTY.COMPARE_TAGS_PROBABLY_DUPLICATE,
               help='Compare probably duplicates by this tags. It is optional. You can also change the list of tags in the config file.')
-@click.option('--no-prob', '-p', is_flag=True,
-              help='Do not include probably duplicates')
+@click.option('--only-def', '--od', '-d', is_flag=True,
+              help='Find only definitely duplicates.')
+@click.option('--only-prob', '--op', '-p', is_flag=True,
+              help='Find only probably duplicates.')
 @click.pass_obj
 def find_duplicates(context: SpotyContext,
                     compare_tags_def,
                     compare_tags_prob,
-                    no_prob,
+                    only_def,
+                    only_prob
                     ):
     """
 Find duplicates.
@@ -42,8 +45,10 @@ Find duplicates.
     compare_tags_def = spoty.utils.tuple_to_list(compare_tags_def)
     compare_tags_prob = spoty.utils.tuple_to_list(compare_tags_prob)
 
-    if no_prob:
+    if only_def:
         compare_tags_prob = []
+    if only_prob:
+        compare_tags_def = []
 
     duplicates_groups, unique_tracks = spoty.utils.find_duplicates_in_tag_list2(tags_list, compare_tags_def,
                                                                                 compare_tags_prob, True)

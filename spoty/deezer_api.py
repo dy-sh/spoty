@@ -372,7 +372,8 @@ def find_track_id_by_artist_and_title(artist: str, title: str, length=None,
 
 def find_track_by_artist_and_title(artist: str, title: str, length=None,
                                    length_tolerance=settings.SPOTY.COMPARE_LENGTH_TOLERANCE_SEC):
-    if length is not None and length != 0:
+    if length is not None and length != 0 and length != "0":
+        artist=artist.split(';')[0]
         tracks = get_dz().api.advanced_search(artist, "", title, "", int(length) - length_tolerance,
                                               int(length) + length_tolerance)
         if len(tracks['data']) > 0:

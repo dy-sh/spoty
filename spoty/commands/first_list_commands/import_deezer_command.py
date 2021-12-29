@@ -22,7 +22,7 @@ from datetime import datetime
 @click.option('--yes-all', '-y', is_flag=True,
               help='Confirm all questions with a positive answer automatically.')
 @click.option('--ignore-duration', '-i', is_flag=True,
-              help='Dont match track duration)')
+              help='Dont match track duration')
 @click.option('--export-result', '-r', is_flag=True,
               help='Export csv files with result (imported, not found, skipped tracks)')
 @click.option('--result-path', '--rp',

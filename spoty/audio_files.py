@@ -6,7 +6,7 @@ import time, datetime
 from mutagen.flac import FLAC
 from mutagen.mp3 import MP3
 from mutagen.easyid3 import EasyID3
-
+from mutagen.id3 import ID3, TXXX
 
 def is_flac(file_name):
     return file_name.upper().endswith('.FLAC')
@@ -61,7 +61,7 @@ def write_audio_file_tags(file_name, new_tags):
             f = EasyID3(file_name)
             for key, value in new_tags.items():
                 if key not in f.valid_keys:
-                    click.echo(f'MP3 tag {key} is not valid tag')
+                    f.RegisterTXXXKey(key.lower(),key.upper())
                 f[key.lower()] = str(value)
             f.save(v2_version=3)
 
