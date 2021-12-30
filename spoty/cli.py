@@ -65,6 +65,5 @@ spotify.add_command(spotify_track_commands.track)
 
 if __name__ == '__main__':
     cli([
-        'plug',
         # 'get','export','--help',
     ])
