@@ -51,9 +51,9 @@ def playlist():
 
 
 @playlist.command("list")
-@click.option('--filter-names', type=str, default=None,
+@click.option('--filter-names',
               help='List only playlists whose names matches this regex filter')
-@click.option('--user-id', type=str, default=None, help='Get playlists of this user')
+@click.option('--user-id',  help='Get playlists of this user')
 def playlist_list(filter_names, user_id):
     r"""
     List of all playlists.
@@ -100,8 +100,8 @@ def playlist_create(name):
 
 
 @playlist.command("delete")
-@click.argument("playlist_id", type=str, nargs=-1)
-@click.option('--confirm', '-y', type=bool, is_flag=True, default=False,
+@click.argument("playlist_id",  nargs=-1)
+@click.option('--confirm', '-y',  is_flag=True, 
               help='Do not ask for export confirmation')
 def playlist_delete(playlist_id, confirm):
     r"""
@@ -124,7 +124,7 @@ def playlist_delete(playlist_id, confirm):
 
 
 @playlist.command("delete-all")
-@click.option('--confirm', '-y', type=bool, is_flag=True, default=False,
+@click.option('--confirm', '-y',  is_flag=True, 
               help='Do not ask for export confirmation')
 def playlist_delete_all(confirm):
     r"""
@@ -174,9 +174,9 @@ def playlist_delete_all(confirm):
 
 
 @playlist.command("add-tracks")
-@click.argument("playlist_id", type=str)
-@click.argument("track_ids", type=str, nargs=-1)
-@click.option('--allow-duplicates', '-d', type=bool, is_flag=True, default=False,
+@click.argument("playlist_id", )
+@click.argument("track_ids",  nargs=-1)
+@click.option('--allow-duplicates', '-d',  is_flag=True, 
               help='Add tracks that are already in the playlist.')
 def playlist_add_tracks(playlist_id, track_ids, allow_duplicates):
     r"""
@@ -195,12 +195,12 @@ def playlist_add_tracks(playlist_id, track_ids, allow_duplicates):
         spoty deezer playlist add-tracks https://www.deezer.com/ru/playlist/9457847341 https://www.deezer.com/ru/track/74359352
 
     """
-    tracks_added = spoty.deezer_api.add_tracks_to_playlist(playlist_id, track_ids, allow_duplicates)
+    tracks_added = spoty.deezer_api.add_tracks_to_playlist_by_ids(playlist_id, track_ids, allow_duplicates)
     click.echo(f'{len(tracks_added)} tracks added to playlist {playlist_id}')
 
 
 @playlist.command("read")
-@click.argument("playlist_ids", type=str, nargs=-1)
+@click.argument("playlist_ids",  nargs=-1)
 def playlist_read(playlist_ids):
     r"""
     Read playlists and print track ids.

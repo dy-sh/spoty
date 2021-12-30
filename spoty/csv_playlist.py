@@ -120,7 +120,7 @@ def write_tags_to_csv(tags_list, csv_file_name, append=False):
 
     if append:
         if os.path.isfile(csv_file_name):
-            old_tags = read_tags_from_csv(csv_file_name, False)
+            old_tags = read_tags_from_csv(csv_file_name, False, False)
             old_tags.extend(tags_list)
             tags_list = old_tags
 
@@ -160,7 +160,7 @@ def read_tags_from_csvs(csv_file_names, add_spoty_tags=True):
     return all_tags_lists
 
 
-def read_tags_from_csv(csv_file_name, add_spoty_tags=True):
+def read_tags_from_csv(csv_file_name, add_spoty_tags=True, add_missing_tags=True):
     csv_file_name = os.path.abspath(csv_file_name)
     tags_list = []
 
@@ -196,7 +196,7 @@ def read_tags_from_csv(csv_file_name, add_spoty_tags=True):
                 if len(row[h]) > 0:
                     tags[key] = row[h]
 
-            if (add_spoty_tags):
+            if add_spoty_tags:
                 playlist_name = os.path.basename(csv_file_name)
                 if playlist_name.upper().endswith('.CSV'):
                     playlist_name = playlist_name[:-4]
@@ -204,9 +204,9 @@ def read_tags_from_csv(csv_file_name, add_spoty_tags=True):
                 tags['SPOTY_PLAYLIST_NAME'] = playlist_name
                 tags['SPOTY_PLAYLIST_INDEX'] = str(i)
 
-            tags = spoty.utils.clean_tags_after_read(tags)
+            if add_missing_tags:
+                tags = spoty.utils.clean_tags_after_read(tags)
 
             tags_list.append(tags)
 
     return tags_list
-

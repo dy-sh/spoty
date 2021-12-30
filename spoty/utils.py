@@ -33,6 +33,7 @@ spoty_tags = \
         'SPOTY_TRACK_ID',
         'SPOTY_TRACK_ADDED',
         'SPOTY_LENGTH',
+        'SPOTY_TRACK_LISTENED',
     ]
 
 spotify_tags = [

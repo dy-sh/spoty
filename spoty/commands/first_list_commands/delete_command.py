@@ -21,7 +21,7 @@ import os
 # @click.option('--result-path', '--rp',
 #               default=settings.SPOTY.DEFAULT_EXPORT_PATH,
 #               help='Path to create resulting csv files')
-@click.option('--confirm', '-y', type=bool, is_flag=True, default=False,
+@click.option('--confirm', '-y', is_flag=True,
               help='Do not ask for confirmation')
 @click.pass_obj
 def delete_tracks(context: SpotyContext,

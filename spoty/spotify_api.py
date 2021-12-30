@@ -173,9 +173,11 @@ def get_playlist(playlist_id: str):
 
     log.info(f'Requesting playlist {playlist_id}')
 
-    playlist = get_sp().playlist(playlist_id)
-
-    return playlist
+    try:
+        playlist = get_sp().playlist(playlist_id)
+        return playlist
+    except:
+        return None
 
 
 def get_playlist_with_full_list_of_tracks(playlist_id: str, add_spoty_tags=True):
@@ -211,12 +213,13 @@ def get_playlist_with_full_list_of_tracks(playlist_id: str, add_spoty_tags=True)
 
 
 def delete_playlist(playlist_id: str, confirm=False):
+    playlist_id = parse_playlist_id(playlist_id)
     playlist = get_playlist(playlist_id)
     if playlist is None:
         return False
 
     if not confirm:
-        if not click.confirm(f'Do you want to delete playlist {playlist["id"]} ("{playlist["name"]}")'):
+        if not click.confirm(f'Do you want to delete playlist "{playlist["name"]}" ({playlist["id"]})'):
             click.echo("\nCanceled")
             return False
         click.echo()  # for new line
@@ -226,8 +229,12 @@ def delete_playlist(playlist_id: str, confirm=False):
     return True
 
 
+def get_current_user_id():
+    return get_sp().me()['id']
+
+
 def get_list_of_playlists(only_owned_by_user=True):
-    user_id = get_sp().me()['id']
+    user_id = get_current_user_id()
     playlists = []
 
     log.info(f'Collecting playlists for current user')
@@ -292,7 +299,7 @@ def get_list_of_user_playlists(user_id: str):
 def create_playlist(name: str):
     log.info(f'Creating new playlist')
 
-    user_id = get_sp().me()['id']
+    user_id = get_current_user_id()
     new_playlist = get_sp().user_playlist_create(user_id, name)
     id = new_playlist['id']
 
@@ -740,6 +747,28 @@ def get_not_liked_track_ids(track_ids: list):
     return not_liked_tracks
 
 
+def get_not_liked_tags_list(new_sub_tags_list):
+    not_liked_tags_list = []
+    track_ids = get_track_ids_from_tags_list(new_sub_tags_list)
+    likes = get_likes_for_tracks(track_ids)
+    for i in range(len(track_ids)):
+        if not likes[i]:
+            not_liked_tags_list.append(new_sub_tags_list[i])
+
+    return not_liked_tags_list
+
+
+def get_liked_tags_list(new_sub_tags_list):
+    liked_tags_list = []
+    track_ids = get_track_ids_from_tags_list(new_sub_tags_list)
+    likes = get_likes_for_tracks(track_ids)
+    for i in range(len(track_ids)):
+        if likes[i]:
+            liked_tags_list.append(new_sub_tags_list[i])
+
+    return liked_tags_list
+
+
 def get_track_artist_and_title(track: dict):
     artists = list(map(lambda artist: artist['name'], track['artists']))
     artists_str = ', '.join(artists)
@@ -770,21 +799,21 @@ def get_playlists_ids(playlists: list):
 
 
 def parse_playlist_id(id_or_uri: str):
-    if (id_or_uri.startswith("https://open.spotify.com/playlist/")):
+    if id_or_uri.startswith("https://open.spotify.com/playlist/"):
         id_or_uri = id_or_uri.split('/playlist/')[1]
         id_or_uri = id_or_uri.split('?')[0]
     return id_or_uri
 
 
 def parse_track_id(id_or_uri: str):
-    if (id_or_uri.startswith("https://open.spotify.com/track/")):
+    if id_or_uri.startswith("https://open.spotify.com/track/"):
         id_or_uri = id_or_uri.split('/track/')[1]
         id_or_uri = id_or_uri.split('?')[0]
     return id_or_uri
 
 
 def parse_user_id(id_or_uri: str):
-    if (id_or_uri.startswith("https://open.spotify.com/user/")):
+    if id_or_uri.startswith("https://open.spotify.com/user/"):
         id_or_uri = id_or_uri.split('/user/')[1]
         id_or_uri = id_or_uri.split('?')[0]
     return id_or_uri

@@ -53,9 +53,9 @@ def like_add(track_ids):
 @like.command("export")
 @click.option('--path', '--p', default=settings.SPOTY.DEFAULT_EXPORT_PATH, help='Path to create file')
 @click.option('--file-name','--f',  default=settings.SPOTY.DEFAULT_LIKES_EXPORT_FILE_NAME, help='File name to create')
-@click.option('--overwrite', '-o', type=bool, is_flag=True, default=False,
+@click.option('--overwrite', '-o', is_flag=True,
               help='Overwrite existing files without asking')
-@click.option('--timestamp', '-t', type=bool, is_flag=True, default=False,
+@click.option('--timestamp', '-t', is_flag=True,
               help='Create a subfolder with the current date and time')
 def like_export(path, file_name, overwrite, timestamp):
     r"""Export the list of liked tracks to csv file on disk.

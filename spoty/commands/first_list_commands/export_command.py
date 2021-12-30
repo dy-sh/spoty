@@ -12,7 +12,7 @@ from datetime import datetime
 @click.option('--grouping-pattern', '--gp', show_default=True,
               default=settings.SPOTY.DEFAULT_GROUPING_PATTERN,
               help='Tracks will be grouped to playlists according to this pattern.')
-@click.option('--duplicates', '-d', type=bool, is_flag=True, default=False,
+@click.option('--duplicates', '-d',  is_flag=True,
               help='Allow duplicates (add tracks that are already exist in csv file).')
 @click.option('--append', '-a', is_flag=True,
               help='Add tracks to an existing csv file if already exists. If this option is not specified, a new csv file will always be created.')

@@ -18,9 +18,9 @@ def playlist():
 
 
 @playlist.command("list")
-@click.option('--filter-names', '--fn', default=None,
+@click.option('--filter-names', '--fn',
               help='List only playlists whose names matches this regex filter')
-@click.option('--user-id', '--u', default=None, help='Get playlists of this user')
+@click.option('--user-id', '--u',  help='Get playlists of this user')
 def playlist_list(filter_names, user_id):
     r"""
     List of all playlists.
@@ -97,7 +97,7 @@ def playlist_create(name):
 
 @playlist.command("delete")
 @click.argument("playlist_ids", nargs=-1)
-@click.option('--confirm', '-y', type=bool, is_flag=True, default=False,
+@click.option('--confirm', '-y', is_flag=True,
               help='Do not ask for confirmation')
 def playlist_delete(playlist_ids, confirm):
     r"""
@@ -135,9 +135,9 @@ def playlist_delete(playlist_ids, confirm):
 
 
 @playlist.command("delete-all")
-@click.option('--filter-names', '--fn', default=None,
+@click.option('--filter-names', '--fn',
               help='List only playlists whose names matches this regex filter')
-@click.option('--confirm', '-y', type=bool, is_flag=True, default=False,
+@click.option('--confirm', '-y',  is_flag=True,
               help='Do not ask for export confirmation')
 def playlist_delete_all(filter_names, confirm):
     r"""
@@ -211,7 +211,7 @@ def playlist_copy(playlist_ids):
 @playlist.command("add-tracks")
 @click.argument("playlist_id")
 @click.argument("track_ids", nargs=-1)
-@click.option('--allow-duplicates', '-d', type=bool, is_flag=True, default=False,
+@click.option('--allow-duplicates', '-d', is_flag=True,
               help='Add tracks that are already in the playlist.')
 def playlist_add_tracks(playlist_id, track_ids, allow_duplicates):
     r"""

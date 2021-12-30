@@ -12,7 +12,7 @@ import os
               help='The path on disk where to move duplicated audio files.')
 @click.option('--print-pattern', '--pp', show_default=True,
               help='Print a list of tracks according to this formatting pattern. If not specified, R setting from the config file will be used.')
-@click.option('--confirm', '-y', type=bool, is_flag=True, default=False,
+@click.option('--confirm', '-y',  is_flag=True,
               help='Do not ask for confirmation')
 @click.pass_obj
 def move_duplicates(context: SpotyContext,
