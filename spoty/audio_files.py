@@ -6,7 +6,7 @@ import time, datetime
 from mutagen.flac import FLAC
 from mutagen.mp3 import MP3
 from mutagen.easyid3 import EasyID3
-from mutagen.id3 import ID3, TXXX
+from mutagen.id3 import ID3, TXXX, TMOO
 
 
 def is_flac(file_name):
@@ -65,6 +65,14 @@ def write_audio_file_tags(file_name, new_tags):
                     f.RegisterTXXXKey(key.lower(), key.upper())
                 f[key.lower()] = str(value)
             f.save(v2_version=3)
+            f = ID3(file_name)
+            edited = False
+            for key, value in new_tags.items():
+                if key == "MOOD":
+                    edited = True
+                    f.add(TMOO(encoding=3, text=str(value)))
+            if edited:
+                f.save(v2_version=3)
 
 
 def read_audio_files_tags(file_names, add_spoty_tags=True, clean_tags=True):
@@ -129,7 +137,7 @@ def read_audio_file_tags(file_name, add_spoty_tags=True, clean_tags=True):
                         continue
                     tags[tag.upper()] = tag_val
             f = ID3(file_name)
-            for txxx in f.getall("TXXX"): # custom keys
+            for txxx in f.getall("TXXX"):  # custom keys
                 tag = txxx.desc.upper()
                 val = ';'.join(txxx.text)
                 tags[tag] = val
