@@ -1,5 +1,6 @@
 from spoty.commands.duplicates_commands import \
     add_missing_tags_command, \
+    replace_tags_command, \
     delete_duplicates_command, \
     export_duplicates_command, \
     move_duplicates_command, \
@@ -83,6 +84,7 @@ Find duplicates between the first and second list of tracks.
 
 
 find_duplicates_second.add_command(add_missing_tags_command.add_missing_tags)
+find_duplicates_second.add_command(replace_tags_command.replace_tags)
 find_duplicates_second.add_command(delete_duplicates_command.delete_duplicates)
 find_duplicates_second.add_command(export_duplicates_command.export_duplicates)
 find_duplicates_second.add_command(move_duplicates_command.move_duplicates)
