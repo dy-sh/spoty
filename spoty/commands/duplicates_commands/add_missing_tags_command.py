@@ -15,45 +15,58 @@ from datetime import datetime
 
 
 @click.command("add-missing-tags")
+@click.option('--tags', '--t',
+              help='Which tags to search (specify separated by commas). If not specified, will search all tags.')
 @click.option('--confirm', '-y', is_flag=True,
-              help='Do not ask for confirmation')
+              help='Do not ask for confirmation.')
+@click.option('--from-second-too', '-s', is_flag=True,
+              help='Collect tags from tracks in second list too (from duplicates).')
+@click.option('--to-first-too', '-f', is_flag=True,
+              help='Write missing tags to tracks from first list too.')
 @click.pass_obj
 def add_missing_tags(context: SpotyContext,
-                     confirm
-            ):
+                     tags,
+                     confirm,
+                     from_second_too,
+                     to_first_too
+                     ):
     """
 Collect tags from all duplicated tracks and add missing tags (update them all).
     """
 
-    tags_to_add={}
+    compare_tags = tags.split(',') if tags is not None else []
+
+    tags_to_add = {}
     with click.progressbar(context.duplicates_groups, label='Collecting missing tags') as bar:
         for group in bar:
             # collect all tags
-            all_group_tags=group.source_tags.copy()
-            for tags in group.def_duplicates:
-                new_tags = spoty.utils.get_missing_tags(all_group_tags, tags)
-                for key,value in new_tags.items():
-                    all_group_tags[key]=value
-            for tags in group.prob_duplicates:
-                new_tags = spoty.utils.get_missing_tags(all_group_tags, tags)
-                for key,value in new_tags.items():
-                    all_group_tags[key]=value
+            all_group_tags = group.source_tags.copy()
+            if from_second_too:
+                for tags in group.def_duplicates:
+                    new_tags = spoty.utils.get_missing_tags(all_group_tags, tags, compare_tags)
+                    for key, value in new_tags.items():
+                        all_group_tags[key] = value
+                for tags in group.prob_duplicates:
+                    new_tags = spoty.utils.get_missing_tags(all_group_tags, tags, compare_tags)
+                    for key, value in new_tags.items():
+                        all_group_tags[key] = value
 
             # find missing tags
-            if 'SPOTY_FILE_NAME' in group.source_tags: # is local file
-                new_tags = spoty.utils.get_missing_tags(group.source_tags, all_group_tags)
-                if len(new_tags.keys()) > 0:
-                    tags_to_add[group.source_tags['SPOTY_FILE_NAME']] = new_tags
+            if to_first_too:
+                if 'SPOTY_FILE_NAME' in group.source_tags:  # is local file
+                    new_tags = spoty.utils.get_missing_tags(group.source_tags, all_group_tags, compare_tags)
+                    if len(new_tags.keys()) > 0:
+                        tags_to_add[group.source_tags['SPOTY_FILE_NAME']] = new_tags
             for tags in group.def_duplicates:
-                if 'SPOTY_FILE_NAME' in tags: # is local file
-                    new_tags = spoty.utils.get_missing_tags(tags,all_group_tags)
-                    if len(new_tags.keys())>0:
-                        tags_to_add[tags['SPOTY_FILE_NAME']]=new_tags
+                if 'SPOTY_FILE_NAME' in tags:  # is local file
+                    new_tags = spoty.utils.get_missing_tags(tags, all_group_tags, compare_tags)
+                    if len(new_tags.keys()) > 0:
+                        tags_to_add[tags['SPOTY_FILE_NAME']] = new_tags
             for tags in group.prob_duplicates:
-                if 'SPOTY_FILE_NAME' in tags: # is local file
-                    new_tags = spoty.utils.get_missing_tags(tags,all_group_tags)
-                    if len(new_tags.keys())>0:
-                        tags_to_add[tags['SPOTY_FILE_NAME']]=new_tags
+                if 'SPOTY_FILE_NAME' in tags:  # is local file
+                    new_tags = spoty.utils.get_missing_tags(tags, all_group_tags, compare_tags)
+                    if len(new_tags.keys()) > 0:
+                        tags_to_add[tags['SPOTY_FILE_NAME']] = new_tags
 
     if len(tags_to_add.items()) == 0:
         click.echo("No missing tags found")
@@ -64,8 +77,6 @@ Collect tags from all duplicated tracks and add missing tags (update them all).
     for file_name, tags in tags_to_add.items():
         click.echo(f'  {file_name}:\n    {",".join(tags.keys())}')
 
-
-
     if not confirm:
         click.confirm(f'Are you sure you want to edit tags in {len(tags_to_add.items())} audio files?', abort=True)
 
@@ -75,7 +86,6 @@ Collect tags from all duplicated tracks and add missing tags (update them all).
 
     context.summary.append('Adding missing tags:')
     context.summary.append(f'  {len(tags_to_add.items())} audio files edited.')
-
 
     click.echo('\n------------------------------------------------------------')
     click.echo('\n'.join(context.summary))
