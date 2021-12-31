@@ -35,12 +35,12 @@ Get unique tracks (not duplicated) for further actions (see next commands).
     context.tags_lists.clear()
     context.tags_lists.append([])
 
-    if not fist_list:
+    if fist_list:
         context.tags_lists[0].extend(context.unique_first_tracks)
         context.summary.append(f'  {len(context.unique_first_tracks)} unique tracks from first list collected.')
-    if not second_list:
+    if second_list:
         context.tags_lists[0].extend(context.unique_second_tracks)
-        context.summary.append(f'  {len(context.unique_first_tracks)} unique tracks from second list collected.')
+        context.summary.append(f'  {len(context.unique_second_tracks)} unique tracks from second list collected.')
 
     if len(context.tags_lists[0]) == 0:
         context.summary.append(f'  0 unique tracks collected.')

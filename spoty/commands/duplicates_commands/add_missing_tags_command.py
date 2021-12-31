@@ -35,6 +35,8 @@ Collect tags from all duplicated tracks and add missing tags (update them all).
     """
 
     compare_tags = tags.split(',') if tags is not None else []
+    for i in range(len(compare_tags)):
+        compare_tags[i] = compare_tags[i].upper()
 
     tags_to_add = {}
     with click.progressbar(context.duplicates_groups, label='Collecting missing tags') as bar:
