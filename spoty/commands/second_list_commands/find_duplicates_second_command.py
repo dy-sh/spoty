@@ -58,9 +58,9 @@ Find duplicates between the first and second list of tracks.
     if only_prob:
         compare_tags_def = []
 
-    duplicates_groups, unique_source_tracks, unique_dest_tracks = \
+    duplicates_groups, unique_source_tracks, unique_dest_tracks,sources_def_dups, sources_prob_dups = \
         spoty.utils.find_duplicates_in_tag_lists(source_list, dest_list, compare_tags_def, compare_tags_prob,
-                                                 True)
+                                                 True,True)
 
     context.duplicates_groups = duplicates_groups
     context.unique_first_tracks = unique_source_tracks
@@ -74,10 +74,19 @@ Find duplicates between the first and second list of tracks.
         total_prob_duplicates_count += len(group.prob_duplicates)
 
     context.summary.append("Finding duplicates:")
+    if len(unique_source_tracks) > 0:
+        context.summary.append(f'  {len(unique_source_tracks)} unique tracks is first list found.')
+    if len(sources_def_dups) > 0:
+        context.summary.append(f'  {len(sources_def_dups)} definitely duplicates is first list found.')
+    if len(sources_prob_dups) > 0:
+        context.summary.append(f'  {len(sources_prob_dups)} probably duplicates is first list found.')
+    if len(unique_dest_tracks) > 0:
+        context.summary.append(f'  {len(unique_dest_tracks)} unique tracks is second list found.')
     if total_def_duplicates_count > 0:
-        context.summary.append(f'  {total_def_duplicates_count} definitely duplicates found.')
+        context.summary.append(f'  {total_def_duplicates_count} definitely duplicates in second list found.')
     if total_prob_duplicates_count > 0:
-        context.summary.append(f'  {total_prob_duplicates_count} probably duplicates found.')
+        context.summary.append(f'  {total_prob_duplicates_count} probably duplicates in second list found.')
+
 
     if total_def_duplicates_count == 0 and total_prob_duplicates_count == 0:
         context.summary.append(f'  0 duplicates found.')
