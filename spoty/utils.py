@@ -713,7 +713,7 @@ def find_duplicates_in_tag_list2(tags_list: list, compare_tags_def_list: list, c
 
 def find_duplicates_in_tag_lists(source_list: list, dest_list: list, compare_tags_def_list: list,
                                  compare_tags_prob_list: list,
-                                 add_dup_tags=False):
+                                 add_dup_tags=False, remove_duplicates_in_source=True):
     # get tags to compare from config
 
     for i, tags in enumerate(compare_tags_def_list):
@@ -757,6 +757,7 @@ def find_duplicates_in_tag_lists(source_list: list, dest_list: list, compare_tag
             with click.progressbar(length=len(dest_list),
                                    label=f'Finding duplicates in {len(source_list) + len(dest_list)} tracks') as bar:
 
+                # start threads
                 for i, part in enumerate(parts):
                     counter = Value('i', 0)
                     counters.append(counter)
@@ -773,6 +774,7 @@ def find_duplicates_in_tag_lists(source_list: list, dest_list: list, compare_tag
                     if added > 0:
                         bar.update(added)
 
+                # waiting for complete
                 while not bar.finished:
                     time.sleep(0.1)
                     total = sum([x.value for x in counters])
@@ -780,6 +782,7 @@ def find_duplicates_in_tag_lists(source_list: list, dest_list: list, compare_tag
                     if added > 0:
                         bar.update(added)
 
+                # combine results
                 for i in range(len(parts)):
                     res = results.get()
                     unique_dest_tracks.extend(res['unique_dest_tracks'])
@@ -797,17 +800,38 @@ def find_duplicates_in_tag_lists(source_list: list, dest_list: list, compare_tag
             sys.exit()
 
     # remove unique source
-
     unique_source_tracks = []
-    duplicates_groups: List[DuplicatesGroup] = []
+    temp_groups: List[DuplicatesGroup] = []
     for group in groups:
         if group.has_duplicates():
-            duplicates_groups.append(group)
+            temp_groups.append(group)
         else:
             unique_source_tracks.append(group.source_tags)
+    groups = temp_groups
+
+    # remove duplicates in unique source tracks
+    if remove_duplicates_in_source:
+        unique_sources = []
+        def_duplicated_sources = []
+        prob_duplicated_sources = []
+
+        with click.progressbar(unique_source_tracks,
+                               label=f'Finding duplicates in {len(unique_source_tracks)} source tracks') as bar:
+            for dest_tags in bar:
+                group, found_tags = find_duplicates_in_groups(dest_tags, groups, compare_tags_def_list)
+                if group is not None:
+                    def_duplicated_sources.append(dest_tags)
+                else:
+                    group, found_tags = find_duplicates_in_groups(dest_tags, groups, compare_tags_prob_list)
+                    if group is not None:
+                        prob_duplicated_sources.append(dest_tags)
+                    else:
+                        unique_sources.append(dest_tags)
+
+        unique_source_tracks = unique_sources
 
     if add_dup_tags:
-        for i, group in enumerate(duplicates_groups):
+        for i, group in enumerate(groups):
             group.source_tags['SPOTY_DUP_GROUP'] = i + 1
             for y, tags in enumerate(group.def_duplicates):
                 tags['SPOTY_DUP_GROUP'] = i + 1
@@ -816,7 +840,7 @@ def find_duplicates_in_tag_lists(source_list: list, dest_list: list, compare_tag
                 tags['SPOTY_DUP_GROUP'] = i + 1
                 tags['SPOTY_PROB_DUP_TAGS'] = ','.join(group.prob_found_tags[y])
 
-    return duplicates_groups, unique_source_tracks, unique_dest_tracks
+    return groups, unique_source_tracks, unique_dest_tracks
 
 
 def find_duplicates_in_groups_thread(dest_list, groups, compare_tags_def_list, compare_tags_prob_list, counter, result):
