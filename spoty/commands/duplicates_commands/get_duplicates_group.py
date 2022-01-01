@@ -19,10 +19,13 @@ import click
               help='Get only definitely duplicates.')
 @click.option('--only-prob', '--op', '-p', is_flag=True,
               help='Get only probably duplicates.')
+@click.option('--add-source', '--as', '-s', is_flag=True,
+              help='Get source tracks too.')
 @click.pass_obj
 def get_duplicates(context: SpotyContext,
                    only_def,
-                   only_prob
+                   only_prob,
+add_source
                    ):
     """
 Get duplicates for further actions (see next commands).
@@ -36,6 +39,8 @@ Get duplicates for further actions (see next commands).
     context.tags_lists.append([])
 
     for group in context.duplicates_groups:
+        if add_source:
+            context.tags_lists[0].append(group.source_tags)
         if not only_prob:
             context.tags_lists[0].extend(group.def_duplicates)
         if not only_def:
