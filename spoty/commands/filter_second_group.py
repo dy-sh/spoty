@@ -1,17 +1,10 @@
 from spoty.commands.first_list_commands import \
     count_command, \
-    delete_command, \
-    copy_command, \
-    move_command, \
     export_command, \
-    print_command,\
-    create_m3u8_command
+    print_command
 from spoty.commands.second_list_commands import \
     find_duplicates_second_command
 from spoty.commands import filter_group
-from spoty.commands.duplicates_commands import \
-    add_missing_tags_command, \
-    replace_tags_command
 from spoty.utils import SpotyContext
 from spoty import settings
 import click
@@ -57,11 +50,4 @@ Filter tracks.
 filter_second.add_command(count_command.count_tracks)
 filter_second.add_command(print_command.print_tracks)
 filter_second.add_command(export_command.export_tracks)
-filter_second.add_command(create_m3u8_command.export_tracks)
-filter_second.add_command(delete_command.delete_tracks)
-filter_second.add_command(move_command.move_tracks)
-filter_second.add_command(copy_command.copy_tracks)
-filter_second.add_command(delete_command.delete_tracks)
-filter_second.add_command(add_missing_tags_command.add_missing_tags)
-filter_second.add_command(replace_tags_command.replace_tags)
 filter_second.add_command(find_duplicates_second_command.find_duplicates_second)
