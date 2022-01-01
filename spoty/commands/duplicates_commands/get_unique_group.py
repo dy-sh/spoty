@@ -6,10 +6,10 @@ from spoty.commands.first_list_commands import \
     export_command, \
     import_deezer_command, \
     import_spotify_command, \
-    print_command,\
+    find_deezer_group2, \
+    find_spotify_group2, \
+    print_command, \
     create_m3u8_command
-from spoty.commands import \
-    filter_group
 from spoty.utils import SpotyContext
 import click
 
@@ -57,6 +57,8 @@ get_unique.add_command(export_command.export_tracks)
 get_unique.add_command(create_m3u8_command.export_tracks)
 get_unique.add_command(import_spotify_command.import_spotify)
 get_unique.add_command(import_deezer_command.import_deezer)
+get_unique.add_command(find_deezer_group2.find_deezer)
+get_unique.add_command(find_spotify_group2.find_spotify)
 get_unique.add_command(delete_command.delete_tracks)
 get_unique.add_command(move_command.move_tracks)
 get_unique.add_command(copy_command.copy_tracks)

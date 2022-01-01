@@ -37,7 +37,7 @@ def import_deezer(context: SpotyContext,
                   result_path
                   ):
     """
-Import track list to Deezer Library
+Import track list to Deezer library
     """
 
     for tags_list in context.tags_lists:

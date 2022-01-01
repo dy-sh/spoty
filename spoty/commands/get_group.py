@@ -8,9 +8,11 @@ from spoty.commands.first_list_commands import \
     import_spotify_command, \
     print_command, \
     find_duplicates_command, \
-    create_m3u8_command
+    create_m3u8_command, \
+    filter_group,\
+    find_deezer_group, \
+    find_spotify_group
 from spoty.commands import \
-    filter_group, \
     get_second_group
 from spoty.utils import SpotyContext
 import spoty.spotify_api
@@ -264,6 +266,8 @@ get_tracks.add_command(export_command.export_tracks)
 get_tracks.add_command(create_m3u8_command.export_tracks)
 get_tracks.add_command(import_spotify_command.import_spotify)
 get_tracks.add_command(import_deezer_command.import_deezer)
+get_tracks.add_command(find_deezer_group.find_deezer)
+get_tracks.add_command(find_spotify_group.find_spotify)
 get_tracks.add_command(get_second_group.get_second)
 get_tracks.add_command(delete_command.delete_tracks)
 get_tracks.add_command(move_command.move_tracks)

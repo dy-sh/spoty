@@ -40,7 +40,7 @@ def import_spotify(context: SpotyContext,
                    result_path
                    ):
     """
-Import track list to Spotify Library
+Import track list to Spotify library
     """
 
     for tags_list in context.tags_lists:
