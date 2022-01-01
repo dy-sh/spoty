@@ -37,38 +37,37 @@ Copy tracks.
         all_tags_list.extend(tags_list)
 
     if len(all_tags_list) == 0:
-        click.echo("No tracks to copy.")
-        exit()
+        context.summary.append("No tracks to copy.")
+    else:
+        click.echo('Next tracks will be copied:')
+        for i, tags_list in enumerate(context.tags_lists):
+            if len(context.tags_lists) > 1:
+                click.echo()
+                click.echo(
+                    f'============================= LIST {i + 1}/{len(context.tags_lists)} =============================')
+                click.echo()
 
-    click.echo('Next tracks will be copied:')
-    for i, tags_list in enumerate(context.tags_lists):
-        if len(context.tags_lists) > 1:
-            click.echo()
-            click.echo(
-                f'============================= LIST {i + 1}/{len(context.tags_lists)} =============================')
-            click.echo()
+            spoty.utils.print_tags_list_grouped(tags_list, print_pattern, grouping_pattern)
 
-        spoty.utils.print_tags_list_grouped(tags_list, print_pattern, grouping_pattern)
+        if not confirm:
+            click.confirm(f'Are you sure you want to copy {len(all_tags_list)} tracks?', abort=True)
 
-    if not confirm:
-        click.confirm(f'Are you sure you want to copy {len(all_tags_list)} tracks?', abort=True)
+        context.summary.append('Copying:')
 
-    context.summary.append('Copying:')
+        copied_spotify_tracks, copied_deezer_tracks, copied_audio_files, copied_csv_tracks = \
+            copy_tracks_from_all_sources(all_tags_list, path)
 
-    copied_spotify_tracks, copied_deezer_tracks, copied_audio_files, copied_csv_tracks = \
-        copy_tracks_from_all_sources(all_tags_list, path)
+        if len(copied_spotify_tracks) > 0:
+            context.summary.append(f'  {len(copied_spotify_tracks)} tracks copied from Spotify.')
 
-    if len(copied_spotify_tracks) > 0:
-        context.summary.append(f'  {len(copied_spotify_tracks)} tracks copied from Spotify.')
+        if len(copied_deezer_tracks) > 0:
+            context.summary.append(f'  {len(copied_deezer_tracks)} tracks copied from Deezer.')
 
-    if len(copied_deezer_tracks) > 0:
-        context.summary.append(f'  {len(copied_deezer_tracks)} tracks copied from Deezer.')
+        if len(copied_audio_files) > 0:
+            context.summary.append(f'  {len(copied_audio_files)} audio files copied.')
 
-    if len(copied_audio_files) > 0:
-        context.summary.append(f'  {len(copied_audio_files)} audio files copied.')
-
-    if len(copied_csv_tracks) > 0:
-        context.summary.append(f'  {len(copied_csv_tracks)} tracks from csv copied.')
+        if len(copied_csv_tracks) > 0:
+            context.summary.append(f'  {len(copied_csv_tracks)} tracks from csv copied.')
 
     click.echo('\n------------------------------------------------------------')
     click.echo('\n'.join(context.summary))

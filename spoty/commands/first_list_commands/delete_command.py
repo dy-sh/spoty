@@ -34,44 +34,44 @@ def delete_tracks(context: SpotyContext,
     """
 Delete tracks.
     """
+    context.summary.append('Deleting:')
 
     all_tags_list = []
     for i, tags_list in enumerate(context.tags_lists):
         all_tags_list.extend(tags_list)
 
     if len(all_tags_list) == 0:
-        click.echo("No tracks to delete.")
-        exit()
+        context.summary.append("  No tracks to delete.")
+    else:
+        click.echo('Next tracks will be deleted:')
+        for i, tags_list in enumerate(context.tags_lists):
+            if len(context.tags_lists) > 1:
+                click.echo()
+                click.echo(
+                    f'============================= LIST {i + 1}/{len(context.tags_lists)} =============================')
+                click.echo()
 
-    click.echo('Next tracks will be deleted:')
-    for i, tags_list in enumerate(context.tags_lists):
-        if len(context.tags_lists) > 1:
-            click.echo()
-            click.echo(
-                f'============================= LIST {i + 1}/{len(context.tags_lists)} =============================')
-            click.echo()
+            spoty.utils.print_tags_list_grouped(tags_list, print_pattern, grouping_pattern)
 
-        spoty.utils.print_tags_list_grouped(tags_list, print_pattern, grouping_pattern)
+        if not confirm:
+            click.confirm(f'Are you sure you want to delete {len(all_tags_list)} tracks?', abort=True)
 
-    if not confirm:
-        click.confirm(f'Are you sure you want to delete {len(all_tags_list)} tracks?', abort=True)
 
-    context.summary.append('Deleting:')
 
-    deleted_spotify_tracks, deleted_deezer_tracks, deleted_audio_files, deleted_csv_tracks = \
-        delete_tracks_from_all_sources(all_tags_list)
+        deleted_spotify_tracks, deleted_deezer_tracks, deleted_audio_files, deleted_csv_tracks = \
+            delete_tracks_from_all_sources(all_tags_list)
 
-    if len(deleted_spotify_tracks) > 0:
-        context.summary.append(f'  {len(deleted_spotify_tracks)} tracks deleted from Spotify.')
+        if len(deleted_spotify_tracks) > 0:
+            context.summary.append(f'  {len(deleted_spotify_tracks)} tracks deleted from Spotify.')
 
-    if len(deleted_deezer_tracks) > 0:
-        context.summary.append(f'  {len(deleted_deezer_tracks)} tracks deleted from Deezer.')
+        if len(deleted_deezer_tracks) > 0:
+            context.summary.append(f'  {len(deleted_deezer_tracks)} tracks deleted from Deezer.')
 
-    if len(deleted_audio_files) > 0:
-        context.summary.append(f'  {len(deleted_audio_files)} audio files deleted.')
+        if len(deleted_audio_files) > 0:
+            context.summary.append(f'  {len(deleted_audio_files)} audio files deleted.')
 
-    if len(deleted_csv_tracks) > 0:
-        context.summary.append(f'  {len(deleted_csv_tracks)} tracks from csv deleted.')
+        if len(deleted_csv_tracks) > 0:
+            context.summary.append(f'  {len(deleted_csv_tracks)} tracks from csv deleted.')
 
     click.echo('\n------------------------------------------------------------')
     click.echo('\n'.join(context.summary))

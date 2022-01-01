@@ -1,3 +1,4 @@
+from spoty.commands.first_list_commands import count_command
 from spoty.commands.duplicates_commands import \
     add_missing_tags_command, \
     replace_tags_command, \
@@ -90,6 +91,7 @@ Find duplicates between the first and second list of tracks.
         context.summary.append(f'  0 duplicates found.')
 
 
+find_duplicates_second.add_command(count_command.count_tracks)
 find_duplicates_second.add_command(add_missing_tags_command.add_missing_tags)
 find_duplicates_second.add_command(replace_tags_command.replace_tags)
 find_duplicates_second.add_command(export_duplicates_command.export_duplicates)
