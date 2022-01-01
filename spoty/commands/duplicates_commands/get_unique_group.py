@@ -54,7 +54,7 @@ Get unique tracks (not duplicated) for further actions (see next commands).
 get_unique.add_command(count_command.count_tracks)
 get_unique.add_command(print_command.print_tracks)
 get_unique.add_command(export_command.export_tracks)
-get_unique.add_command(export_command.export_tracks)
+get_unique.add_command(create_m3u8_command.export_tracks)
 get_unique.add_command(import_spotify_command.import_spotify)
 get_unique.add_command(import_deezer_command.import_deezer)
 get_unique.add_command(delete_command.delete_tracks)
