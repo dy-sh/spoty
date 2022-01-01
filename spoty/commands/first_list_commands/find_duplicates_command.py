@@ -1,8 +1,6 @@
 from spoty.commands.duplicates_commands import \
     add_missing_tags_command, \
-    delete_duplicates_command, \
     export_duplicates_command, \
-    move_duplicates_command, \
     print_duplicates_command
 from spoty.utils import SpotyContext
 from spoty import settings
@@ -71,7 +69,5 @@ Find duplicates.
 
 
 find_duplicates.add_command(add_missing_tags_command.add_missing_tags)
-find_duplicates.add_command(delete_duplicates_command.delete_duplicates)
 find_duplicates.add_command(export_duplicates_command.export_duplicates)
-find_duplicates.add_command(move_duplicates_command.move_duplicates)
 find_duplicates.add_command(print_duplicates_command.print_duplicates)

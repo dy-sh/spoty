@@ -912,3 +912,33 @@ def move_audio_files_to_path(tags_list, path):
             moved_files.append(new_file_name)
 
     return moved_files
+
+
+def sort_tracks_by_source(tags_list):
+    spotify_playlists = {}
+    deezer_playlists = {}
+    local_audio_files = []
+    csv_playlists = {}
+    for tags in tags_list:
+        if tags['SPOTY_SOURCE'] == 'SPOTIFY':
+            playlist_id = tags['SPOTY_PLAYLIST_ID']
+            if playlist_id not in spotify_playlists:
+                spotify_playlists[playlist_id] = []
+            spotify_playlists[playlist_id].append(tags['SPOTIFY_TRACK_ID'])
+
+        if tags['SPOTY_SOURCE'] == 'DEEZER':
+            playlist_id = tags['SPOTY_PLAYLIST_ID']
+            if playlist_id not in deezer_playlists:
+                deezer_playlists[playlist_id] = []
+            deezer_playlists[playlist_id].append(tags['DEEZER_TRACK_ID'])
+
+        if tags['SPOTY_SOURCE'] == 'LOCAL':
+            local_audio_files.append(tags['SPOTY_FILE_NAME'])
+
+        if tags['SPOTY_SOURCE'] == 'CSV':
+            playlist_name = tags['SPOTY_PLAYLIST_NAME']
+            if playlist_name not in csv_playlists:
+                csv_playlists[playlist_name] = []
+            csv_playlists[playlist_name].append(tags)
+
+    return spotify_playlists, deezer_playlists, local_audio_files, csv_playlists

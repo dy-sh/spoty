@@ -1,9 +1,9 @@
 from spoty.commands.first_list_commands import \
     count_command, \
     delete_command, \
+    copy_command, \
+    move_command, \
     export_command, \
-    import_deezer_command, \
-    import_spotify_command, \
     print_command,\
     create_m3u8_command
 from spoty.commands.second_list_commands import \
@@ -11,8 +11,7 @@ from spoty.commands.second_list_commands import \
 from spoty.commands import filter_group
 from spoty.commands.duplicates_commands import \
     add_missing_tags_command, \
-    replace_tags_command, \
-    move_duplicates_command
+    replace_tags_command
 from spoty.utils import SpotyContext
 from spoty import settings
 import click
@@ -59,9 +58,9 @@ filter_second.add_command(count_command.count_tracks)
 filter_second.add_command(print_command.print_tracks)
 filter_second.add_command(export_command.export_tracks)
 filter_second.add_command(create_m3u8_command.export_tracks)
-filter_second.add_command(import_spotify_command.import_spotify)
-filter_second.add_command(import_deezer_command.import_deezer)
-filter_second.add_command(move_duplicates_command.move_duplicates)
+filter_second.add_command(delete_command.delete_tracks)
+filter_second.add_command(move_command.move_tracks)
+filter_second.add_command(copy_command.copy_tracks)
 filter_second.add_command(delete_command.delete_tracks)
 filter_second.add_command(add_missing_tags_command.add_missing_tags)
 filter_second.add_command(replace_tags_command.replace_tags)

@@ -78,25 +78,7 @@ Delete tracks.
 
 
 def delete_tracks_from_all_sources(all_tags_list):
-    spotify_playlists = {}
-    deezer_playlists = {}
-    local_audio_files = []
-    csv_tracks = {}
-    for tags in all_tags_list:
-        if tags['SPOTY_SOURCE'] == 'SPOTIFY':
-            playlist_id = tags['SPOTY_PLAYLIST_ID']
-            if playlist_id not in spotify_playlists:
-                spotify_playlists[playlist_id] = []
-            spotify_playlists[playlist_id].append(tags['SPOTIFY_TRACK_ID'])
-
-        if tags['SPOTY_SOURCE'] == 'DEEZER':
-            playlist_id = tags['SPOTY_PLAYLIST_ID']
-            if playlist_id not in deezer_playlists:
-                deezer_playlists[playlist_id] = []
-            deezer_playlists[playlist_id].append(tags['DEEZER_TRACK_ID'])
-
-        if tags['SPOTY_SOURCE'] == 'LOCAL':
-            local_audio_files.append(tags['SPOTY_FILE_NAME'])
+    spotify_playlists, deezer_playlists, local_audio_files, csv_playlists = spoty.utils.sort_tracks_by_source(all_tags_list)
 
     # todo: delete from csv
 

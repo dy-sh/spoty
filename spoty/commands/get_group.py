@@ -1,6 +1,8 @@
 from spoty.commands.first_list_commands import \
     count_command, \
     delete_command, \
+    copy_command, \
+    move_command, \
     export_command, \
     import_deezer_command, \
     import_spotify_command, \
@@ -264,4 +266,6 @@ get_tracks.add_command(import_spotify_command.import_spotify)
 get_tracks.add_command(import_deezer_command.import_deezer)
 get_tracks.add_command(get_second_group.get_second)
 get_tracks.add_command(delete_command.delete_tracks)
+get_tracks.add_command(move_command.move_tracks)
+get_tracks.add_command(copy_command.copy_tracks)
 get_tracks.add_command(find_duplicates_command.find_duplicates)

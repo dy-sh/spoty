@@ -1,6 +1,8 @@
 from spoty.commands.first_list_commands import \
     count_command, \
     delete_command, \
+    copy_command, \
+    move_command, \
     export_command, \
     import_deezer_command, \
     import_spotify_command, \
@@ -53,4 +55,6 @@ get_duplicates.add_command(create_m3u8_command.export_tracks)
 get_duplicates.add_command(import_spotify_command.import_spotify)
 get_duplicates.add_command(import_deezer_command.import_deezer)
 get_duplicates.add_command(delete_command.delete_tracks)
+get_duplicates.add_command(move_command.move_tracks)
+get_duplicates.add_command(copy_command.copy_tracks)
 
