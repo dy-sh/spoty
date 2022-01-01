@@ -280,8 +280,8 @@ def compare_tags(tags1: dict, tags2: dict, tags_to_compare: list, allow_missing=
                 continue
 
         if tag == "ISRC":
-            isrc1 = tags1[tag].upper().replace('-','')
-            isrc2 = tags2[tag].upper().replace('-','')
+            isrc1 = tags1[tag].upper().replace('-', '')
+            isrc2 = tags2[tag].upper().replace('-', '')
             if isrc1 != isrc2:
                 return False
             else:
@@ -609,6 +609,9 @@ def clean_tags_list_after_read(tags_list):
 
 def clean_tags_after_read(tags):
     # local files from deemix
+
+    if 'ISRC' in tags:
+        tags['ISRC'] = tags['ISRC'].upper().replace('-', '')
 
     if 'SOURCEID' in tags and 'DEEZER_TRACK_ID' not in tags \
             and 'SOURCE' in tags and tags['SOURCE'].upper() == "DEEZER":

@@ -39,6 +39,8 @@ Get the specified tags from the tracks in the first list and write those tags to
 
 TAGS - Which tags to rewrite (specify separated by commas).
     """
+    context.summary.append('Replacing tags:')
+
 
     write_tags = tags.split(',')
     for i in range(len(write_tags)):
@@ -81,31 +83,30 @@ TAGS - Which tags to rewrite (specify separated by commas).
                         tags_to_update_list.append(t)
 
     if len(tags_to_update_list) == 0:
-        click.echo("No tags to update found.")
-        exit()
+        context.summary.append("  No tags to update found.")
+    else:
 
-    click.echo('Next audio files will be edited:')
+        click.echo('Next audio files will be edited:')
 
-    for t in tags_to_update_list:
-        click.echo(f'  {t.dest_tags["SPOTY_FILE_NAME"]}:')
-        for tag in t.tags_keys:
-            was = t.dest_tags[tag] if tag in t.dest_tags else ""
-            new = t.source_tags[tag] if tag in t.source_tags else ""
-            click.echo(f'    {tag} was "{was}", will become "{new}"')
-
-    if not confirm:
-        click.confirm(f'Are you sure you want to edit tags in {len(tags_to_update_list)} audio files?', abort=True)
-
-    with click.progressbar(tags_to_update_list, label=f'Writing tags in {len(tags_to_update_list)} files') as bar:
-        for t in bar:
-            new_tags = {}
+        for t in tags_to_update_list:
+            click.echo(f'  {t.dest_tags["SPOTY_FILE_NAME"]}:')
             for tag in t.tags_keys:
+                was = t.dest_tags[tag] if tag in t.dest_tags else ""
                 new = t.source_tags[tag] if tag in t.source_tags else ""
-                new_tags[tag] = new
-            spoty.audio_files.write_audio_file_tags(t.dest_tags['SPOTY_FILE_NAME'], new_tags)
+                click.echo(f'    {tag} was "{was}", will become "{new}"')
 
-    context.summary.append('Replacing tags:')
-    context.summary.append(f'  {len(tags_to_update_list)} audio files edited.')
+        if not confirm:
+            click.confirm(f'Are you sure you want to edit tags in {len(tags_to_update_list)} audio files?', abort=True)
+
+        with click.progressbar(tags_to_update_list, label=f'Writing tags in {len(tags_to_update_list)} files') as bar:
+            for t in bar:
+                new_tags = {}
+                for tag in t.tags_keys:
+                    new = t.source_tags[tag] if tag in t.source_tags else ""
+                    new_tags[tag] = new
+                spoty.audio_files.write_audio_file_tags(t.dest_tags['SPOTY_FILE_NAME'], new_tags)
+
+        context.summary.append(f'  {len(tags_to_update_list)} audio files edited.')
 
     click.echo('\n------------------------------------------------------------')
     click.echo('\n'.join(context.summary))
