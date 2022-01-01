@@ -16,19 +16,20 @@ def count_tracks(context: SpotyContext,
     """
 Print a number of tracks to console.
     """
+    context.summary.append(f'Counting:')
 
     for i, tags_list in enumerate(context.tags_lists):
         grouped_tags = spoty.utils.group_tags_by_pattern(tags_list, grouping_pattern)
 
-        if len(context.tags_lists) >0:
-            context.summary.append(f'List {i + 1}:')
+        if len(context.tags_lists) > 1:
+            context.summary.append(f'  --- List {i + 1}:')
 
         context.summary.append(f'  {len(tags_list)} tracks.')
 
         if len(grouped_tags) > 0:
             context.summary.append(f'  {len(grouped_tags)} groups by pattern.')
 
-    if len(context.duplicates_groups)>0:
+    if len(context.duplicates_groups) > 0:
         all_def_list = []
         all_prob_list = []
         all_source_list = []
@@ -39,7 +40,6 @@ Print a number of tracks to console.
         context.summary.append(f'  {len(all_source_list)} duplicate groups.')
         context.summary.append(f'  {len(all_def_list)} definitely duplicates.')
         context.summary.append(f'  {len(all_prob_list)} probably duplicates.')
-
 
     click.echo('\n------------------------------------------------------------')
     click.echo('\n'.join(context.summary))
