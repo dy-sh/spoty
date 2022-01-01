@@ -17,6 +17,9 @@ from datetime import datetime
 @click.command("add-missing-tags")
 @click.option('--tags', '--t',
               help='Which tags to search (specify separated by commas). If not specified, will search all tags.')
+@click.option('--ignore-tags', '--T',
+              help='Which tags to ignore (specify separated by commas).',
+              default=settings.SPOTY.DEFAULT_IGNORE_MISSING_TAGS)
 @click.option('--confirm', '-y', is_flag=True,
               help='Do not ask for confirmation.')
 @click.option('--from-second-too', '-s', is_flag=True,
@@ -26,6 +29,7 @@ from datetime import datetime
 @click.pass_obj
 def add_missing_tags(context: SpotyContext,
                      tags,
+                     ignore_tags,
                      confirm,
                      from_second_too,
                      to_first_too
@@ -38,6 +42,10 @@ Collect tags from all duplicated tracks and add missing tags (update them all).
     for i in range(len(compare_tags)):
         compare_tags[i] = compare_tags[i].upper()
 
+    ignore_tags = ignore_tags.split(',') if ignore_tags is not None else []
+    for i in range(len(ignore_tags)):
+        ignore_tags[i] = ignore_tags[i].upper()
+
     tags_to_add = {}
     with click.progressbar(context.duplicates_groups, label='Collecting missing tags') as bar:
         for group in bar:
@@ -45,28 +53,28 @@ Collect tags from all duplicated tracks and add missing tags (update them all).
             all_group_tags = group.source_tags.copy()
             if from_second_too:
                 for tags in group.def_duplicates:
-                    new_tags = spoty.utils.get_missing_tags(all_group_tags, tags, compare_tags)
+                    new_tags = spoty.utils.get_missing_tags(all_group_tags, tags, compare_tags,ignore_tags)
                     for key, value in new_tags.items():
                         all_group_tags[key] = value
                 for tags in group.prob_duplicates:
-                    new_tags = spoty.utils.get_missing_tags(all_group_tags, tags, compare_tags)
+                    new_tags = spoty.utils.get_missing_tags(all_group_tags, tags, compare_tags,ignore_tags)
                     for key, value in new_tags.items():
                         all_group_tags[key] = value
 
             # find missing tags
             if to_first_too:
                 if 'SPOTY_FILE_NAME' in group.source_tags:  # is local file
-                    new_tags = spoty.utils.get_missing_tags(group.source_tags, all_group_tags, compare_tags)
+                    new_tags = spoty.utils.get_missing_tags(group.source_tags, all_group_tags, compare_tags,ignore_tags)
                     if len(new_tags.keys()) > 0:
                         tags_to_add[group.source_tags['SPOTY_FILE_NAME']] = new_tags
             for tags in group.def_duplicates:
                 if 'SPOTY_FILE_NAME' in tags:  # is local file
-                    new_tags = spoty.utils.get_missing_tags(tags, all_group_tags, compare_tags)
+                    new_tags = spoty.utils.get_missing_tags(tags, all_group_tags, compare_tags,ignore_tags)
                     if len(new_tags.keys()) > 0:
                         tags_to_add[tags['SPOTY_FILE_NAME']] = new_tags
             for tags in group.prob_duplicates:
                 if 'SPOTY_FILE_NAME' in tags:  # is local file
-                    new_tags = spoty.utils.get_missing_tags(tags, all_group_tags, compare_tags)
+                    new_tags = spoty.utils.get_missing_tags(tags, all_group_tags, compare_tags,ignore_tags)
                     if len(new_tags.keys()) > 0:
                         tags_to_add[tags['SPOTY_FILE_NAME']] = new_tags
 

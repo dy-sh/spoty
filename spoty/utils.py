@@ -526,15 +526,22 @@ def reorder_tag_keys_main_first(keys: list):
     return res
 
 
-def get_missing_tags(exist_tags: dict, new_tags: dict, compare_tags: list = None):
+def get_missing_tags(exist_tags: dict, new_tags: dict, compare_tags: list = None, ignore_tags: list = None):
     if compare_tags is None:
         compare_tags = []
+
+    if ignore_tags is None:
+        ignore_tags = []
 
     missing_tags = {}
 
     for key, value in new_tags.items():
         if len(compare_tags) > 0:
             if key not in compare_tags:
+                continue
+
+        if len(ignore_tags) > 0:
+            if key in ignore_tags:
                 continue
 
         if key == 'LENGTH':
