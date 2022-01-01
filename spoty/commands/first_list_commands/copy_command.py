@@ -85,10 +85,11 @@ def copy_tracks_from_all_sources(all_tags_list, path):
         if path is None:
             click.echo("Cant copy local files. Option --path is not specified. Skipped.")
         else:
-            for file_name in local_audio_files:
-                if spoty.utils.is_valid_file(file_name):
-                    shutil.copy(file_name, path)
-                    copied_audio_files.append(file_name)
+            with click.progressbar(local_audio_files, label=f'Copying {len(local_audio_files)} files') as bar:
+                for file_name in bar:
+                    if spoty.utils.is_valid_file(file_name):
+                        shutil.copy(file_name, path)
+                        copied_audio_files.append(file_name)
 
     copied_spotify_tracks = []
     copied_deezer_tracks = []

@@ -279,6 +279,14 @@ def compare_tags(tags1: dict, tags2: dict, tags_to_compare: list, allow_missing=
             else:
                 continue
 
+        if tag == "ISRC":
+            isrc1 = tags1[tag].upper().replace('-','')
+            isrc2 = tags2[tag].upper().replace('-','')
+            if isrc1 != isrc2:
+                return False
+            else:
+                continue
+
         if tags1[tag] != tags2[tag]:
             return False
 
