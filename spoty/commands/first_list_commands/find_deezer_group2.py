@@ -40,7 +40,7 @@ def find_deezer(context: SpotyContext,
                 result_path
                 ):
     """
-Find track list to Deezer library
+Find tracks in Deezer.
     """
 
     tags_list = context.tags_lists[0]

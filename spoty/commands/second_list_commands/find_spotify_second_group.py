@@ -33,7 +33,7 @@ def find_spotify(context: SpotyContext,
                  result_path
                  ):
     """
-Find track list to Spotify library
+Find tracks from second list in Spotify.
     """
 
     tags_list = context.tags_lists[1]
@@ -74,7 +74,7 @@ Find track list to Spotify library
         context.summary.append(f'  {len(not_found_tags_list)} tracks not found.')
 
 
-# find_spotify.add_command(count_command.count_tracks)
-# find_spotify.add_command(print_command.print_tracks)
-# find_spotify.add_command(export_command.export_tracks)
-# find_spotify.add_command(find_duplicates_second_command.find_duplicates_second)
+find_spotify.add_command(count_command.count_tracks)
+find_spotify.add_command(print_command.print_tracks)
+find_spotify.add_command(export_command.export_tracks)
+find_spotify.add_command(find_duplicates_second_command.find_duplicates_second)

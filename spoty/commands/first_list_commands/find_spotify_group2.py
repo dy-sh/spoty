@@ -40,7 +40,7 @@ def find_spotify(context: SpotyContext,
                  result_path
                  ):
     """
-Find track list to Spotify library
+Find tracks in Spotify.
     """
 
     tags_list = context.tags_lists[0]

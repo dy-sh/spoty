@@ -33,7 +33,7 @@ def find_deezer(context: SpotyContext,
                 result_path
                 ):
     """
-Find track list to Deezer library
+Find tracks from second list in Deezer.
     """
 
     tags_list = context.tags_lists[1]
@@ -78,8 +78,8 @@ Find track list to Deezer library
 
 
 
-# find_deezer.add_command(count_command.count_tracks)
-# find_deezer.add_command(print_command.print_tracks)
-# find_deezer.add_command(export_command.export_tracks)
-# find_deezer.add_command(find_duplicates_second_command.find_duplicates_second)
+find_deezer.add_command(count_command.count_tracks)
+find_deezer.add_command(print_command.print_tracks)
+find_deezer.add_command(export_command.export_tracks)
+find_deezer.add_command(find_duplicates_second_command.find_duplicates_second)
 
