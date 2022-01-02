@@ -487,6 +487,21 @@ def remove_all_tracks_from_playlist(playlist_id: str, confirm=False):
     return True
 
 
+def get_missing_tracks_from_playlist(playlist_id: str, track_ids: list, confirm=False):
+    playlist_id = parse_playlist_id(playlist_id)
+    tracks = get_tracks_of_playlist(playlist_id)
+
+    if len(tracks) == 0:
+        return []
+
+    missing_tracks = []
+    for track in tracks:
+        if track['track']['id'] not in track_ids:
+            missing_tracks.append(track)
+
+    return missing_tracks
+
+
 def remove_tracks_from_playlist(playlist_id: str, track_ids: list):
     playlist_id = parse_playlist_id(playlist_id)
 
@@ -578,10 +593,10 @@ def import_playlist_from_tags_list(playlist_name: str, tags_list: list, overwrit
                 if len(found_playlists) > 1:
                     if confirm:
                         click.echo(
-                            f'\n{len(found_playlists)} playlists with name "{playlist_name}" found in Spotify library. Choosing the first one and appending it.')
+                            f'\n{len(found_playlists)} playlists with name "{playlist_name}" found in Spotify library. Choosing the first one.')
                     else:
                         if not click.confirm(
-                                f'\n{len(found_playlists)} playlists with name "{playlist_name}" found in Spotify library. Choose the first one and append it?'):
+                                f'\n{len(found_playlists)} playlists with name "{playlist_name}" found in Spotify library. Choose the first one?'):
                             click.echo("\nCanceled")
                             log.info(f'Canceled by user (more than one playlists found with name "{playlist_name})"')
                             return [], [], [], []
@@ -590,26 +605,27 @@ def import_playlist_from_tags_list(playlist_name: str, tags_list: list, overwrit
                 if len(found_playlists) > 1:
                     if confirm:
                         click.echo(
-                            f'\n{len(found_playlists)} playlists with name "{playlist_name}" found in Spotify library. Choosing the first one and overwriting it.')
+                            f'\n{len(found_playlists)} playlists with name "{playlist_name}" found in Spotify library. Choosing the first one..')
                     else:
                         if not click.confirm(
-                                f'\n{len(found_playlists)} playlists with name "{playlist_name}" found in Spotify library. Choose the first one and overwrite it?'):
+                                f'\n{len(found_playlists)} playlists with name "{playlist_name}" found in Spotify library. Choose the first one?'):
                             click.echo("\nCanceled")
                             log.info(f'Canceled by user (more than one playlists found with name "{playlist_name})"')
                             return [], [], [], []
                         click.echo()  # for new line
-                else:
-                    if confirm:
-                        click.echo(f'\nPlaylist "{playlist_name}" exist in Spotify library. Overwriting it.')
-                    else:
+
+                new_ids = get_track_ids_from_tags_list(tags_list)
+                missing_tracks = get_missing_tracks_from_playlist(found_playlists[0]['id'], new_ids, True)
+                if len(missing_tracks) > 0:
+                    if not confirm:
                         if not click.confirm(
-                                f'\nPlaylist "{playlist_name}" exist in Spotify library. Overwrite it?'):
+                                f'Do you want to remove {len(missing_tracks)} tracks from playlist "{playlist_name}" (these tracks are not in the provided new track list)?'):
                             click.echo("\nCanceled")
-                            log.info(f'Canceled by user (playlist found with name "{playlist_name})"')
                             return [], [], [], []
                         click.echo()  # for new line
 
-                remove_all_tracks_from_playlist(found_playlists[0]['id'], True)
+                    ids = get_track_ids(missing_tracks)
+                    remove_tracks_from_playlist(found_playlists[0]['id'], ids)
 
             playlist_id = found_playlists[0]['id']
 
@@ -830,8 +846,7 @@ def read_tags_from_spotify_tracks(tracks: list):
 
 
 def read_tags_from_spotify_track(track: dict):
-    date_added = track['added_at'] if     "added_at" in track else None
-
+    date_added = track['added_at'] if "added_at" in track else None
 
     if "track" in track:
         track = track['track']
