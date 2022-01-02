@@ -74,13 +74,13 @@ Find duplicates between the first and second list of tracks.
 
     context.summary.append("Finding duplicates:")
     if len(unique_source_tracks) > 0:
-        context.summary.append(f'  {len(unique_source_tracks)} unique tracks is first list found.')
+        context.summary.append(f'  {len(unique_source_tracks)} unique tracks in first list found.')
     if len(sources_def_dups) > 0:
-        context.summary.append(f'  {len(sources_def_dups)} definitely duplicates is first list found.')
+        context.summary.append(f'  {len(sources_def_dups)} definitely duplicates in first list found.')
     if len(sources_prob_dups) > 0:
-        context.summary.append(f'  {len(sources_prob_dups)} probably duplicates is first list found.')
+        context.summary.append(f'  {len(sources_prob_dups)} probably duplicates in first list found.')
     if len(unique_dest_tracks) > 0:
-        context.summary.append(f'  {len(unique_dest_tracks)} unique tracks is second list found.')
+        context.summary.append(f'  {len(unique_dest_tracks)} unique tracks in second list found.')
     if total_def_duplicates_count > 0:
         context.summary.append(f'  {total_def_duplicates_count} definitely duplicates in second list found.')
     if total_prob_duplicates_count > 0:

@@ -93,7 +93,8 @@ TAGS - Which tags to rewrite (specify separated by commas).
             for tag in t.tags_keys:
                 was = t.dest_tags[tag] if tag in t.dest_tags else ""
                 new = t.source_tags[tag] if tag in t.source_tags else ""
-                click.echo(f'    {tag} was "{was}", will become "{new}"')
+                click.echo(f'    {tag}: was: "{was}"')
+                click.echo(f'    {tag}: new: "{new}"')
 
         if not confirm:
             click.confirm(f'Are you sure you want to edit tags in {len(tags_to_update_list)} audio files?', abort=True)

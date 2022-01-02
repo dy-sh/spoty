@@ -109,7 +109,7 @@ def find_track_by_query(query: str, length=None, length_tolerance=settings.SPOTY
                         return track
             return None
 
-        return tracks[0]
+        return tracks
     except:
         pass
     return None
@@ -830,7 +830,8 @@ def read_tags_from_spotify_tracks(tracks: list):
 
 
 def read_tags_from_spotify_track(track: dict):
-    date_added = track['added_at']
+    date_added = track['added_at'] if     "added_at" in track else None
+
 
     if "track" in track:
         track = track['track']
@@ -879,8 +880,9 @@ def read_tags_from_spotify_track(track: dict):
         pass
 
     # tags['SPOTIFY_DATE_ADDED'] = date_added
-    timestamp = datetime.datetime.strptime(date_added, "%Y-%m-%dT%H:%M:%SZ")  # format: 2021-12-19T19:35:17Z
-    tags['SPOTY_TRACK_ADDED'] = timestamp.strftime('%Y-%m-%d %H:%M:%S')
+    if date_added is not None:
+        timestamp = datetime.datetime.strptime(date_added, "%Y-%m-%dT%H:%M:%SZ")  # format: 2021-12-19T19:35:17Z
+        tags['SPOTY_TRACK_ADDED'] = timestamp.strftime('%Y-%m-%d %H:%M:%S')
 
     for tag in spoty.utils.spoty_tags:
         if tag in track:
