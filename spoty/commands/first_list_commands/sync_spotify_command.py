@@ -38,9 +38,9 @@ def sync_spotify(context: SpotyContext,
                  playlist_prefix
                  ):
     """
-Sync track list and Spotify playlists.
+Sync tracks to Spotify playlists.
 
-/b
+\b
 When synchronizing, new playlists will be created that are not in the library.
 Playlists that already exist will be updated (new tracks are added and non-existent ones are removed).
 If a playlist exists in Spotify, but is not present in the source, then such a playlist will be removed from Spotify.
@@ -50,18 +50,19 @@ When you use a --playlist-prefix, only playlists with names starting with this p
 If you leave the prefix empty, as a result, all playlists in the library will participate in synchronization, and may be deleted if playlists with the same names are not in the source list.
 To avoid accidentally deleting any playlists, the prefix is set by default in the config file. You can override it there, or with --playlist-prefix option.
 
-/b
+\b
 Playlist names are generated based on the --grouping-pattern.
 By default, the pattern is set in the configuration file, but you can override it using the --grouping-pattern option.
 For example, if you set the pattern as "%SPOTY_PLAYLIST_NAME%", then the folder name will be used as the playlist name for local audio files.
 You can read more about --grouping-pattern in the general Spoty help (spoty --help).
 
-/b
+\b
 There is also an option --source-playlist-prefix. By default, this option is not used.
 By specifying this option, you will filter the playlists in the source track list, leaving only those that start with the specified prefix.
 In addition, this prefix will be stripped from the source playlist name during synchronization.
 This can be used to sync playlists between different music services or different accounts.
 
+\b
 Let's look at an example.
 Initially, you had local files and grouped them into playlists by genre using the following command:
   spoty get --a "./music" sync-spotify --gp "%GENRE%" --pp "#SYNC "
@@ -71,8 +72,6 @@ Next, you wanted to sync these playlists with another account. Logged into anoth
   spoty get --s "MY_FIRST_ACCOUNT_NAME" sync-spotify --gp "%SPOTY_PLAYLIST_NAME%" --pps "#SYNC " --pp "#SYNC "
 As a result of this command, you will get an exact copy of the playlists with the same names in another account.
 If you remove --pps option, you will get "#SYNC #SYNC Pop", "#SYNC #SYNC Rock", "#SYNC #SYNC Jazz" playlists in the second account.
-
-
     """
 
     if source_playlist_prefix is None:
