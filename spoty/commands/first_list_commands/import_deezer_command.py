@@ -17,7 +17,7 @@ from datetime import datetime
               help='Add tracks to an existing playlist if already exists. If this option is not specified, a new playlist will always be created.')
 @click.option('--overwrite', '-o', is_flag=True,
               help='Overwrite existing playlist')
-@click.option('--yes-all', '-y', is_flag=True,
+@click.option('--confirm', '-y', is_flag=True,
               help='Confirm all questions with a positive answer automatically.')
 @click.option('--ignore-duration', '-i', is_flag=True,
               help='Dont match track duration')
@@ -31,7 +31,7 @@ def import_deezer(context: SpotyContext,
                   grouping_pattern,
                   append,
                   overwrite,
-                  yes_all,
+                  confirm,
                   ignore_duration,
                   export_result,
                   result_path
@@ -53,7 +53,7 @@ Import track list to Deezer library
             click.echo("  " + group_name)
         click.echo(f'Total {len(tags_list)} tracks in {len(grouped_tags)} playlists.')
 
-        if not yes_all:
+        if not confirm:
             if click.confirm(f'Do you want to continue?'):
                 click.echo("")  # for new line
             else:
@@ -64,7 +64,7 @@ Import track list to Deezer library
 
         playlist_ids, imported_tags_list, source_duplicates_tags_list, already_exist_tags_list = \
             spoty.deezer_api.import_playlists_from_tags_list(
-                found_tags_list, grouping_pattern, overwrite, append, False, yes_all)
+                found_tags_list, grouping_pattern, overwrite, append, False, confirm)
 
         # create result csv playlists
 

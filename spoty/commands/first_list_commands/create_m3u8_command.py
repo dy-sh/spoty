@@ -23,7 +23,7 @@ from datetime import datetime
               help='The path on disk where to export m3u8 files.')
 @click.option('--timestamp', '-t', is_flag=True,
               help='Create a new subfolder with the current date and time for saved m3u8 files')
-@click.option('--yes-all', '-y', is_flag=True,
+@click.option('--confirm', '-y', is_flag=True,
               help='Confirm all questions with a positive answer automatically.')
 @click.pass_obj
 def export_tracks(context: SpotyContext,
@@ -33,7 +33,7 @@ def export_tracks(context: SpotyContext,
                   overwrite,
                   path,
                   timestamp,
-                  yes_all,
+                  confirm,
                   ):
     """
 Export a list of audio files to m3u8 files playlists.
@@ -54,8 +54,8 @@ Export a list of audio files to m3u8 files playlists.
             path = os.path.join(path, date_time_str)
 
         file_names, names, added_tracks, import_duplicates, already_exist \
-            = spoty.m3u8_playlist.create_m3u8s(tags_list, path, grouping_pattern, overwrite, append, duplicates, yes_all,
-                                             ["SPOTY_FILE_NAME"])
+            = spoty.m3u8_playlist.create_m3u8s(tags_list, path, grouping_pattern, overwrite, append, duplicates, confirm,
+                                               ["SPOTY_FILE_NAME"])
 
         # print summery
 

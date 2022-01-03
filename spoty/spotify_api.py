@@ -556,11 +556,17 @@ def get_invalid_tracks_in_playlist(playlist_id: str):
 def import_playlists_from_tags_list(tags_list: list, grouping_pattern: str, overwrite_if_exist=False,
                                     append_if_exist=False,
                                     allow_duplicates=True, confirm=False):
+    grouped_tags = spoty.utils.group_tags_by_pattern(tags_list, grouping_pattern)
+    import_playlists_from_tag_groups(grouped_tags, overwrite_if_exist, append_if_exist, allow_duplicates, confirm)
+
+
+def import_playlists_from_tag_groups(grouped_tags: dict, overwrite_if_exist=False,
+                                     append_if_exist=False,
+                                     allow_duplicates=True, confirm=False):
     all_playlist_ids = []
     all_added = []
     all_source_duplicates = []
     all_already_exist = []
-    grouped_tags = spoty.utils.group_tags_by_pattern(tags_list, grouping_pattern)
 
     with click.progressbar(grouped_tags.items(), label=f'Importing {len(grouped_tags)} playlists') as bar:
         for group_name, g_tags_list in bar:
