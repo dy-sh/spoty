@@ -265,8 +265,9 @@ def get_list_of_playlists(only_owned_by_user=True):
     return playlists
 
 
-def find_playlist_by_name(name: str, only_owned_by_user=True):
-    playlists = get_list_of_playlists(only_owned_by_user)
+def find_playlist_by_name(name: str, only_owned_by_user=True, playlists=None):
+    if playlists is None:
+        playlists = get_list_of_playlists(only_owned_by_user)
     return list(filter(lambda pl: pl['name'] == name, playlists))
 
 
@@ -568,11 +569,15 @@ def import_playlists_from_tag_groups(grouped_tags: dict, overwrite_if_exist=Fals
     all_source_duplicates = []
     all_already_exist = []
 
+    playlists = None
+    if append_if_exist or overwrite_if_exist:
+        playlists = get_list_of_playlists(True)
+
     with click.progressbar(grouped_tags.items(), label=f'Importing {len(grouped_tags)} playlists') as bar:
         for group_name, g_tags_list in bar:
             playlist_id, added, source_duplicates, already_exist \
                 = import_playlist_from_tags_list(group_name, g_tags_list, overwrite_if_exist, append_if_exist,
-                                                 allow_duplicates, confirm)
+                                                 allow_duplicates, confirm, playlists)
 
             all_playlist_ids.append(playlist_id)
             all_added.extend(added)
@@ -583,7 +588,7 @@ def import_playlists_from_tag_groups(grouped_tags: dict, overwrite_if_exist=Fals
 
 
 def import_playlist_from_tags_list(playlist_name: str, tags_list: list, overwrite_if_exist=False, append_if_exist=False,
-                                   allow_duplicates=True, confirm=False):
+                                   allow_duplicates=True, confirm=False, playlists=None):
     if len(tags_list) == 0:
         return [], [], [], []
 
@@ -592,7 +597,7 @@ def import_playlist_from_tags_list(playlist_name: str, tags_list: list, overwrit
     playlist_id = None
 
     if overwrite_if_exist or append_if_exist:
-        found_playlists = find_playlist_by_name(playlist_name)
+        found_playlists = find_playlist_by_name(playlist_name, True, playlists)
 
         if len(found_playlists) > 0:
             if append_if_exist:

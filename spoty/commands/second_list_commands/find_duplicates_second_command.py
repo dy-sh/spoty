@@ -27,9 +27,9 @@ from datetime import datetime
 @click.option('--compare-tags-prob', '--ctp', show_default=True, multiple=True,
               default=settings.SPOTY.COMPARE_TAGS_PROBABLY_DUPLICATE,
               help='Compare probably duplicates by this tags. It is optional. You can also change the list of tags in the config file.')
-@click.option('--only-def', '--od', '-d', is_flag=True,
+@click.option('--only-def', '--def', '-d', is_flag=True,
               help='Find only definitely duplicates.')
-@click.option('--only-prob', '--op', '-p', is_flag=True,
+@click.option('--only-prob', '--prob', '-p', is_flag=True,
               help='Find only probably duplicates.')
 @click.pass_obj
 def find_duplicates_second(context: SpotyContext,
@@ -57,9 +57,9 @@ Find duplicates between the first and second list of tracks.
     if only_prob:
         compare_tags_def = []
 
-    duplicates_groups, unique_source_tracks, unique_dest_tracks,sources_def_dups, sources_prob_dups = \
+    duplicates_groups, unique_source_tracks, unique_dest_tracks, sources_def_dups, sources_prob_dups = \
         spoty.utils.find_duplicates_in_tag_lists(source_list, dest_list, compare_tags_def, compare_tags_prob,
-                                                 True,True)
+                                                 True, True)
 
     context.duplicates_groups = duplicates_groups
     context.unique_first_tracks = unique_source_tracks
@@ -85,7 +85,6 @@ Find duplicates between the first and second list of tracks.
         context.summary.append(f'  {total_def_duplicates_count} definitely duplicates in second list found.')
     if total_prob_duplicates_count > 0:
         context.summary.append(f'  {total_prob_duplicates_count} probably duplicates in second list found.')
-
 
     if total_def_duplicates_count == 0 and total_prob_duplicates_count == 0:
         context.summary.append(f'  0 duplicates found.')

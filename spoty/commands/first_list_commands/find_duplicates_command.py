@@ -25,9 +25,9 @@ from datetime import datetime
 @click.option('--compare-tags-prob', '--ctp', show_default=True, multiple=True,
               default=settings.SPOTY.COMPARE_TAGS_PROBABLY_DUPLICATE,
               help='Compare probably duplicates by this tags. It is optional. You can also change the list of tags in the config file.')
-@click.option('--only-def', '--od', '-d', is_flag=True,
+@click.option('--only-def', '--def', '-d', is_flag=True,
               help='Find only definitely duplicates.')
-@click.option('--only-prob', '--op', '-p', is_flag=True,
+@click.option('--only-prob', '--prob', '-p', is_flag=True,
               help='Find only probably duplicates.')
 @click.pass_obj
 def find_duplicates(context: SpotyContext,
