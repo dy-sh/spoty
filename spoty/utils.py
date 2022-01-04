@@ -8,6 +8,8 @@ import numpy as np
 from multiprocessing import Process, Lock, Queue, Value, Array
 import sys
 import time
+from time import strftime
+from time import gmtime
 
 THREADS_COUNT = 12
 
@@ -329,7 +331,11 @@ def print_main_tags(tags: dict):
     if 'RATING' in tags: print(f'RATING: {tags["RATING"]}')
     if 'COMMENT' in tags: print(f'COMMENT: {tags["COMMENT"]}')
     if 'BARCODE' in tags: print(f'BARCODE: {tags["BARCODE"]}')
-    if 'SPOTY_LENGTH' in tags: print(f'SPOTY_LENGTH: {tags["SPOTY_LENGTH"]}')
+    if 'SPOTY_LENGTH' in tags:
+        seconds = int(tags["SPOTY_LENGTH"])
+        m, s = divmod(seconds, 60)
+        time = '{:02d}:{:02d}'.format(m, s)
+        print(f'SPOTY_LENGTH: {tags["SPOTY_LENGTH"]} ({time})')
     if 'SPOTIFY_TRACK_ID' in tags: print(f'SPOTIFY_TRACK_ID: {tags["SPOTIFY_TRACK_ID"]}')
     if 'DEEZER_TRACK_ID' in tags: print(f'DEEZER_TRACK_ID: {tags["DEEZER_TRACK_ID"]}')
     if 'SOURCE' in tags: print(f'SOURCE: {tags["SOURCE"]}')
