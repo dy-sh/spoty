@@ -388,6 +388,10 @@ def find_track_by_artist_and_title(artist: str, title: str, length=None,
     return None
 
 
+def find_track_by_id(id):
+    track = get_dz().api.get_track(id)
+    return track
+
 def add_tracks_to_playlist_by_tags(playlist_id: str, tags_list: list, allow_duplicates=False):
     playlist_id = parse_playlist_id(playlist_id)
 
@@ -658,60 +662,52 @@ def read_tags_from_deezer_tracks(tracks: list):
 def read_tags_from_deezer_track(track: dict):
     tags = {}
 
-    if 'ISRC' in track:
-        tags['ISRC'] = track['ISRC']
+    if 'isrc' in track:
+        tags['ISRC'] = track['isrc']
 
-    if 'ART_NAME' in track:
-        tags['ARTIST'] = track['ART_NAME']
 
-    # try:
-    #     artists = list(map(lambda artist: artist['ART_NAME'], track['ARTISTS']))
-    #     tags['ARTIST'] = ';'.join(artists)
-    # except:
-    #     pass
+    if 'artist' in track and 'name' in track['artist']:
+        tags['ARTIST'] = track['artist']['name']
 
-    if 'SNG_TITLE' in track:
-        tags['TITLE'] = track['SNG_TITLE']
 
-    if 'ALB_TITLE' in track:
-        tags['ALBUM'] = track['ALB_TITLE']
+    if 'title' in track:
+        tags['TITLE'] = track['title']
 
-    if 'DURATION' in track:
-        tags['SPOTY_LENGTH'] = int(track['DURATION'])
 
-    if 'ALB_ID' in track:
-        tags['DEEZER_ALBUM_ID'] = track['ALB_ID']
 
-    if 'SNG_ID' in track:
-        tags['WWWAUDIOFILE'] = f'https://www.deezer.com/track/{track["SNG_ID"]}'
-        tags[DEEZER_TRACK_ID_TAG] = track["SNG_ID"]
+    if 'duration' in track:
+        tags['SPOTY_LENGTH'] = int(track['duration'])
 
-    if 'ART_ID' in track:
-        tags['DEEZER_ARTIST_ID'] = track['ART_ID']
+    if 'album' in track:
+        tags['DEEZER_ALBUM_ID'] = track['album']['id']
 
-    try:
-        tags['EXPLICIT'] = track['EXPLICIT_TRACK_CONTENT']['EXPLICIT_LYRICS_STATUS']
-    except:
-        pass
+    if 'id' in track:
+        tags['WWWAUDIOFILE'] = f'https://www.deezer.com/track/{track["id"]}'
 
-    if 'LYRICS_ID' in track:
-        tags['DEEZER_LYRICS_ID'] = track['LYRICS_ID']
+    tags['DEEZER_TRACK_ID'] = track["id"]
 
-    if 'TRACK_NUMBER' in track:
-        tags['TRACK'] = track['TRACK_NUMBER']
+    if 'artist' in track and 'id' in track['artist']:
+        tags['DEEZER_ARTIST_ID'] = track['artist']['id']
 
-    if 'GAIN' in track:
-        tags['GAIN'] = track['GAIN']
+    if 'explicit_lyrics' in track:
+        tags['EXPLICIT'] = track['explicit_lyrics']
 
-    if 'DATE_ADD' in track:
-        timestamp = datetime.datetime.fromtimestamp(int(track['DATE_ADD']))
-        # tags['DEZZER_DATE_ADD'] = track['DATE_ADD']
-        tags['SPOTY_TRACK_ADDED'] = timestamp.strftime('%Y-%m-%d %H:%M:%S')
 
-    # try:
-    #     tags['YEAR'] = track['album']['release_date'] # get release date from album request
-    # except:
-    #     pass
+
+    if 'release_date' in track:
+        tags['YEAR'] = track['release_date']
+
+    if 'gain' in track:
+        tags['GAIN'] = track['gain']
+
+    if 'bpm' in track:
+        tags['BPM'] = track['bpm']
+
+    # if 'DATE_ADD' in track:
+    #     timestamp = datetime.datetime.fromtimestamp(int(track['DATE_ADD']))
+    #     tags['DEZZER_DATE_ADD'] = track['DATE_ADD']
+        # tags['SPOTY_TRACK_ADDED'] = timestamp.strftime('%Y-%m-%d %H:%M:%S')
+
 
     for tag in spoty.utils.spoty_tags:
         if tag in track:
@@ -720,3 +716,4 @@ def read_tags_from_deezer_track(track: dict):
     tags = spoty.utils.clean_tags_after_read(tags)
 
     return tags
+

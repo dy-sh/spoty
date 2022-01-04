@@ -331,6 +331,7 @@ def print_main_tags(tags: dict):
     if 'BARCODE' in tags: print(f'BARCODE: {tags["BARCODE"]}')
     if 'SPOTY_LENGTH' in tags: print(f'SPOTY_LENGTH: {tags["SPOTY_LENGTH"]}')
     if 'SPOTIFY_TRACK_ID' in tags: print(f'SPOTIFY_TRACK_ID: {tags["SPOTIFY_TRACK_ID"]}')
+    if 'DEEZER_TRACK_ID' in tags: print(f'DEEZER_TRACK_ID: {tags["DEEZER_TRACK_ID"]}')
     if 'SOURCE' in tags: print(f'SOURCE: {tags["SOURCE"]}')
     if 'SOURCEID' in tags: print(f'SOURCEID: {tags["SOURCEID"]}')
     if 'YEAR' in tags: print(f'YEAR: {tags["YEAR"]}')

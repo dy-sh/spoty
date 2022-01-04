@@ -228,3 +228,22 @@ def playlist_read(playlist_ids):
             click.echo(f'{track["SNG_ID"]} "{title}"')
 
         click.echo(f'Total tracks: {len(tracks_list)}')
+
+
+@deezer.group()
+def track():
+    r"""Track management."""
+    pass
+
+@track.command("id")
+@click.argument("id")
+def track_find_by_id(id):
+    r"""
+    Find track by ID.
+    """
+    track = spoty.deezer_api.find_track_by_id(id)
+    if track == None:
+        click.echo("Not found")
+        return
+    tags = spoty.deezer_api.read_tags_from_deezer_track(track)
+    spoty.utils.print_main_tags(tags)

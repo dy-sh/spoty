@@ -115,6 +115,11 @@ def find_track_by_query(query: str, length=None, length_tolerance=settings.SPOTY
     return None
 
 
+def find_track_by_id(id: str):
+    track = get_sp().track(id)
+    return track
+
+
 def find_track_id_by_artist_and_title(artist: str, title: str, length=None,
                                       length_tolerance=settings.SPOTY.COMPARE_LENGTH_TOLERANCE_SEC):
     track = find_track_by_artist_and_title(artist, title, length, length_tolerance)

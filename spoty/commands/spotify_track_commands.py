@@ -10,15 +10,29 @@ def track():
     pass
 
 
+@track.command("id")
+@click.argument("id")
+def track_find_by_id(id):
+    r"""
+    Find track by ID.
+    """
+    track = spoty.spotify_api.find_track_by_id(id)
+    if track == None:
+        click.echo("Not found")
+        return
+    tags = spoty.spotify_api.read_tags_from_spotify_tracks([track])
+    spoty.utils.print_main_tags(tags[0])
+
+
 @track.command("isrc")
 @click.argument("isrc")
 def track_find_by_isrc(isrc):
     r"""
-    Find track by isrc.
+    Find track by ISRC.
 
     Examples:
 
-        spoty spotify track isrc UK6821402425
+        spoty spotify track ISRC UK6821402425
 
     """
     track = spoty.spotify_api.find_track_by_isrc(isrc)
