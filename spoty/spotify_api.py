@@ -558,7 +558,10 @@ def import_playlists_from_tags_list(tags_list: list, grouping_pattern: str, over
                                     append_if_exist=False,
                                     allow_duplicates=True, confirm=False):
     grouped_tags = spoty.utils.group_tags_by_pattern(tags_list, grouping_pattern)
-    import_playlists_from_tag_groups(grouped_tags, overwrite_if_exist, append_if_exist, allow_duplicates, confirm)
+    all_playlist_ids, all_added, all_source_duplicates, all_already_exist = \
+        import_playlists_from_tag_groups(grouped_tags, overwrite_if_exist, append_if_exist, allow_duplicates, confirm)
+
+    return all_playlist_ids, all_added, all_source_duplicates, all_already_exist
 
 
 def import_playlists_from_tag_groups(grouped_tags: dict, overwrite_if_exist=False,
