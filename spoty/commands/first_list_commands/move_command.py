@@ -84,7 +84,11 @@ def move_tracks_from_all_sources(all_tags_list, path):
     if len(local_audio_files) > 0:
         for file_name in local_audio_files:
             if spoty.utils.is_valid_file(file_name):
-                shutil.move(file_name, path)
+                base_name = os.path.basename(file_name)
+                new_file_name = os.path.join(path, base_name)
+                if os.path.isfile(new_file_name):
+                    new_file_name = spoty.utils.find_empty_file_name(new_file_name)
+                os.rename(file_name, new_file_name)
                 moved_audio_files.append(file_name)
 
     moved_spotify_tracks = []

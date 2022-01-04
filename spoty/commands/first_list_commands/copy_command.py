@@ -87,8 +87,11 @@ def copy_tracks_from_all_sources(all_tags_list, path):
             with click.progressbar(local_audio_files, label=f'Copying {len(local_audio_files)} files') as bar:
                 for file_name in bar:
                     if spoty.utils.is_valid_file(file_name):
-                        shutil.copy(file_name, path)
-                        copied_audio_files.append(file_name)
+                        base_name = os.path.basename(file_name)
+                        new_file_name = os.path.join(path, base_name)
+                        if os.path.isfile(new_file_name):
+                            new_file_name = spoty.utils.find_empty_file_name(new_file_name)
+                        shutil.copy(file_name, new_file_name)
 
     copied_spotify_tracks = []
     copied_deezer_tracks = []

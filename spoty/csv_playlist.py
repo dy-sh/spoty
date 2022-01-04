@@ -117,11 +117,12 @@ def write_tags_to_csv(tags_list, csv_file_name, append=False):
 
     for i, tags in enumerate(tags_list):
         for key, value in tags.items():
-            if len(value) > 131072:
-                mess = f'Tag "{key}" has value larger than csv field limit (131072) and will be truncated (file: "{csv_file_name}", line: {i + 1}).'
-                click.echo('\n' + mess)
-                log.warning(mess)
-                tags[key] = value[0: 131071]
+            if type(value) is str:
+                if len(value) > 131072:
+                    mess = f'Tag "{key}" has value larger than csv field limit (131072) and will be truncated (file: "{csv_file_name}", line: {i + 1}).'
+                    click.echo('\n' + mess)
+                    log.warning(mess)
+                    tags[key] = value[0: 131071]
 
     if tags_list is None or len(tags_list) == 0:
         return
