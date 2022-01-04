@@ -35,12 +35,14 @@ def track_find_by_isrc(isrc):
         spoty spotify track ISRC UK6821402425
 
     """
-    track = spoty.spotify_api.find_track_by_isrc(isrc)
-    if track == None:
+    tracks = spoty.spotify_api.find_track_by_isrc(isrc)
+    if tracks == None:
         click.echo("Not found")
         return
-    tags = spoty.spotify_api.read_tags_from_spotify_tracks([track])
-    spoty.utils.print_main_tags(tags[0])
+    for i, track in enumerate(tracks):
+        tags = spoty.spotify_api.read_tags_from_spotify_track(track)
+        print(f"----------------- {i+1}\{len(tracks)} -------------------")
+        spoty.utils.print_main_tags(tags)
 
 
 @track.command("artist-title")
@@ -55,12 +57,14 @@ def track_find_by_title(artist, title):
         spoty spotify track artist-title "Aaron Static" "When We Love"
 
     """
-    track = spoty.spotify_api.find_track_by_artist_and_title(artist, title)
-    if track == None:
+    tracks = spoty.spotify_api.find_track_by_artist_and_title(artist, title)
+    if tracks == None:
         click.echo("Not found")
         return
-    tags = spoty.spotify_api.read_tags_from_spotify_tracks([track])
-    spoty.utils.print_main_tags(tags[0])
+    for i, track in enumerate(tracks):
+        tags = spoty.spotify_api.read_tags_from_spotify_track(track)
+        print(f"----------------- {i+1}\{len(tracks)} -------------------")
+        spoty.utils.print_main_tags(tags)
 
 
 @track.command("query")
@@ -75,10 +79,10 @@ def tracks_find_by_query(query):
 
     """
     tracks = spoty.spotify_api.find_track_by_query(query)
-    if len(tracks) == 0:
+    if tracks == None:
         click.echo("Not found")
         return
-    tags = spoty.spotify_api.read_tags_from_spotify_tracks(tracks)
-    for t in tags:
-        click.echo("------------------------------")
-        spoty.utils.print_main_tags(t)
+    for i, track in enumerate(tracks):
+        tags = spoty.spotify_api.read_tags_from_spotify_track(track)
+        print(f"----------------- {i+1}\{len(tracks)} -------------------")
+        spoty.utils.print_main_tags(tags)

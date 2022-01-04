@@ -78,8 +78,8 @@ def get_tracks_of_spotify_user(user_id: str, playlists_names_regex: str = None):
 
 
 def find_track_by_isrc(isrc: str, length=None, length_tolerance=settings.SPOTY.COMPARE_LENGTH_TOLERANCE_SEC):
-    track = find_track_by_query(f'isrc:{isrc}', length, length_tolerance)
-    return track
+    tracks = find_track_by_query(f'isrc:{isrc}', length, length_tolerance)
+    return tracks
 
 
 def find_track_id_by_isrc(isrc: str, length=None, length_tolerance=settings.SPOTY.COMPARE_LENGTH_TOLERANCE_SEC):
