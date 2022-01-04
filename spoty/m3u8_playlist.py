@@ -11,7 +11,7 @@ def is_m3u8(file_name):
     return file_name.upper().endswith('.M3U8')
 
 
-def create_m3u8s(tags_list, path, grouping_pattern, overwrite=False, append=False, allow_duplicates=True,
+def create_m3u8s(tags_list, path, grouping_pattern, overwrite=False, append=False, remove_duplicates=False,
                  confirm=False, compare_tags_list=None):
     path = os.path.abspath(path)
 
@@ -44,7 +44,7 @@ def create_m3u8s(tags_list, path, grouping_pattern, overwrite=False, append=Fals
                 else:
                     m3u8_file_name = spoty.utils.find_empty_file_name(m3u8_file_name)
 
-            if not allow_duplicates:
+            if remove_duplicates:
                 for compare_tags_str in compare_tags_list:
                     compare_tags = compare_tags_str.split(',')
                     tags_l, import_duplicates = spoty.utils.remove_duplicated_tags(tags_l, compare_tags, False)

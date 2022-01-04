@@ -12,8 +12,8 @@ from datetime import datetime
 @click.option('--grouping-pattern', '--gp', show_default=True,
               default=settings.SPOTY.DEFAULT_GROUPING_PATTERN,
               help='Tracks will be grouped to playlists according to this pattern.')
-@click.option('--duplicates', '-d',  is_flag=True,
-              help='Allow duplicates (add tracks that are already exist in m3u8 file).')
+@click.option('--no-duplicates', '-D', is_flag=True,
+              help='Prevent duplicates (remove tracks that are already exist in m3u8 file).')
 @click.option('--append', '-a', is_flag=True,
               help='Add tracks to an existing m3u8 file if already exists. If this option is not specified, a new m3u8 file will always be created.')
 @click.option('--overwrite', '-o', is_flag=True,
@@ -21,18 +21,18 @@ from datetime import datetime
 @click.option('--path', '--p', show_default=True,
               default=settings.SPOTY.DEFAULT_EXPORT_PATH,
               help='The path on disk where to export m3u8 files.')
-@click.option('--timestamp', '-t', is_flag=True,
-              help='Create a new subfolder with the current date and time for saved m3u8 files')
+@click.option('--no-timestamp', '-T', is_flag=True,
+              help='Do not create a subfolder with the current date and time for saved m3u8 files')
 @click.option('--confirm', '-y', is_flag=True,
               help='Confirm all questions with a positive answer automatically.')
 @click.pass_obj
 def export_tracks(context: SpotyContext,
                   grouping_pattern,
-                  duplicates,
+                  no_duplicates,
                   append,
                   overwrite,
                   path,
-                  timestamp,
+                  no_timestamp,
                   confirm,
                   ):
     """
@@ -48,13 +48,14 @@ Export a list of audio files to m3u8 files playlists.
 
         path = os.path.abspath(path)
 
-        if timestamp:
+        if not no_timestamp:
             now = datetime.now()
             date_time_str = now.strftime("%Y_%m_%d-%H_%M_%S")
-            path = os.path.join(path, date_time_str)
+            path = os.path.join(path, "export-m3u8-" + date_time_str)
 
         file_names, names, added_tracks, import_duplicates, already_exist \
-            = spoty.m3u8_playlist.create_m3u8s(tags_list, path, grouping_pattern, overwrite, append, duplicates, confirm,
+            = spoty.m3u8_playlist.create_m3u8s(tags_list, path, grouping_pattern, overwrite, append, no_duplicates,
+                                               confirm,
                                                ["SPOTY_FILE_NAME"])
 
         # print summery
@@ -71,9 +72,8 @@ Export a list of audio files to m3u8 files playlists.
             if len(file_names) == 1:
                 context.summary.append(f'  {len(added_tracks)} tracks written to m3u8 file (path: "{path}").')
             else:
-                context.summary.append(f'  {len(added_tracks)} tracks written to {len(file_names)} m3u8 files (path: "{path}").')
-
-
+                context.summary.append(
+                    f'  {len(added_tracks)} tracks written to {len(file_names)} m3u8 files (path: "{path}").')
 
     click.echo('\n------------------------------------------------------------')
     click.echo('\n'.join(context.summary))

@@ -18,7 +18,7 @@ import os
 from datetime import datetime
 
 
-@click.group("duplicates")
+@click.group("dup")
 @click.option('--compare-tags-def', '--ctd', show_default=True, multiple=True,
               default=settings.SPOTY.COMPARE_TAGS_DEFINITELY_DUPLICATE,
               help='Compare definitely duplicates by this tags. It is optional. You can also change the list of tags in the config file.')

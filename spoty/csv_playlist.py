@@ -27,7 +27,7 @@ def is_csv(file_name):
     return file_name.upper().endswith('.CSV')
 
 
-def create_csvs(tags_list, path, grouping_pattern, overwrite=False, append=False, allow_duplicates=True,
+def create_csvs(tags_list, path, grouping_pattern, overwrite=False, append=False, remove_duplicates=False,
                 confirm=False, compare_tags_list=None):
     path = os.path.abspath(path)
 
@@ -60,7 +60,7 @@ def create_csvs(tags_list, path, grouping_pattern, overwrite=False, append=False
                 else:
                     csv_file_name = spoty.utils.find_empty_file_name(csv_file_name)
 
-            if not allow_duplicates:
+            if remove_duplicates:
                 for compare_tags_str in compare_tags_list:
                     compare_tags = compare_tags_str.split(',')
                     tags_l, import_duplicates = spoty.utils.remove_duplicated_tags(tags_l, compare_tags, False)
@@ -114,6 +114,14 @@ def find_csvs_in_path(path, recursive=True):
 
 def write_tags_to_csv(tags_list, csv_file_name, append=False):
     tags_list = spoty.utils.clean_tags_list_before_write(tags_list)
+
+    for i, tags in enumerate(tags_list):
+        for key, value in tags.items():
+            if len(value) > 131072:
+                mess = f'Tag "{key}" has value larger than csv field limit (131072) and will be truncated (file: "{csv_file_name}", line: {i + 1}).'
+                click.echo('\n' + mess)
+                log.warning(mess)
+                tags[key] = value[0: 131071]
 
     if tags_list is None or len(tags_list) == 0:
         return

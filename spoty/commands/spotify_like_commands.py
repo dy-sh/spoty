@@ -29,7 +29,7 @@ def like_count():
 
 
 @like.command("add")
-@click.argument("track_ids",  nargs=-1)
+@click.argument("track_ids", nargs=-1)
 def like_add(track_ids):
     r"""
     Add tracks to liked tracks.
@@ -52,12 +52,12 @@ def like_add(track_ids):
 
 @like.command("export")
 @click.option('--path', '--p', default=settings.SPOTY.DEFAULT_EXPORT_PATH, help='Path to create file')
-@click.option('--file-name','--f',  default=settings.SPOTY.DEFAULT_LIKES_EXPORT_FILE_NAME, help='File name to create')
+@click.option('--file-name', '--f', default=settings.SPOTY.DEFAULT_LIKES_EXPORT_FILE_NAME, help='File name to create')
 @click.option('--overwrite', '-o', is_flag=True,
               help='Overwrite existing files without asking')
-@click.option('--timestamp', '-t', is_flag=True,
-              help='Create a subfolder with the current date and time')
-def like_export(path, file_name, overwrite, timestamp):
+@click.option('--no-timestamp', '-T', is_flag=True,
+              help='Do not create a subfolder with the current date and time')
+def like_export(path, file_name, overwrite, no_timestamp):
     r"""Export the list of liked tracks to csv file on disk.
 
     Examples:
@@ -69,10 +69,10 @@ def like_export(path, file_name, overwrite, timestamp):
 
     path = os.path.abspath(path)
 
-    if timestamp:
+    if not no_timestamp:
         now = datetime.now()
         date_time_str = now.strftime("%Y_%m_%d-%H_%M_%S")
-        path = os.path.join(path, date_time_str)
+        path = os.path.join(path, "export-likes-" + date_time_str)
 
     file_name = os.path.join(path, file_name)
 
@@ -82,7 +82,7 @@ def like_export(path, file_name, overwrite, timestamp):
             log.info(f'Canceled by user (file already exist)')
             return
 
-    liked_tracks =spoty.spotify_api.export_liked_tracks_to_file(file_name)
+    liked_tracks = spoty.spotify_api.export_liked_tracks_to_file(file_name)
 
     click.echo(f'{len(liked_tracks)} liked tracks exported to file: "{file_name}"')
 
@@ -90,7 +90,7 @@ def like_export(path, file_name, overwrite, timestamp):
 
 
 @like.command("import")
-@click.argument('file_names',  nargs=-1)
+@click.argument('file_names', nargs=-1)
 def like_import(file_names):
     r"""Import liked tracks to yor library from csv file on disk.
 
@@ -121,5 +121,3 @@ def like_import(file_names):
                 click.echo('\n' + mess)
 
     click.echo(f'{len(all_tracks_in_file)} liked tracks imported')
-
-

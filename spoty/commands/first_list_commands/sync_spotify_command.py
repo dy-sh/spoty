@@ -19,12 +19,12 @@ from datetime import datetime
               help='Dont match track duration')
 @click.option('--export-result', '-r', is_flag=True,
               help='Export csv files with result (imported, not found, skipped tracks)')
-@click.option('--result-path', '--rp',
+@click.option('--result-path', '--rp', show_default=True,
               default=settings.SPOTY.DEFAULT_EXPORT_PATH,
               help='Path to create resulting csv files')
 @click.option('--source-playlist-prefix', '--spp',
               help='Source playlist names prefix. Only source playlists with names starting with the specified string will be synchronized.')
-@click.option('--playlist-prefix', '--pp',
+@click.option('--playlist-prefix', '--pp', show_default=True,
               default=settings.SPOTY.DEFAULT_SYNC_PLAYLIST_PREFIX,
               help='Spotify playlist names prefix. Only Spotify playlists with names starting with the specified string will be synchronized.')
 @click.pass_obj

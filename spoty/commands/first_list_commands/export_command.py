@@ -12,8 +12,8 @@ from datetime import datetime
 @click.option('--grouping-pattern', '--gp', show_default=True,
               default=settings.SPOTY.DEFAULT_GROUPING_PATTERN,
               help='Tracks will be grouped to playlists according to this pattern.')
-@click.option('--duplicates', '-d',  is_flag=True,
-              help='Allow duplicates (add tracks that are already exist in csv file).')
+@click.option('--no-duplicates', '-D', is_flag=True,
+              help='Prevent duplicates (remove tracks that are already exist in csv file).')
 @click.option('--append', '-a', is_flag=True,
               help='Add tracks to an existing csv file if already exists. If this option is not specified, a new csv file will always be created.')
 @click.option('--overwrite', '-o', is_flag=True,
@@ -21,8 +21,8 @@ from datetime import datetime
 @click.option('--path', '--p', show_default=True,
               default=settings.SPOTY.DEFAULT_EXPORT_PATH,
               help='The path on disk where to export csv files.')
-@click.option('--timestamp', '-t', is_flag=True,
-              help='Create a new subfolder with the current date and time for saved csv files')
+@click.option('--no-timestamp', '-T', is_flag=True,
+              help='Do not create a subfolder with the current date and time for saved csv files.')
 @click.option('--duplicates-compare-tags', '--dct', show_default=True, multiple=True,
               default=settings.SPOTY.COMPARE_TAGS_DEFINITELY_DUPLICATE,
               help='Compare duplicates by this tags. It is optional. You can also change the list of tags in the config file.')
@@ -31,11 +31,11 @@ from datetime import datetime
 @click.pass_obj
 def export_tracks(context: SpotyContext,
                   grouping_pattern,
-                  duplicates,
+                  no_duplicates,
                   append,
                   overwrite,
                   path,
-                  timestamp,
+                  no_timestamp,
                   duplicates_compare_tags,
                   confirm,
                   ):
@@ -52,13 +52,13 @@ Export a list of tracks to csv files (playlists) on disk.
 
         path = os.path.abspath(path)
 
-        if timestamp:
+        if not no_timestamp:
             now = datetime.now()
             date_time_str = now.strftime("%Y_%m_%d-%H_%M_%S")
-            path = os.path.join(path, date_time_str)
+            path = os.path.join(path, "export-csv-" + date_time_str)
 
         file_names, names, added_tracks, import_duplicates, already_exist \
-            = spoty.csv_playlist.create_csvs(tags_list, path, grouping_pattern, overwrite, append, duplicates, confirm,
+            = spoty.csv_playlist.create_csvs(tags_list, path, grouping_pattern, overwrite, append, no_duplicates, confirm,
                                              duplicates_compare_tags)
 
         # print summery
@@ -75,9 +75,8 @@ Export a list of tracks to csv files (playlists) on disk.
             if len(file_names) == 1:
                 context.summary.append(f'  {len(added_tracks)} tracks written to csv file (path: "{path}").')
             else:
-                context.summary.append(f'  {len(added_tracks)} tracks written to {len(file_names)} csv files (path: "{path}").')
-
-
+                context.summary.append(
+                    f'  {len(added_tracks)} tracks written to {len(file_names)} csv files (path: "{path}").')
 
     click.echo('\n------------------------------------------------------------')
     click.echo('\n'.join(context.summary))

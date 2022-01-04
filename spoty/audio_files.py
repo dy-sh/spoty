@@ -107,12 +107,6 @@ def read_audio_file_tags(file_name, add_spoty_tags=True, clean_tags=True):
             f = FLAC(file_name)
             tags['SPOTY_LENGTH'] = str(int(f.info.length))
             for tag in f.tags:
-                if len(tag[1]) > 131072 or \
-                        (tag[0] in tags and len(tags[tag[0]]) + len(tag[1]) > 131072):
-                    mess = f'Tag "{tag[0]}" has value larger than csv field limit (131072) and will be skipped in file "{file_name}"'
-                    click.echo('\n' + mess)
-                    log.warning(mess)
-                    continue
                 if tag[0] in tags:  # adding same key with one more value
                     tags[tag[0]] += ';' + tag[1]
                 else:
@@ -130,11 +124,6 @@ def read_audio_file_tags(file_name, add_spoty_tags=True, clean_tags=True):
             for tag in f.valid_keys.keys():
                 if tag in f:
                     tag_val = ';'.join(f[tag])
-                    if len(tag_val) > 131072:
-                        mess = f'Tag "{tag[0]}" has value larger than csv field limit (131072) and will be skipped in file "{file_name}"'
-                        click.echo('\n' + mess)
-                        log.warning(mess)
-                        continue
                     tags[tag.upper()] = tag_val
             f = ID3(file_name)
             for txxx in f.getall("TXXX"):  # custom keys
