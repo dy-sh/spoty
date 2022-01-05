@@ -638,7 +638,7 @@ def import_playlist_from_tags_list(playlist_name: str, tags_list: list, overwrit
                 if len(missing_tracks) > 0:
                     if not confirm:
                         if not click.confirm(
-                                f'Do you want to remove {len(missing_tracks)} tracks from playlist "{playlist_name}" (these tracks are not in the provided new track list)?'):
+                                f'\nDo you want to remove {len(missing_tracks)} tracks from playlist "{playlist_name}" (these tracks are not in the provided new track list)?'):
                             click.echo("\nCanceled")
                             return [], [], [], []
                         click.echo()  # for new line

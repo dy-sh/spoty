@@ -99,7 +99,7 @@ If you remove --pps option, you will get "#SYNC #SYNC Pop", "#SYNC #SYNC Rock", 
         click.echo(f'Total {len(found_tags_list)} tracks in {len(grouped_tags)} playlists.')
 
         if not confirm:
-            if click.confirm(f'Do you want to continue?'):
+            if click.confirm(f'\nDo you want to continue?'):
                 click.echo("")  # for new line
             else:
                 click.echo("\nCanceled.")

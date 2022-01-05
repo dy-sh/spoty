@@ -12,7 +12,7 @@ from spoty import settings
 import click
 
 
-@click.group("filter-second")
+@click.group("filter")
 # @click.option('--playlist-names', '--p', multiple=True,
 #               help='Leave only playlists whose names matches this regex filter')
 @click.option('--leave-have-tags', '--lht', multiple=True,
@@ -26,6 +26,10 @@ import click
 @click.option('--duplicates-compare-tags', '--dct', show_default=True, multiple=True,
               default=settings.SPOTY.COMPARE_TAGS_DEFINITELY_DUPLICATE,
               help='Compare duplicates by this tags. It is optional. You can also change the list of tags in the config file.')
+@click.option('--leave-added-before', '--lab',
+              help='Leave only added to playlist before specified date.')
+@click.option('--leave-added-after', '--lab',
+              help='Leave only added to playlist after specified date.')
 @click.pass_obj
 def filter_second(context: SpotyContext,
                   # playlist_names,
@@ -33,7 +37,9 @@ def filter_second(context: SpotyContext,
                   leave_no_tags,
                   remove_duplicates,
                   leave_duplicates,
-                  duplicates_compare_tags
+                  duplicates_compare_tags,
+    leave_added_before,
+    leave_added_after,
                   ):
     """
 Filter tracks.
@@ -45,7 +51,9 @@ Filter tracks.
                                        leave_no_tags,
                                        remove_duplicates,
                                        leave_duplicates,
-                                       duplicates_compare_tags
+                                       duplicates_compare_tags,
+                                       leave_added_before,
+                                       leave_added_after,
                                        )
 
 
