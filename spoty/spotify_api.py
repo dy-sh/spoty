@@ -782,26 +782,19 @@ def get_not_liked_track_ids(track_ids: list):
     return not_liked_tracks
 
 
-def get_not_liked_tags_list(new_sub_tags_list):
-    not_liked_tags_list = []
-    track_ids = get_track_ids_from_tags_list(new_sub_tags_list)
-    likes = get_likes_for_tracks(track_ids)
-    for i in range(len(track_ids)):
-        if not likes[i]:
-            not_liked_tags_list.append(new_sub_tags_list[i])
-
-    return not_liked_tags_list
-
-
 def get_liked_tags_list(new_sub_tags_list):
     liked_tags_list = []
+    not_liked_tags_list = []
     track_ids = get_track_ids_from_tags_list(new_sub_tags_list)
     likes = get_likes_for_tracks(track_ids)
     for i in range(len(track_ids)):
         if likes[i]:
             liked_tags_list.append(new_sub_tags_list[i])
+        else:
+            not_liked_tags_list.append(new_sub_tags_list[i])
 
-    return liked_tags_list
+    return liked_tags_list, not_liked_tags_list
+
 
 
 def get_track_artist_and_title(track: dict):
