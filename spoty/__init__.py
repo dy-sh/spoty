@@ -11,7 +11,7 @@ current_directory = os.path.dirname(os.path.realpath(__file__))
 config_path = os.path.abspath(os.path.join(current_directory, '..', 'config'))
 settings_file_name = os.path.join(config_path, 'settings.toml')
 secrets_file_name = os.path.join(config_path, '.secrets.toml')
-plugins_path = os.path.join(os.path.dirname(__file__), '../plugins')
+plugins_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../plugins'))
 
 if not os.path.isfile(settings_file_name):
     print(f'No config file found at path: {settings_file_name}')

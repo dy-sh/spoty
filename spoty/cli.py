@@ -1,4 +1,5 @@
 import spoty.utils
+from spoty import settings_file_name, secrets_file_name, plugins_path
 from spoty.commands import spotify_playlist_commands
 from spoty.commands import spotify_like_commands
 from spoty.commands import spotify_track_commands
@@ -39,14 +40,20 @@ class SpotyPluginsCLI(click.MultiCommand):
 
 
 
-cli2 = SpotyPluginsCLI(help='This tool\'s subcommands are loaded from a plugin folder dynamically.')
-
-
 @click.group()
 def cli():
     """This program allows you to perform various actions with spotify from the console."""
     pass
 
+
+@cli.command("config")
+def config():
+    """
+Prints configuration parameters.
+    """
+    click.echo(f'Settings file name: {settings_file_name}')
+    click.echo(f'Secrets file name: {secrets_file_name}')
+    click.echo(f'Plugins path: {plugins_path}')
 
 @cli.command(cls=SpotyPluginsCLI, help='Plugins.')
 def plug():
