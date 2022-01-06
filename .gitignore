@@ -1,5 +1,5 @@
 ﻿.idea
-.cache
+.cache*
 __pycache__
 .secrets.*
 logs

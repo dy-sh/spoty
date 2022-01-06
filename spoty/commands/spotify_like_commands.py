@@ -91,7 +91,9 @@ def like_export(path, file_name, overwrite, no_timestamp):
 
 @like.command("import")
 @click.argument('file_names', nargs=-1)
-def like_import(file_names):
+@click.option('unlike', '-u',is_flag=True,
+              help='Remove imported tracks from liked tracks (invert).')
+def like_import(file_names,unlike):
     r"""Import liked tracks to yor library from csv file on disk.
 
     FILE_NAMES - list of file names to import. You can specify one file or many files separated by a space.
@@ -103,11 +105,15 @@ def like_import(file_names):
         spoty spotify like import "C:\Users\User\Downloads\export\likes1.csv" "C:\Users\User\Downloads\export\likes2.csv"
     """
 
+    if len(file_names) == 0:
+        click.echo("Please, specify file names to import.")
+        exit()
+
     all_tracks_in_file = []
     with click.progressbar(file_names, label='Importing lied tracks') as bar:
         for file_name in bar:
             try:
-                tracks_in_file = spoty.spotify_api.import_likes_from_file(file_name)
+                tracks_in_file = spoty.spotify_api.import_likes_from_file(file_name,unlike)
                 all_tracks_in_file += tracks_in_file
             except FileNotFoundError:
                 click.echo(f'\nFile does not exist: "{file_name}"')

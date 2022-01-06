@@ -724,6 +724,22 @@ def add_tracks_to_liked(track_ids: list):
             next_tracks = []
         i += 1
 
+def remove_tracks_from_liked(track_ids: list):
+    for i in range(len(track_ids)):
+        track_ids[i] = parse_track_id(track_ids[i])
+
+    log.info(f'Adding {len(track_ids)} to saved tracks')
+
+    i = 0
+    next_tracks = []
+    while i < len(track_ids):
+        next_tracks.append(track_ids[i])
+        if len(next_tracks) == 50 or i == len(track_ids) - 1:
+            get_sp().current_user_saved_tracks_delete(tracks=next_tracks)
+            log.debug(f'Removed {i + 1}/{len(next_tracks)} tracks from saved')
+            next_tracks = []
+        i += 1
+
 
 def export_liked_tracks_to_file(file_name: str):
     log.info(f'Exporting liked tracks from file "{file_name}"')
@@ -737,15 +753,19 @@ def export_liked_tracks_to_file(file_name: str):
     return liked_tracks
 
 
-def import_likes_from_file(file_name: str):
+def import_likes_from_file(file_name: str, invert=False):
     log.info(f'Importing liked tracks from file "{file_name}"')
-    tracks_in_file = spoty.csv_playlist.read_tags_from_csv(file_name)
-    if len(tracks_in_file) > 0:
-        add_tracks_to_liked(tracks_in_file)
+    tags_list = spoty.csv_playlist.read_tags_from_csv(file_name)
+    ids = spoty.spotify_api.get_track_ids_from_tags_list(tags_list)
+    if len(ids) > 0:
+        if not invert:
+            add_tracks_to_liked(ids)
+        else:
+            remove_tracks_from_liked(ids)
 
-    log.success(f'{len(tracks_in_file)} liked tracks imported from file: "{file_name}"')
+    log.success(f'{len(tags_list)} liked tracks imported from file: "{file_name}"')
 
-    return tracks_in_file
+    return tags_list
 
 
 def get_likes_for_tracks(track_ids: list):
