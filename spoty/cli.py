@@ -25,14 +25,18 @@ class SpotyPluginsCLI(click.MultiCommand):
     def get_command(self, ctx, name):
         ns = {}
         fn = os.path.join(plugins_path, name.replace('-', '_'), name.replace('-', '_') + '.py')
-        try:
-            with open(fn) as f:
-                code = compile(f.read(), fn, 'exec')
-                eval(code, ns, ns)
-            return ns[name.replace('-', '_')]
-        except:
-            click.echo(f'Plugin "{name}" not installed. Execute "spoty plug" command to see a list of installed plugins.',err=True)
+
+        if not os.path.isfile(fn):
+            click.echo(
+                f'Plugin "{name}" not installed. Execute "spoty plug" command to see a list of installed plugins.',
+                err=True)
             exit()
+
+        with open(fn) as f:
+            code = compile(f.read(), fn, 'exec')
+            eval(code, ns, ns)
+        return ns[name.replace('-', '_')]
+
 
 
 cli2 = SpotyPluginsCLI(help='This tool\'s subcommands are loaded from a plugin folder dynamically.')
