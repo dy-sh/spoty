@@ -20,8 +20,11 @@ def playlist():
 @playlist.command("list")
 @click.option('--filter-names', '--fn',
               help='List only playlists whose names matches this regex filter')
-@click.option('--user-id', '--u',  help='Get playlists of this user')
-def playlist_list(filter_names, user_id):
+@click.option('--user-id', '--u',
+              help='Get playlists of this user.')
+@click.option('--followed', '-f', is_flag=True,
+              help='List followed by user playlists instead of created by user (only for current user).')
+def playlist_list(filter_names, user_id,followed):
     r"""
     List of all playlists.
 
@@ -32,7 +35,7 @@ def playlist_list(filter_names, user_id):
         spoty spotify playlist list --user-id 4717400682
     """
     if user_id == None:
-        playlists = spoty.spotify_api.get_list_of_playlists()
+        playlists = spoty.spotify_api.get_list_of_playlists(not followed)
     else:
         playlists = spoty.spotify_api.get_list_of_user_playlists(user_id)
 

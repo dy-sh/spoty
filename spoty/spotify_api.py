@@ -253,7 +253,7 @@ def get_current_user_id():
     return get_sp().me()['id']
 
 
-def get_list_of_playlists(only_owned_by_user=True):
+def get_list_of_playlists(owned_by_user=True):
     user_id = get_current_user_id()
     playlists = []
 
@@ -279,8 +279,10 @@ def get_list_of_playlists(only_owned_by_user=True):
 
             log.debug(f'Read {len(playlists)}/{total_playlists} for current user')
 
-    if only_owned_by_user:
+    if owned_by_user:
         playlists = list(filter(lambda pl: pl['owner']['id'] == user_id, playlists))
+    else:
+        playlists = list(filter(lambda pl: pl['owner']['id'] != user_id, playlists))
 
     return playlists
 
