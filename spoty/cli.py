@@ -73,7 +73,7 @@ def spotify():
 
 @spotify.command("me")
 def spotify_me():
-    """Print current user name."""
+    """Print current user name and id."""
     me = spotify_api.get_sp().me()
     click.echo(f'Current user: "{me["display_name"]}" ({me["id"]})')
 
