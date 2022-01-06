@@ -5,6 +5,7 @@ from spoty.commands import spotify_like_commands
 from spoty.commands import spotify_track_commands
 from spoty.commands import get_group
 from spoty.commands import deezer_commands
+from spoty import spotify_api
 from spoty import plugins_path
 import click
 import os
@@ -68,6 +69,13 @@ cli.add_command(deezer_commands.deezer)
 def spotify():
     """Spotify specific commands."""
     pass
+
+
+@spotify.command("me")
+def spotify_me():
+    """Print current user name."""
+    me = spotify_api.get_sp().me()
+    click.echo(f'Current user: "{me["display_name"]}" ({me["id"]})')
 
 
 spotify.add_command(spotify_playlist_commands.playlist)
