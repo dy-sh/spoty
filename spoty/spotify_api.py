@@ -190,7 +190,7 @@ def get_playlist(playlist_id: str):
         return None
 
 
-def get_playlist_with_full_list_of_tracks(playlist_id: str, add_spoty_tags=True):
+def get_playlist_with_full_list_of_tracks(playlist_id: str, add_spoty_tags=True, show_progressbar=False):
     playlist_id = parse_playlist_id(playlist_id)
 
     log.info(f'Collecting playlist {playlist_id}')
@@ -207,15 +207,29 @@ def get_playlist_with_full_list_of_tracks(playlist_id: str, add_spoty_tags=True)
 
     # if playlist is larger than 100 songs, continue loading it until end
     result = playlist
-    while len(tracks) < total_tracks:
-        if 'next' in result:
-            result = get_sp().next(result)
-        else:
-            result = get_sp().next(result["tracks"])
-        if add_spoty_tags:
-            add_spoty_tags_to_tracks(tracks, result['items'], playlist_id, playlist['name'])
-        tracks.extend(result['items'])
-        log.debug(f'Collected {len(tracks)}/{total_tracks} tracks in playlist {playlist_id}')
+    if not show_progressbar:
+        while len(tracks) < total_tracks:
+            if 'next' in result:
+                result = get_sp().next(result)
+            else:
+                result = get_sp().next(result["tracks"])
+            if add_spoty_tags:
+                add_spoty_tags_to_tracks(tracks, result['items'], playlist_id, playlist['name'])
+            tracks.extend(result['items'])
+            log.debug(f'Collected {len(tracks)}/{total_tracks} tracks in playlist {playlist_id}')
+    else:
+        with click.progressbar(length=total_tracks, label=f'Reading {total_tracks} tracks from playlist '+playlist_id) as bar:
+            while len(tracks) < total_tracks:
+                if 'next' in result:
+                    result = get_sp().next(result)
+                else:
+                    result = get_sp().next(result["tracks"])
+                if add_spoty_tags:
+                    add_spoty_tags_to_tracks(tracks, result['items'], playlist_id, playlist['name'])
+                tracks.extend(result['items'])
+                log.debug(f'Collected {len(tracks)}/{total_tracks} tracks in playlist {playlist_id}')
+                bar.update(len(tracks)-bar.pos)
+            bar.finish()
 
     playlist["tracks"]["items"] = tracks
 
@@ -851,11 +865,11 @@ def get_not_liked_track_ids(track_ids: list, show_progressbar=False):
     return not_liked_tracks
 
 
-def get_liked_tags_list(new_sub_tags_list):
+def get_liked_tags_list(new_sub_tags_list, show_progressbar=False):
     liked_tags_list = []
     not_liked_tags_list = []
     track_ids = get_track_ids_from_tags_list(new_sub_tags_list)
-    likes = get_likes_for_tracks(track_ids)
+    likes = get_likes_for_tracks(track_ids, show_progressbar)
     for i in range(len(track_ids)):
         if likes[i]:
             liked_tags_list.append(new_sub_tags_list[i])

@@ -229,19 +229,32 @@ def remove_duplicated_tags(tags_list: list, tags_to_compare: list, allow_missing
     return good, duplicates
 
 
-def remove_exist_tags(exist_tags_list: list, new_tags_list: list, tags_to_compare: list, allow_missing=False):
+def remove_exist_tags(exist_tags_list: list, new_tags_list: list, tags_to_compare: list, allow_missing=False,
+                      show_progressbar=False):
     new = []
     exist = []
-    for new_tags in new_tags_list:
-        found = False
-        for exist_tags in exist_tags_list:
-            if compare_tags(exist_tags, new_tags, tags_to_compare, allow_missing):
-                exist.append(new_tags)
-                found = True
-                break
-        if not found:
-            new.append(new_tags)
-
+    if not show_progressbar:
+        for new_tags in new_tags_list:
+            found = False
+            for exist_tags in exist_tags_list:
+                if compare_tags(exist_tags, new_tags, tags_to_compare, allow_missing):
+                    exist.append(new_tags)
+                    found = True
+                    break
+            if not found:
+                new.append(new_tags)
+    else:
+        with click.progressbar(new_tags_list,
+                               label=f'Searching for tags matching in {len(exist_tags_list)} and {len(new_tags_list)} tracks') as bar:
+            for new_tags in bar:
+                found = False
+                for exist_tags in exist_tags_list:
+                    if compare_tags(exist_tags, new_tags, tags_to_compare, allow_missing):
+                        exist.append(new_tags)
+                        found = True
+                        break
+                if not found:
+                    new.append(new_tags)
     return new, exist
 
 
