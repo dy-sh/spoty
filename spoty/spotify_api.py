@@ -5,7 +5,7 @@ import os.path
 import click
 import time
 import re
-from spoty import settings
+from spoty import settings, config_path
 from spotipy.oauth2 import SpotifyOAuth
 import spotipy
 import datetime
@@ -16,14 +16,18 @@ REDIRECT_URI = settings.SPOTIFY.REDIRECT_URI
 
 sp = None
 
+cache_file_name =  os.path.join(config_path, ".cache")
 
 def get_sp():
     global sp
     if sp is None:
-        sp = spotipy.Spotify(auth_manager=SpotifyOAuth(SPOTIFY_CLIENT_ID,
-                                                       SPOTIFY_CLIENT_SECRET,
-                                                       REDIRECT_URI,
-                                                       scope="user-library-read user-library-modify playlist-modify-private playlist-read-private playlist-modify-public"))
+        sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
+            SPOTIFY_CLIENT_ID,
+            SPOTIFY_CLIENT_SECRET,
+            REDIRECT_URI,
+            scope="user-library-read user-library-modify playlist-modify-private playlist-read-private playlist-modify-public",
+            cache_path=cache_file_name
+        ))
     return sp
 
 
@@ -794,7 +798,6 @@ def get_liked_tags_list(new_sub_tags_list):
             not_liked_tags_list.append(new_sub_tags_list[i])
 
     return liked_tags_list, not_liked_tags_list
-
 
 
 def get_track_artist_and_title(track: dict):

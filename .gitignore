@@ -1,15 +1,12 @@
 ﻿.idea
 .cache
 __pycache__
-temp.py
 .secrets.*
 logs
-MUSIC LIBRARY
 build
 spoty.egg-info
 export
-PLAYLISTS
 music
 plugins
-config/.arl
+.arl
 bat
