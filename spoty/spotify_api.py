@@ -207,29 +207,25 @@ def get_playlist_with_full_list_of_tracks(playlist_id: str, add_spoty_tags=True,
 
     # if playlist is larger than 100 songs, continue loading it until end
     result = playlist
-    if not show_progressbar:
-        while len(tracks) < total_tracks:
-            if 'next' in result:
-                result = get_sp().next(result)
-            else:
-                result = get_sp().next(result["tracks"])
-            if add_spoty_tags:
-                add_spoty_tags_to_tracks(tracks, result['items'], playlist_id, playlist['name'])
-            tracks.extend(result['items'])
-            log.debug(f'Collected {len(tracks)}/{total_tracks} tracks in playlist {playlist_id}')
-    else:
-        with click.progressbar(length=total_tracks, label=f'Reading {total_tracks} tracks from playlist '+playlist_id) as bar:
-            while len(tracks) < total_tracks:
-                if 'next' in result:
-                    result = get_sp().next(result)
-                else:
-                    result = get_sp().next(result["tracks"])
-                if add_spoty_tags:
-                    add_spoty_tags_to_tracks(tracks, result['items'], playlist_id, playlist['name'])
-                tracks.extend(result['items'])
-                log.debug(f'Collected {len(tracks)}/{total_tracks} tracks in playlist {playlist_id}')
-                bar.update(len(tracks)-bar.pos)
-            bar.finish()
+    if show_progressbar:
+        bar = click.progressbar(length=total_tracks, label=f'Reading {total_tracks} tracks from playlist '+playlist_id)
+
+    while len(tracks) < total_tracks:
+        if 'next' in result:
+            result = get_sp().next(result)
+        else:
+            result = get_sp().next(result["tracks"])
+        if add_spoty_tags:
+            add_spoty_tags_to_tracks(tracks, result['items'], playlist_id, playlist['name'])
+        tracks.extend(result['items'])
+        log.debug(f'Collected {len(tracks)}/{total_tracks} tracks in playlist {playlist_id}')
+        if show_progressbar:
+            bar.update(len(tracks)-bar.pos)
+
+    if show_progressbar:
+        bar.finish()
+        click.echo()
+
 
     playlist["tracks"]["items"] = tracks
 
@@ -821,24 +817,22 @@ def get_likes_for_tracks(track_ids: list, show_progressbar=False):
     i = 0
     next_tracks = []
 
-    if not show_progressbar:
-        while i < len(track_ids):
-            next_tracks.append(track_ids[i])
-            if len(next_tracks) == 50 or i == len(track_ids) - 1:
-                likes_new = get_sp().current_user_saved_tracks_contains(tracks=next_tracks)
-                likes.extend(likes_new)
-                next_tracks = []
-            i += 1
-    else:
-        with click.progressbar(length=len(track_ids), label='Collecting liked tracks') as bar:
-            while i < len(track_ids):
-                next_tracks.append(track_ids[i])
-                if len(next_tracks) == 50 or i == len(track_ids) - 1:
-                    likes_new = get_sp().current_user_saved_tracks_contains(tracks=next_tracks)
-                    likes.extend(likes_new)
-                    bar.update(len(next_tracks))
-                    next_tracks = []
-                i += 1
+    if show_progressbar:
+        bar = click.progressbar(length=len(track_ids), label='Collecting liked tracks')
+
+    while i < len(track_ids):
+        next_tracks.append(track_ids[i])
+        if len(next_tracks) == 50 or i == len(track_ids) - 1:
+            likes_new = get_sp().current_user_saved_tracks_contains(tracks=next_tracks)
+            likes.extend(likes_new)
+            if show_progressbar:
+                bar.update(len(next_tracks))
+            next_tracks = []
+        i += 1
+
+    if show_progressbar:
+        bar.finish()
+        click.echo()
 
     return likes
 
