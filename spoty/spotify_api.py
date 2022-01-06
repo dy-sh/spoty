@@ -215,6 +215,8 @@ def get_playlist_with_full_list_of_tracks(playlist_id: str, add_spoty_tags=True,
             result = get_sp().next(result)
         else:
             result = get_sp().next(result["tracks"])
+        if result is None:
+            break
         if add_spoty_tags:
             add_spoty_tags_to_tracks(tracks, result['items'], playlist_id, playlist['name'])
         tracks.extend(result['items'])
