@@ -16,12 +16,13 @@ REDIRECT_URI = settings.SPOTIFY.REDIRECT_URI
 
 sp = None
 
-cache_file_name =  os.path.join(config_path, ".cache")
+cache_file_name = os.path.join(config_path, ".cache")
+
 
 def get_sp():
     global sp
     if sp is None:
-        sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
+        sp = spotipy.Spotify(requests_timeout=30, auth_manager=SpotifyOAuth(
             SPOTIFY_CLIENT_ID,
             SPOTIFY_CLIENT_SECRET,
             REDIRECT_URI,
@@ -708,7 +709,7 @@ def get_liked_tracks():
     return tracks
 
 
-def add_tracks_to_liked(track_ids: list):
+def add_tracks_to_liked(track_ids: list, show_progress_bar=False):
     for i in range(len(track_ids)):
         track_ids[i] = parse_track_id(track_ids[i])
 
@@ -716,15 +717,28 @@ def add_tracks_to_liked(track_ids: list):
 
     i = 0
     next_tracks = []
-    while i < len(track_ids):
-        next_tracks.append(track_ids[i])
-        if len(next_tracks) == 50 or i == len(track_ids) - 1:
-            get_sp().current_user_saved_tracks_add(tracks=next_tracks)
-            log.debug(f'Added {i + 1}/{len(next_tracks)} tracks to saved')
-            next_tracks = []
-        i += 1
 
-def remove_tracks_from_liked(track_ids: list):
+    if not show_progress_bar:
+        while i < len(track_ids):
+            next_tracks.append(track_ids[i])
+            if len(next_tracks) == 50 or i == len(track_ids) - 1:
+                get_sp().current_user_saved_tracks_add(tracks=next_tracks)
+                log.debug(f'Added {i + 1}/{len(next_tracks)} tracks to saved')
+                next_tracks = []
+            i += 1
+    else:
+        with click.progressbar(length=len(track_ids), label=f'Adding {len(track_ids)} liked tracks') as bar:
+            while i < len(track_ids):
+                next_tracks.append(track_ids[i])
+                if len(next_tracks) == 50 or i == len(track_ids) - 1:
+                    get_sp().current_user_saved_tracks_add(tracks=next_tracks)
+                    log.debug(f'Added {i + 1}/{len(next_tracks)} tracks to saved')
+                    bar.update(len(next_tracks))
+                    next_tracks = []
+                i += 1
+
+
+def remove_tracks_from_liked(track_ids: list, show_progress_bar=False):
     for i in range(len(track_ids)):
         track_ids[i] = parse_track_id(track_ids[i])
 
@@ -732,13 +746,25 @@ def remove_tracks_from_liked(track_ids: list):
 
     i = 0
     next_tracks = []
-    while i < len(track_ids):
-        next_tracks.append(track_ids[i])
-        if len(next_tracks) == 50 or i == len(track_ids) - 1:
-            get_sp().current_user_saved_tracks_delete(tracks=next_tracks)
-            log.debug(f'Removed {i + 1}/{len(next_tracks)} tracks from saved')
-            next_tracks = []
-        i += 1
+
+    if not show_progress_bar:
+        while i < len(track_ids):
+            next_tracks.append(track_ids[i])
+            if len(next_tracks) == 50 or i == len(track_ids) - 1:
+                get_sp().current_user_saved_tracks_delete(tracks=next_tracks)
+                log.debug(f'Removed {i + 1}/{len(next_tracks)} tracks from saved')
+                next_tracks = []
+            i += 1
+    else:
+        with click.progressbar(length=len(track_ids), label='Adding liked tracks') as bar:
+            while i < len(track_ids):
+                next_tracks.append(track_ids[i])
+                if len(next_tracks) == 50 or i == len(track_ids) - 1:
+                    get_sp().current_user_saved_tracks_delete(tracks=next_tracks)
+                    log.debug(f'Removed {i + 1}/{len(next_tracks)} tracks from saved')
+                    bar.update(len(next_tracks))
+                    next_tracks = []
+                i += 1
 
 
 def export_liked_tracks_to_file(file_name: str):
@@ -753,41 +779,60 @@ def export_liked_tracks_to_file(file_name: str):
     return liked_tracks
 
 
-def import_likes_from_file(file_name: str, invert=False):
+def import_likes_from_file(file_name: str, invert=False, show_progressbar=False):
     log.info(f'Importing liked tracks from file "{file_name}"')
     tags_list = spoty.csv_playlist.read_tags_from_csv(file_name)
     ids = spoty.spotify_api.get_track_ids_from_tags_list(tags_list)
+
+    # remove already exist
+    if not invert:
+        ids = get_not_liked_track_ids(ids, show_progressbar)
+    else:
+        ids = get_liked_track_ids(ids, show_progressbar)
+
     if len(ids) > 0:
         if not invert:
-            add_tracks_to_liked(ids)
+            add_tracks_to_liked(ids, show_progressbar)
         else:
-            remove_tracks_from_liked(ids)
+            remove_tracks_from_liked(ids, show_progressbar)
 
     log.success(f'{len(tags_list)} liked tracks imported from file: "{file_name}"')
 
     return tags_list
 
 
-def get_likes_for_tracks(track_ids: list):
+def get_likes_for_tracks(track_ids: list, show_progressbar=False):
     likes = []
 
     i = 0
     next_tracks = []
-    while i < len(track_ids):
-        next_tracks.append(track_ids[i])
-        if len(next_tracks) == 50 or i == len(track_ids) - 1:
-            likes_new = get_sp().current_user_saved_tracks_contains(tracks=next_tracks)
-            likes.extend(likes_new)
-            next_tracks = []
-        i += 1
+
+    if not show_progressbar:
+        while i < len(track_ids):
+            next_tracks.append(track_ids[i])
+            if len(next_tracks) == 50 or i == len(track_ids) - 1:
+                likes_new = get_sp().current_user_saved_tracks_contains(tracks=next_tracks)
+                likes.extend(likes_new)
+                next_tracks = []
+            i += 1
+    else:
+        with click.progressbar(length=len(track_ids), label='Collecting liked tracks') as bar:
+            while i < len(track_ids):
+                next_tracks.append(track_ids[i])
+                if len(next_tracks) == 50 or i == len(track_ids) - 1:
+                    likes_new = get_sp().current_user_saved_tracks_contains(tracks=next_tracks)
+                    likes.extend(likes_new)
+                    bar.update(len(next_tracks))
+                    next_tracks = []
+                i += 1
 
     return likes
 
 
-def get_liked_track_ids(track_ids: list):
+def get_liked_track_ids(track_ids: list, show_progressbar=False):
     liked_tracks = []
 
-    likes = get_likes_for_tracks(track_ids)
+    likes = get_likes_for_tracks(track_ids, show_progressbar)
     for i in range(len(track_ids)):
         if likes[i]:
             liked_tracks.append(track_ids[i])
@@ -795,10 +840,10 @@ def get_liked_track_ids(track_ids: list):
     return liked_tracks
 
 
-def get_not_liked_track_ids(track_ids: list):
+def get_not_liked_track_ids(track_ids: list, show_progressbar=False):
     not_liked_tracks = []
 
-    likes = get_likes_for_tracks(track_ids)
+    likes = get_likes_for_tracks(track_ids, show_progressbar)
     for i in range(len(track_ids)):
         if not likes[i]:
             not_liked_tracks.append(track_ids[i])

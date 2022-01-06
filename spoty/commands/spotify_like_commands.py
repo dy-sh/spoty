@@ -91,9 +91,9 @@ def like_export(path, file_name, overwrite, no_timestamp):
 
 @like.command("import")
 @click.argument('file_names', nargs=-1)
-@click.option('unlike', '-u',is_flag=True,
+@click.option('unlike', '-u', is_flag=True,
               help='Remove imported tracks from liked tracks (invert).')
-def like_import(file_names,unlike):
+def like_import(file_names, unlike):
     r"""Import liked tracks to yor library from csv file on disk.
 
     FILE_NAMES - list of file names to import. You can specify one file or many files separated by a space.
@@ -110,10 +110,27 @@ def like_import(file_names,unlike):
         exit()
 
     all_tracks_in_file = []
-    with click.progressbar(file_names, label='Importing lied tracks') as bar:
-        for file_name in bar:
+
+    if len(file_names) > 1:
+        with click.progressbar(file_names, label='Importing liked tracks') as bar:
+            for file_name in bar:
+                try:
+                    tracks_in_file = spoty.spotify_api.import_likes_from_file(file_name, unlike, False)
+                    all_tracks_in_file += tracks_in_file
+                except FileNotFoundError:
+                    click.echo(f'\nFile does not exist: "{file_name}"')
+                except spoty.csv_playlist.CSVFileEmpty as e:
+                    log.warning(f'Cant import file "{file_name}". File is empty.')
+                    click.echo(f'\nCant import file "{file_name}". File is empty.')
+                except spoty.csv_playlist.CSVFileInvalidHeader as e:
+                    mess = f'Cant import file "{file_name}". The header of csv table does not contain any of the required ' \
+                           f'fields (isrc, spotify_track_id, title).'
+                    log.error(mess)
+                    click.echo('\n' + mess)
+    else:
+        for file_name in file_names:
             try:
-                tracks_in_file = spoty.spotify_api.import_likes_from_file(file_name,unlike)
+                tracks_in_file = spoty.spotify_api.import_likes_from_file(file_name, unlike, True)
                 all_tracks_in_file += tracks_in_file
             except FileNotFoundError:
                 click.echo(f'\nFile does not exist: "{file_name}"')
