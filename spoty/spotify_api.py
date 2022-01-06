@@ -208,7 +208,8 @@ def get_playlist_with_full_list_of_tracks(playlist_id: str, add_spoty_tags=True,
     # if playlist is larger than 100 songs, continue loading it until end
     result = playlist
     if show_progressbar:
-        bar = click.progressbar(length=total_tracks, label=f'Reading {total_tracks} tracks from playlist '+playlist_id)
+        bar = click.progressbar(length=total_tracks,
+                                label=f'Reading {total_tracks} tracks from playlist ' + playlist_id)
 
     while len(tracks) < total_tracks:
         if 'next' in result:
@@ -222,12 +223,18 @@ def get_playlist_with_full_list_of_tracks(playlist_id: str, add_spoty_tags=True,
         tracks.extend(result['items'])
         log.debug(f'Collected {len(tracks)}/{total_tracks} tracks in playlist {playlist_id}')
         if show_progressbar:
-            bar.update(len(tracks)-bar.pos)
+            bar.update(len(tracks) - bar.pos)
 
     if show_progressbar:
         bar.finish()
         click.echo()
 
+    # remove tracks without id (was deleted from spotify database)
+    new_tracks = []
+    for track in tracks:
+        if 'track' in track and 'id' in track['track'] and track['track']['id'] != "":
+            new_tracks.append(track)
+    tracks = new_tracks
 
     playlist["tracks"]["items"] = tracks
 
@@ -377,15 +384,12 @@ def get_tracks_of_playlist(playlist_id: str, add_spoty_tags=True, playlist_name:
 
         log.debug(f'Collected {len(tracks)}/{result["total"]} tracks')
 
-    # removing invalid tracks without ids (was deleted from spotify library)
+    # remove tracks without id (was deleted from spotify database)
     new_tracks = []
     for track in tracks:
-        try:
-            id = track['track']['id']
-            assert id is not None, "Track id is None"
+        if 'track' in track and 'id' in track['track'] and track['track']['id'] != "":
             new_tracks.append(track)
-        except:
-            pass
+    tracks = new_tracks
 
     if len(new_tracks) != len(tracks):
         log.warning(f'Playlist {playlist_id} has {len(tracks) - len(new_tracks)} invalid tracks')
