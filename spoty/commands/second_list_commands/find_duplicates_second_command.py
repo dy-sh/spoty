@@ -5,7 +5,7 @@ from spoty.commands.duplicates_commands import \
     export_duplicates_command, \
     print_duplicates_command, \
     get_duplicates_group, \
-    get_unique_group
+    get_unique_second_group
 from spoty.utils import SpotyContext
 from spoty import settings
 from spoty import log
@@ -96,4 +96,4 @@ find_duplicates_second.add_command(replace_tags_command.replace_tags)
 find_duplicates_second.add_command(export_duplicates_command.export_duplicates)
 find_duplicates_second.add_command(print_duplicates_command.print_duplicates)
 find_duplicates_second.add_command(get_duplicates_group.get_duplicates)
-find_duplicates_second.add_command(get_unique_group.get_unique)
+find_duplicates_second.add_command(get_unique_second_group.get_unique)
