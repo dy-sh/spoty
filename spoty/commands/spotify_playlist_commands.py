@@ -24,7 +24,7 @@ def playlist():
               help='Get playlists of this user.')
 @click.option('--followed', '-f', is_flag=True,
               help='List followed by user playlists instead of created by user (only for current user).')
-def playlist_list(filter_names, user_id,followed):
+def playlist_list(filter_names, user_id, followed):
     r"""
     List of all playlists.
 
@@ -140,7 +140,7 @@ def playlist_delete(playlist_ids, confirm):
 @playlist.command("delete-all")
 @click.option('--filter-names', '--fn',
               help='List only playlists whose names matches this regex filter')
-@click.option('--confirm', '-y',  is_flag=True,
+@click.option('--confirm', '-y', is_flag=True,
               help='Do not ask for export confirmation')
 def playlist_delete_all(filter_names, confirm):
     r"""
@@ -234,8 +234,15 @@ def playlist_add_tracks(playlist_id, track_ids, allow_duplicates):
 
     """
     track_ids = list(track_ids)
-    tracks_added, import_duplicates, already_exist \
+    tracks_added, import_duplicates, already_exist, invalid_ids \
         = spoty.spotify_api.add_tracks_to_playlist_by_ids(playlist_id, track_ids, allow_duplicates)
+
+    if len(invalid_ids) > 0:
+        click.echo("Invalid track IDs:")
+        for id in invalid_ids:
+            click.echo(id)
+        click.echo('---------------------------')
+
     click.echo(f'{len(tracks_added)} tracks added to playlist {playlist_id}')
 
 

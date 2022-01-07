@@ -195,7 +195,8 @@ def playlist_add_tracks(playlist_id, track_ids, allow_duplicates):
         spoty deezer playlist add-tracks https://www.deezer.com/ru/playlist/9457847341 https://www.deezer.com/ru/track/74359352
 
     """
-    tracks_added = spoty.deezer_api.add_tracks_to_playlist_by_ids(playlist_id, track_ids, allow_duplicates)
+    tracks_added, import_duplicates, already_exist \
+        = spoty.deezer_api.add_tracks_to_playlist_by_ids(playlist_id, track_ids, allow_duplicates)
     click.echo(f'{len(tracks_added)} tracks added to playlist {playlist_id}')
 
 

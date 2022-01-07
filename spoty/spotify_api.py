@@ -190,6 +190,19 @@ def get_playlist(playlist_id: str):
         return None
 
 
+def remove_invalid_tracks(tracks):
+    # remove tracks without id (was deleted from spotify database)
+    new_tracks = []
+    for track in tracks:
+        if track is not None \
+                and 'track' in track \
+                and track['track'] is not None \
+                and 'id' in track['track'] \
+                and track['track']['id'] is not None \
+                and track['track']['id'] != "":
+            new_tracks.append(track)
+    return new_tracks
+
 def get_playlist_with_full_list_of_tracks(playlist_id: str, add_spoty_tags=True, show_progressbar=False):
     playlist_id = parse_playlist_id(playlist_id)
 
@@ -198,6 +211,7 @@ def get_playlist_with_full_list_of_tracks(playlist_id: str, add_spoty_tags=True,
     playlist = get_sp().playlist(playlist_id)
     total_tracks = playlist["tracks"]["total"]
     tracks = playlist["tracks"]["items"]
+    tracks = remove_invalid_tracks(tracks)
 
     if add_spoty_tags:
         add_spoty_tags_to_tracks([], tracks, playlist_id, playlist['name'])
@@ -218,6 +232,7 @@ def get_playlist_with_full_list_of_tracks(playlist_id: str, add_spoty_tags=True,
             result = get_sp().next(result["tracks"])
         if result is None:
             break
+        result['items'] = remove_invalid_tracks(result['items'])
         if add_spoty_tags:
             add_spoty_tags_to_tracks(tracks, result['items'], playlist_id, playlist['name'])
         tracks.extend(result['items'])
@@ -228,13 +243,6 @@ def get_playlist_with_full_list_of_tracks(playlist_id: str, add_spoty_tags=True,
     if show_progressbar:
         bar.finish()
         click.echo()
-
-    # remove tracks without id (was deleted from spotify database)
-    new_tracks = []
-    for track in tracks:
-        if 'track' in track and 'id' in track['track'] and track['track']['id'] != "":
-            new_tracks.append(track)
-    tracks = new_tracks
 
     playlist["tracks"]["items"] = tracks
 
@@ -350,7 +358,8 @@ def copy_playlist(playlist_id: str):
 
     ids = get_track_ids(tracks)
     new_playlist_id = create_playlist(playlist['name'])
-    tracks_added, import_duplicates, already_exist = add_tracks_to_playlist_by_ids(new_playlist_id, ids, True)
+    tracks_added, import_duplicates, already_exist, invalid_ids \
+        = add_tracks_to_playlist_by_ids(new_playlist_id, ids, True)
 
     log.success(f"Playlist {playlist_id} copy completed ({len(tracks_added)} tracks added).")
 
@@ -367,6 +376,7 @@ def get_tracks_of_playlist(playlist_id: str, add_spoty_tags=True, playlist_name:
     result = get_sp().playlist_items(playlist_id, additional_types=['track'], limit=100)
 
     new_tracks = result['items']
+    new_tracks = remove_invalid_tracks(new_tracks)
     if (add_spoty_tags):
         add_spoty_tags_to_tracks(tracks, new_tracks, playlist_id, playlist_name)
     tracks.extend(new_tracks)
@@ -378,23 +388,14 @@ def get_tracks_of_playlist(playlist_id: str, add_spoty_tags=True, playlist_name:
         result = get_sp().next(result)
 
         new_tracks = result['items']
+        new_tracks = remove_invalid_tracks(new_tracks)
         if (add_spoty_tags):
             add_spoty_tags_to_tracks(tracks, new_tracks, playlist_id, playlist_name)
         tracks.extend(new_tracks)
 
         log.debug(f'Collected {len(tracks)}/{result["total"]} tracks')
 
-    # remove tracks without id (was deleted from spotify database)
-    new_tracks = []
-    for track in tracks:
-        if 'track' in track and 'id' in track['track'] and track['track']['id'] != "":
-            new_tracks.append(track)
-    tracks = new_tracks
-
-    if len(new_tracks) != len(tracks):
-        log.warning(f'Playlist {playlist_id} has {len(tracks) - len(new_tracks)} invalid tracks')
-
-    return new_tracks
+    return tracks
 
 
 def add_spoty_tags_to_tracks(tracks: list, new_tracks: list, playlist_id: str, playlist_name: str):
@@ -482,20 +483,30 @@ def add_tracks_to_playlist_by_ids(playlist_id: str, track_ids: list, allow_dupli
 
     tracks_added = []
 
+    invalid_ids=[]
+
     i = 0
     next_tracks = []
     while i < len(track_ids):
         next_tracks.append(track_ids[i])
         if len(next_tracks) == 100 or i == len(track_ids) - 1:
-            get_sp().playlist_add_items(playlist_id, next_tracks)
-            tracks_added.extend(next_tracks)
+            try:
+                get_sp().playlist_add_items(playlist_id, next_tracks)
+                tracks_added.extend(next_tracks)
+            except:
+                for track_id in next_tracks:
+                    try:
+                        get_sp().playlist_add_items(playlist_id, [track_id])
+                        tracks_added.append(track_id)
+                    except:
+                        invalid_ids.append(track_id)
             log.debug(f'{len(next_tracks)} tracks added to playlist')
             next_tracks = []
         i += 1
 
     log.success(f'Adding tracks to playlist {playlist_id} complete (tracks added: {len(next_tracks)}')
 
-    return tracks_added, import_duplicates, already_exist
+    return tracks_added, import_duplicates, already_exist, invalid_ids
 
 
 def remove_all_tracks_from_playlist(playlist_id: str, confirm=False):
