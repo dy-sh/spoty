@@ -233,7 +233,7 @@ def remove_exist_tags(exist_tags_list: list, new_tags_list: list, tags_to_compar
     exist = []
     if show_progressbar:
         bar = click.progressbar(new_tags_list,
-                               label=f'Searching for tags matching in {len(exist_tags_list)} and {len(new_tags_list)} tracks')
+                                label=f'Searching for tags matching in {len(exist_tags_list)} and {len(new_tags_list)} tracks')
 
     for new_tags in new_tags_list:
         if show_progressbar:
@@ -255,6 +255,44 @@ def remove_exist_tags(exist_tags_list: list, new_tags_list: list, tags_to_compar
     return new, exist
 
 
+def remove_exist_tags_by_isrc_and_length(exist_tags_list: list, new_tags_list: list, show_progressbar=False):
+    new = []
+    exist = []
+    if show_progressbar:
+        bar = click.progressbar(new_tags_list,
+                                label=f'Searching for tags matching in {len(exist_tags_list)} and {len(new_tags_list)} tracks')
+
+    COMPARE_LENGTH_TOLERANCE_SEC = int(settings.SPOTY.COMPARE_LENGTH_TOLERANCE_SEC)
+
+    exist_tags_dict = {}
+    for tags in exist_tags_list:
+        if 'ISRC' in tags and 'SPOTY_LENGTH' in tags:
+            if tags['ISRC'] not in exist_tags_dict:
+                exist_tags_dict[tags['ISRC']] = []
+            exist_tags_dict[tags['ISRC']].append(tags['SPOTY_LENGTH'])
+
+    for new_tags in new_tags_list:
+        if show_progressbar:
+            bar.update(1)
+
+        found = False
+
+        if 'ISRC' in new_tags and 'SPOTY_LENGTH' in new_tags:
+            if new_tags['ISRC'] in exist_tags_dict:
+                for exist_length in exist_tags_dict[new_tags['ISRC']]:
+                    if abs(int(new_tags['SPOTY_LENGTH']) - int(exist_length) < COMPARE_LENGTH_TOLERANCE_SEC):
+                        exist.append(new_tags)
+                        found = True
+        if not found:
+            new.append(new_tags)
+
+    if show_progressbar:
+        bar.finish()
+        click.echo()
+
+    return new, exist
+
+
 def compare_tags(tags1: dict, tags2: dict, tags_to_compare: list, allow_missing=False):
     for tag in tags_to_compare:
 
@@ -265,8 +303,8 @@ def compare_tags(tags1: dict, tags2: dict, tags_to_compare: list, allow_missing=
                 return False
 
         if tag == 'SPOTY_LENGTH':
-            if abs(int(tags1['SPOTY_LENGTH']) - int(
-                    tags2['SPOTY_LENGTH'])) > settings.SPOTY.COMPARE_LENGTH_TOLERANCE_SEC:
+            if abs(int(tags1['SPOTY_LENGTH']) - int(tags2['SPOTY_LENGTH'])) \
+                    > settings.SPOTY.COMPARE_LENGTH_TOLERANCE_SEC:
                 return False
             else:
                 continue

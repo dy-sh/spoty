@@ -500,6 +500,7 @@ def add_tracks_to_playlist_by_ids(playlist_id: str, track_ids: list, allow_dupli
                         tracks_added.append(track_id)
                     except:
                         invalid_ids.append(track_id)
+                        click.echo(f'"\nTrack ID "{track_id}" not found in spotify database.')
             log.debug(f'{len(next_tracks)} tracks added to playlist')
             next_tracks = []
         i += 1
