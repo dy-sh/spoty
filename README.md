@@ -1,4 +1,6 @@
-This utility allows you to manage the library in music services, as well as work with the tags of the local mp3/flac files.
+# Spoty
+
+This command line utility allows you to manage the library in music services, as well as work with the tags of the local mp3/flac files.
 
 With this tool you can:
 - Manage a music service from the command line - create / copy / delete playlists, search for songs, add them to playlists, like it, etc.
@@ -16,7 +18,7 @@ Currently, two services are supported - Spotify and Deezer. You can make a reque
 The program supports plugins. You can connect the functionality you need, written by the community. The list of plugins will be updated below. 
 
 
-Plugins:
+## Plugins
 
 Just put the plugin in the plugins folder and it will be connected automatically. 
 
