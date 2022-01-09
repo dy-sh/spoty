@@ -7,6 +7,7 @@ def read_requirements():
         requirements = content.split('\n')
     return requirements
 
+
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
@@ -20,7 +21,7 @@ setup(
     author_email="d.savosh@gmail.com",
     url="https://github.com/dy-sh/spoty",
     license="MIT",
-    packages=find_packages(),
+    packages=find_packages(exclude=["plugins.*", "plugins"]),
     include_package_data=True,
     install_requires=read_requirements(),
     python_requires='>=3.7',

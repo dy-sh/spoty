@@ -1,0 +1,7 @@
+include config/settings.toml
+
+global-exclude .secrets.toml
+global-exclude .arl
+global-exclude .cache
+prune plugins
+
