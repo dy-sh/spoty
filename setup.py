@@ -1,5 +1,7 @@
 from setuptools import setup, find_packages
 
+VERSION = "0.1.3"
+
 
 def read_requirements():
     with open('requirements.txt') as file:
@@ -13,7 +15,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="spoty",
-    version="0.1.0",
+    version=VERSION,
     description="CLI tool for management of Spotify, Deezer and other music services as well as local music files.",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -21,7 +23,7 @@ setup(
     author_email="d.savosh@gmail.com",
     url="https://github.com/dy-sh/spoty",
     license="MIT",
-    packages=find_packages(exclude=["spoty.plugins.*", "spoty.plugins","plugins.*", "plugins"]),
+    packages=find_packages(exclude=["spoty.plugins.*", "spoty.plugins", "plugins.*", "plugins"]),
     include_package_data=True,
     install_requires=read_requirements(),
     python_requires='>=3.7',

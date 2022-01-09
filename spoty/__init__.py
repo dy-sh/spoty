@@ -13,6 +13,9 @@ settings_file_name = os.path.join(config_path, 'settings.toml')
 secrets_file_name = os.path.join(config_path, '.secrets.toml')
 plugins_path = os.path.abspath(os.path.join(current_directory, 'plugins'))
 
+if not os.path.isdir(plugins_path):
+    os.makedirs(plugins_path)
+
 if not os.path.isfile(settings_file_name):
     print(f'No config file found at path: {settings_file_name}')
     exit()

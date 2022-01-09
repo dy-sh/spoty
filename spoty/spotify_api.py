@@ -28,11 +28,6 @@ def get_sp():
         click.echo(f"SPOTIFY_CLIENT_SECRET is not set. Please, edit {secrets_file_name}", err=True)
         exit()
 
-    if REDIRECT_URI is None or REDIRECT_URI == "":
-        click.echo(f"REDIRECT_URI is not set. Please, edit {secrets_file_name}", err=True)
-        exit()
-
-
     global sp
     if sp is None:
         sp = spotipy.Spotify(requests_timeout=30, auth_manager=SpotifyOAuth(
