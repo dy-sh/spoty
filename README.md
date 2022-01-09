@@ -21,6 +21,6 @@ Plugins:
 Just put the plugin in the plugins folder and it will be connected automatically. 
 
 - [collector](https://github.com/dy-sh/spoty_collector) - Plugin for collecting music in spotify.
-- [tag-cleaner](https://github.com/dy-sh/spoty_tag_cleaner_) Plugin for cleaning tags in audio files.
+- [tag-cleaner](https://github.com/dy-sh/spoty_tag_cleaner) Plugin for cleaning tags in audio files.
 - [genre-from-folder](https://github.com/dy-sh/spoty_genre_from_folder) - The plugin updates Genre and Mood tags in audio files by the name of the parent folder.
 
