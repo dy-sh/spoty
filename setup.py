@@ -21,7 +21,7 @@ setup(
     author_email="d.savosh@gmail.com",
     url="https://github.com/dy-sh/spoty",
     license="MIT",
-    packages=find_packages(exclude=["plugins.*", "plugins"]),
+    packages=find_packages(exclude=["spoty.plugins.*", "spoty.plugins","plugins.*", "plugins"]),
     include_package_data=True,
     install_requires=read_requirements(),
     python_requires='>=3.7',

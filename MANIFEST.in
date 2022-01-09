@@ -1,7 +1,7 @@
-include config/settings.toml
+include spoty/config/settings.toml
 
 global-exclude .secrets.toml
 global-exclude .arl
 global-exclude .cache
-prune plugins
 
+prune spoty/plugins

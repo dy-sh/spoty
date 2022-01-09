@@ -5,7 +5,7 @@ import os.path
 import click
 import time
 import re
-from spoty import settings, config_path
+from spoty import settings, config_path, settings_file_name
 from spotipy.oauth2 import SpotifyOAuth
 import spotipy
 import datetime
@@ -20,6 +20,19 @@ cache_file_name = os.path.join(config_path, ".cache")
 
 
 def get_sp():
+    if SPOTIFY_CLIENT_ID is None or SPOTIFY_CLIENT_ID == "":
+        click.echo(f"SPOTIFY_CLIENT_ID is not set. Please, edit {settings_file_name}", err=True)
+        exit()
+
+    if SPOTIFY_CLIENT_SECRET is None or SPOTIFY_CLIENT_SECRET == "":
+        click.echo(f"SPOTIFY_CLIENT_SECRET is not set. Please, edit {settings_file_name}", err=True)
+        exit()
+
+    if REDIRECT_URI is None or REDIRECT_URI == "":
+        click.echo(f"REDIRECT_URI is not set. Please, edit {settings_file_name}", err=True)
+        exit()
+
+
     global sp
     if sp is None:
         sp = spotipy.Spotify(requests_timeout=30, auth_manager=SpotifyOAuth(
@@ -202,6 +215,7 @@ def remove_invalid_tracks(tracks):
                 and track['track']['id'] != "":
             new_tracks.append(track)
     return new_tracks
+
 
 def get_playlist_with_full_list_of_tracks(playlist_id: str, add_spoty_tags=True, show_progressbar=False):
     playlist_id = parse_playlist_id(playlist_id)
@@ -483,7 +497,7 @@ def add_tracks_to_playlist_by_ids(playlist_id: str, track_ids: list, allow_dupli
 
     tracks_added = []
 
-    invalid_ids=[]
+    invalid_ids = []
 
     i = 0
     next_tracks = []
