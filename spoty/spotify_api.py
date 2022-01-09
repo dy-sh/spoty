@@ -5,7 +5,7 @@ import os.path
 import click
 import time
 import re
-from spoty import settings, config_path, settings_file_name
+from spoty import settings, config_path, secrets_file_name
 from spotipy.oauth2 import SpotifyOAuth
 import spotipy
 import datetime
@@ -21,15 +21,15 @@ cache_file_name = os.path.join(config_path, ".cache")
 
 def get_sp():
     if SPOTIFY_CLIENT_ID is None or SPOTIFY_CLIENT_ID == "":
-        click.echo(f"SPOTIFY_CLIENT_ID is not set. Please, edit {settings_file_name}", err=True)
+        click.echo(f"SPOTIFY_CLIENT_ID is not set. Please, edit {secrets_file_name}", err=True)
         exit()
 
     if SPOTIFY_CLIENT_SECRET is None or SPOTIFY_CLIENT_SECRET == "":
-        click.echo(f"SPOTIFY_CLIENT_SECRET is not set. Please, edit {settings_file_name}", err=True)
+        click.echo(f"SPOTIFY_CLIENT_SECRET is not set. Please, edit {secrets_file_name}", err=True)
         exit()
 
     if REDIRECT_URI is None or REDIRECT_URI == "":
-        click.echo(f"REDIRECT_URI is not set. Please, edit {settings_file_name}", err=True)
+        click.echo(f"REDIRECT_URI is not set. Please, edit {secrets_file_name}", err=True)
         exit()
 
 

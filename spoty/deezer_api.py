@@ -1,5 +1,5 @@
 import deezer.errors
-from spoty import settings
+from spoty import settings, secrets_file_name
 from deezer import Deezer
 from spoty import log
 import spoty.utils
@@ -21,6 +21,14 @@ dz = None
 
 
 def get_dz():
+    if DEEZER_APP_ID is None or DEEZER_APP_ID == "" or DEEZER_APP_ID == 0:
+        click.echo(f"DEEZER_APP_ID is not set. Please, edit {secrets_file_name}", err=True)
+        exit()
+
+    if DEEZER_APP_SECRET is None or DEEZER_APP_SECRET == "":
+        click.echo(f"DEEZER_APP_SECRET is not set. Please, edit {secrets_file_name}", err=True)
+        exit()
+
     global dz
     if dz is None:
         dz = Deezer()
