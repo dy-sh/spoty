@@ -1,4 +1,4 @@
-Readme in English: [Readme](https://github.com/dy-sh/spoty/blob/master/README.md)
+[Readme in English](https://github.com/dy-sh/spoty/blob/master/README.md)
 
 # Spoty
 

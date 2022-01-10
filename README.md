@@ -1,4 +1,4 @@
-Readme in Russian: [Readme на русском](https://github.com/dy-sh/spoty/blob/master/README-rus.md)
+[Readme in Russian](https://github.com/dy-sh/spoty/blob/master/README-rus.md)
 
 # Spoty
 
@@ -54,9 +54,6 @@ The only thing you need to set up is access to your music service.
 - Everything is ready. When you run the command `spoty spotify me`, you should see your Spotify username. 
 
 ### Set up for Deezer
-
-- Запустите любую команду для Deezer (например `spoty deezer playlist list`), вам будет предложено ввести `ARL`. Откройте Deezer Web Player в браузере и скопируйте значение куки `arl`, введите его в консоль. Вы можете отредактировать это значение в файле `spoty\settings\.arl` 
-- Все готово. При выполнении команды `spoty deezer playlist list` вы должны увидеть список своих плейлистов.
 
 - Run any command for Deezer (eg `spoty deezer playlist list`), you will be prompted for `ARL`. Open Deezer Web Player in a browser and copy the value of the `arl` cookie, enter it into the console. You can edit this value in the file `spoty\settings\.arl`
 - Everything is ready. When you run the command `spoty deezer playlist list`, you should see a list of your playlists. 
