@@ -35,7 +35,7 @@ import click
               help='Compare duplicates by this tags. It is optional. You can also change the list of tags in the config file.')
 @click.option('--leave-added-before', '--lab',
               help='Leave only added to playlist before specified date.')
-@click.option('--leave-added-after', '--lab',
+@click.option('--leave-added-after', '--laa',
               help='Leave only added to playlist after specified date.')
 @click.pass_obj
 def filter_tracks(context: SpotyContext,

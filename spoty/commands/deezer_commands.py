@@ -17,31 +17,31 @@ def deezer():
     pass
 
 
-@deezer.group()
-def auth():
-    r"""Deezer authorization."""
-    pass
+# @deezer.group()
+# def auth():
+#     r"""Deezer authorization."""
+#     pass
 
 
-@auth.command("get-token")
-def auth_get_token():
-    r"""
-    Get deezer access token automatically using a local server.
+# @auth.command("get-token")
+# def auth_get_token():
+#     r"""
+#     Get deezer access token automatically using a local server.
+#
+#     When the token is received, it will be written to the configuration file.
+#     """
+#     spoty.deezer_auth.get_token()
+#     pass
 
-    When the token is received, it will be written to the configuration file.
-    """
-    spoty.deezer_auth.get_token()
-    pass
 
-
-@auth.command("get-token-manualy")
-def auth_get_token():
-    r"""Get deezer access token manually.
-
-    When starting the command, further actions will be described.
-    """
-    spoty.deezer_auth_manualy.get_token()
-    pass
+# @auth.command("get-token-manualy")
+# def auth_get_token():
+#     r"""Get deezer access token manually.
+#
+#     When starting the command, further actions will be described.
+#     """
+#     spoty.deezer_auth_manualy.get_token()
+#     pass
 
 
 @deezer.group()

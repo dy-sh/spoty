@@ -11,23 +11,23 @@ import datetime
 
 DEEZER_TRACK_ID_TAG = 'DEEZER_TRACK_ID'
 
-DEEZER_APP_ID = settings.default.DEEZER_APP_ID
-DEEZER_APP_SECRET = settings.default.DEEZER_APP_SECRET
-DEEZER_ACCESS_TOKEN = settings.default.DEEZER_ACCESS_TOKEN
-DEEZER_REDIRECT_URI = settings.DEEZER.REDIRECT_URI
+# DEEZER_APP_ID = settings.default.DEEZER_APP_ID
+# DEEZER_APP_SECRET = settings.default.DEEZER_APP_SECRET
+# DEEZER_ACCESS_TOKEN = settings.default.DEEZER_ACCESS_TOKEN
+# DEEZER_REDIRECT_URI = settings.DEEZER.REDIRECT_URI
 arl_file_name = os.path.join(spoty.config_path, '.arl')
 
 dz = None
 
 
 def get_dz():
-    if DEEZER_APP_ID is None or DEEZER_APP_ID == "" or DEEZER_APP_ID == 0:
-        click.echo(f"DEEZER_APP_ID is not set. Please, edit {secrets_file_name}", err=True)
-        exit()
-
-    if DEEZER_APP_SECRET is None or DEEZER_APP_SECRET == "":
-        click.echo(f"DEEZER_APP_SECRET is not set. Please, edit {secrets_file_name}", err=True)
-        exit()
+    # if DEEZER_APP_ID is None or DEEZER_APP_ID == "" or DEEZER_APP_ID == 0:
+    #     click.echo(f"DEEZER_APP_ID is not set. Please, edit {secrets_file_name}", err=True)
+    #     exit()
+    #
+    # if DEEZER_APP_SECRET is None or DEEZER_APP_SECRET == "":
+    #     click.echo(f"DEEZER_APP_SECRET is not set. Please, edit {secrets_file_name}", err=True)
+    #     exit()
 
     global dz
     if dz is None:
