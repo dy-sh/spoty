@@ -43,7 +43,7 @@ def get_sp():
 def get_tracks_from_playlists(playlist_ids: list, add_spoty_tags=True):
     all_tracks = []
     all_tags_list = []
-    all_received_playlists = []
+    all_received_playlist_ids = []
 
     requested_playlists = []
 
@@ -64,9 +64,9 @@ def get_tracks_from_playlists(playlist_ids: list, add_spoty_tags=True):
 
             all_tracks.extend(tracks)
             all_tags_list.extend(tags)
-            all_received_playlists.append(playlist_id)
+            all_received_playlist_ids.append(playlist_id)
 
-    return all_tracks, all_tags_list, all_received_playlists
+    return all_tracks, all_tags_list, all_received_playlist_ids
 
 
 def get_tracks_of_spotify_user(user_id: str, playlists_names_regex: str = None):
@@ -137,6 +137,30 @@ def find_track_id_by_artist_and_title(artist: str, title: str, length=None,
                                       length_tolerance=settings.SPOTY.COMPARE_LENGTH_TOLERANCE_SEC):
     track = find_track_by_artist_and_title(artist, title, length, length_tolerance)
     return track['id'] if track is not None else None
+
+
+def find_playlist_by_query(query: str, count=100, skip_owned_by_user=True):
+    user_id = get_current_user_id()
+    all_playlists = []
+    res = get_sp().search(query, type='playlist')
+    try:
+        all_playlists = res['playlists']['items']
+        if skip_owned_by_user:
+            all_playlists = list(filter(lambda pl: pl['owner']['id'] != user_id, all_playlists))
+        if len(all_playlists) >= count:
+            return all_playlists[:count]
+
+        while res['playlists']['next']:
+            res = get_sp().next(res['playlists'])
+            playlists = res['playlists']['items']
+            if skip_owned_by_user:
+                playlists = list(filter(lambda pl: pl['owner']['id'] != user_id, playlists))
+            all_playlists.extend(playlists)
+            if len(all_playlists) >= count:
+                return all_playlists[:count]
+    except:
+        pass
+    return all_playlists
 
 
 def find_missing_track_ids(tags_list: list, ignore_duration=False):
