@@ -281,9 +281,11 @@ def remove_exist_tags_by_isrc_and_length(exist_tags_list: list, new_tags_list: l
             if new_tags['ISRC'] in exist_tags_dict:
                 for exist_length in exist_tags_dict[new_tags['ISRC']]:
                     if abs(int(new_tags['SPOTY_LENGTH']) - int(exist_length) < COMPARE_LENGTH_TOLERANCE_SEC):
-                        exist.append(new_tags)
                         found = True
-        if not found:
+                        break
+        if found:
+            exist.append(new_tags)
+        else:
             new.append(new_tags)
 
     if show_progressbar:
