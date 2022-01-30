@@ -142,7 +142,7 @@ def find_track_id_by_artist_and_title(artist: str, title: str, length=None,
 def find_playlist_by_query(query: str, count=100, skip_owned_by_user=True):
     user_id = get_current_user_id()
     all_playlists = []
-    res = get_sp().search(query, type='playlist')
+    res = get_sp().search(query, type='playlist', limit=50)
     try:
         all_playlists = res['playlists']['items']
         if skip_owned_by_user:
