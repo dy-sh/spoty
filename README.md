@@ -191,3 +191,24 @@ Take audio files, filter out those in which Genre is not specified and make an m
 ```bash
 spoty get --a "./music" filter --leave-no-tags 'Genre' create-m3u8
 ```
+
+
+# Development
+
+- Clone repo
+- Execute: 
+```bash
+pip install --editable .
+```
+
+Check spoty location:
+```bash
+spoty config
+```
+
+Check spotify connection:
+```bash
+spoty spotify me
+```
+
+

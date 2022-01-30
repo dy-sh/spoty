@@ -188,3 +188,22 @@ spoty get --a "./music1" get --a "./music2" dup get-unique export
 ```bash
 spoty get --a "./music" filter --leave-no-tags 'Genre' create-m3u8
 ```
+
+
+# Development
+
+- Clone repo
+- Execute: 
+```bash
+pip install --editable .
+```
+
+Check spoty location:
+```bash
+spoty config
+```
+
+Check spotify connection:
+```bash
+spoty spotify me
+```
