@@ -241,7 +241,12 @@ def get_playlist_with_full_list_of_tracks(playlist_id: str, add_spoty_tags=True,
 
     log.info(f'Collecting playlist {playlist_id}')
 
-    playlist = get_sp().playlist(playlist_id)
+    try:
+        playlist = get_sp().playlist(playlist_id)
+    except:
+        click.echo(f"Cant get playlist {playlist_id}", err=True)
+        return None
+
     total_tracks = playlist["tracks"]["total"]
     tracks = playlist["tracks"]["items"]
     tracks = remove_invalid_tracks(tracks)
