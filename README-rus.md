@@ -80,7 +80,7 @@ spoty get --d me import-spotify
 Перенести из Spotify в Deezer плейлисты, имена которых начинаются на "BEST" (вы можете использовать любое регулярное выражение для фильтрации плейлистов):
 
 ```bash
-spoty get --sr me "^BEST" me import-deezer
+spoty get --sr me "^BEST" import-deezer
 ```
 
 Экспортировать все плейлисты указанного пользователя Spotify в csv файлы на диске:
