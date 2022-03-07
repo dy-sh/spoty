@@ -83,7 +83,7 @@ spoty get --d me import-spotify
 Move playlists with names starting with "BEST" from Spotify to Deezer (you can use any regex to filter playlists): 
 
 ```bash
-spoty get --sr me "^BEST" me import-deezer
+spoty get --sr me "^BEST" import-deezer
 ```
 
 Export all playlists of specified Spotify user to csv files on disk: 
