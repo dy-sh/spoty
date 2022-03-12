@@ -691,8 +691,7 @@ def read_tags_from_deezer_track(track: dict):
 
     if 'id' in track:
         tags['WWWAUDIOFILE'] = f'https://www.deezer.com/track/{track["id"]}'
-
-    tags['DEEZER_TRACK_ID'] = track["id"]
+        tags['DEEZER_TRACK_ID'] = track["id"]
 
     if 'artist' in track and 'id' in track['artist']:
         tags['DEEZER_ARTIST_ID'] = track['artist']['id']
