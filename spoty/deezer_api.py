@@ -670,45 +670,45 @@ def read_tags_from_deezer_tracks(tracks: list):
 def read_tags_from_deezer_track(track: dict):
     tags = {}
 
-    if 'isrc' in track:
-        tags['ISRC'] = track['isrc']
+    if 'ISRC' in track:
+        tags['ISRC'] = track['ISRC']
 
 
-    if 'artist' in track and 'name' in track['artist']:
-        tags['ARTIST'] = track['artist']['name']
+    if 'ART_NAME' in track:
+        tags['ARTIST'] = track['ART_NAME']
 
 
-    if 'title' in track:
-        tags['TITLE'] = track['title']
-
-
-
-    if 'duration' in track:
-        tags['SPOTY_LENGTH'] = int(track['duration'])
-
-    if 'album' in track:
-        tags['DEEZER_ALBUM_ID'] = track['album']['id']
-
-    if 'id' in track:
-        tags['WWWAUDIOFILE'] = f'https://www.deezer.com/track/{track["id"]}'
-        tags['DEEZER_TRACK_ID'] = track["id"]
-
-    if 'artist' in track and 'id' in track['artist']:
-        tags['DEEZER_ARTIST_ID'] = track['artist']['id']
-
-    if 'explicit_lyrics' in track:
-        tags['EXPLICIT'] = track['explicit_lyrics']
+    if 'SNG_TITLE' in track:
+        tags['TITLE'] = track['SNG_TITLE']
 
 
 
-    if 'release_date' in track:
-        tags['YEAR'] = track['release_date']
+    if 'DURATION' in track:
+        tags['SPOTY_LENGTH'] = int(track['DURATION'])
 
-    if 'gain' in track:
-        tags['GAIN'] = track['gain']
+    if 'ALB_ID' in track:
+        tags['DEEZER_ALBUM_ID'] = track['ALB_ID']
 
-    if 'bpm' in track:
-        tags['BPM'] = track['bpm']
+    if 'SNG_ID' in track:
+        tags['WWWAUDIOFILE'] = f'https://www.deezer.com/track/{track["SNG_ID"]}'
+        tags['DEEZER_TRACK_ID'] = track["SNG_ID"]
+
+    if 'ART_ID' in track :
+        tags['DEEZER_ARTIST_ID'] = track['ART_ID']
+
+    if 'EXPLICIT_TRACK_CONTENT' in track and 'EXPLICIT_LYRICS_STATUS' in track['EXPLICIT_TRACK_CONTENT']:
+        tags['EXPLICIT'] = track['EXPLICIT_TRACK_CONTENT']['EXPLICIT_LYRICS_STATUS'] != 0
+
+
+
+    # if 'release_date' in track:
+    #     tags['YEAR'] = track['release_date']
+
+    if 'GAIN' in track:
+        tags['GAIN'] = track['GAIN']
+
+    # if 'bpm' in track:
+    #     tags['BPM'] = track['bpm']
 
     # if 'DATE_ADD' in track:
     #     timestamp = datetime.datetime.fromtimestamp(int(track['DATE_ADD']))
