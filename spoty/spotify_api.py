@@ -236,6 +236,22 @@ def remove_invalid_tracks(tracks):
     return new_tracks
 
 
+def remove_unavailable_tracks(tracks, country: str):
+    new_tracks = []
+    for track in tracks:
+        if track is None \
+                or 'track' not in track \
+                or track['track'] is None \
+                or 'available_markets' not in track['track'] \
+                or track['track']['available_markets'] is None \
+                or len(track['track']['available_markets']) == 0 \
+                or country.upper() in track['track']['available_markets']:
+            new_tracks.append(track)
+        # else:
+        #     print(track['track']['name'])
+    return new_tracks
+
+
 def get_playlist_with_full_list_of_tracks(playlist_id: str, add_spoty_tags=True, show_progressbar=False):
     playlist_id = parse_playlist_id(playlist_id)
 
@@ -250,6 +266,7 @@ def get_playlist_with_full_list_of_tracks(playlist_id: str, add_spoty_tags=True,
     total_tracks = playlist["tracks"]["total"]
     tracks = playlist["tracks"]["items"]
     tracks = remove_invalid_tracks(tracks)
+    # tracks = remove_unavailable_tracks(tracks, 'RU')
 
     if add_spoty_tags:
         add_spoty_tags_to_tracks([], tracks, playlist_id, playlist['name'])
@@ -271,6 +288,7 @@ def get_playlist_with_full_list_of_tracks(playlist_id: str, add_spoty_tags=True,
         if result is None:
             break
         result['items'] = remove_invalid_tracks(result['items'])
+        # result['items'] = remove_unavailable_tracks(result['items'], 'RU')
         if add_spoty_tags:
             add_spoty_tags_to_tracks(tracks, result['items'], playlist_id, playlist['name'])
         tracks.extend(result['items'])
