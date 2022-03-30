@@ -10,6 +10,7 @@ import sys
 import time
 from time import strftime
 from time import gmtime
+import string
 
 THREADS_COUNT = 12
 
@@ -164,15 +165,13 @@ def is_valid_file(path: str):
 
 
 def slugify_file_pah(text: str):
-    # valid_chars = "-_.()=!@#$%%^&+ %s%s" % (string.ascii_letters, string.digits)
-    # return ''.join(c for c in text if c in valid_chars).strip()
+    valid_chars = "ЯЧСМИТЬБЮФЫВАПРОЛДЖЭЙЦУКЕНГШЩЗХЪячсмитьбюфывапролджэйцукенгшщзхъ!@#$%%^&()_-=+.,[]{}`№ %s%s" % (string.ascii_letters, string.digits)
+    return ''.join(c for c in text if c in valid_chars).strip()
 
-    valid_chars = '<>:"/\|?*'
-
-    for char in valid_chars:
-        text = text.replace(char, '')
-
-    return text
+    # invalid_chars = '<>:"/\|?*'
+    # for char in invalid_chars:
+    #     text = text.replace(char, '')
+    # return text
 
 
 def filter_duplicates(src_arr: list, dest_arr: list):
