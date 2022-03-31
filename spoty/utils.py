@@ -255,6 +255,21 @@ def remove_exist_tags(exist_tags_list: list, new_tags_list: list, tags_to_compar
 
 
 def remove_exist_tags_by_isrc_and_length(exist_tags_list: list, new_tags_list: list, show_progressbar=False):
+    exist_tags_dict = tags_list_to_dict_by_isrc_and_length(exist_tags_list)
+    return remove_exist_tags_by_isrc_and_length_dict(exist_tags_dict,new_tags_list, show_progressbar)
+
+
+def tags_list_to_dict_by_isrc_and_length(exist_tags_list: list):
+    exist_tags_dict = {}
+    for tags in exist_tags_list:
+        if 'ISRC' in tags and 'SPOTY_LENGTH' in tags:
+            if tags['ISRC'] not in exist_tags_dict:
+                exist_tags_dict[tags['ISRC']] = []
+            exist_tags_dict[tags['ISRC']].append(tags['SPOTY_LENGTH'])
+    return exist_tags_dict
+
+
+def remove_exist_tags_by_isrc_and_length_dict(exist_tags_dict: dict, new_tags_list: list, show_progressbar=False):
     new = []
     exist = []
     if show_progressbar:
@@ -262,13 +277,6 @@ def remove_exist_tags_by_isrc_and_length(exist_tags_list: list, new_tags_list: l
                                 label=f'Searching for tags matching in {len(exist_tags_list)} and {len(new_tags_list)} tracks')
 
     COMPARE_LENGTH_TOLERANCE_SEC = int(settings.SPOTY.COMPARE_LENGTH_TOLERANCE_SEC)
-
-    exist_tags_dict = {}
-    for tags in exist_tags_list:
-        if 'ISRC' in tags and 'SPOTY_LENGTH' in tags:
-            if tags['ISRC'] not in exist_tags_dict:
-                exist_tags_dict[tags['ISRC']] = []
-            exist_tags_dict[tags['ISRC']].append(tags['SPOTY_LENGTH'])
 
     for new_tags in new_tags_list:
         if show_progressbar:
