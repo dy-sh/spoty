@@ -263,6 +263,10 @@ def get_playlist_with_full_list_of_tracks(playlist_id: str, add_spoty_tags=True,
         click.echo(f"Cant get playlist {playlist_id}", err=True)
         return None
 
+    if playlist["tracks"] is None or playlist["tracks"]["total"] is None:
+        click.echo(f"Playlist {playlist_id} has no tracks", err=True)
+        return None
+
     total_tracks = playlist["tracks"]["total"]
     tracks = playlist["tracks"]["items"]
     tracks = remove_invalid_tracks(tracks)
