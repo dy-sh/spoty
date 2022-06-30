@@ -433,7 +433,10 @@ def get_tracks_of_playlist(playlist_id: str, add_spoty_tags=True, playlist_name:
 
     # load the first 100 songs
     tracks = []
-    result = get_sp().playlist_items(playlist_id, additional_types=['track'], limit=100)
+    try:
+        result = get_sp().playlist_items(playlist_id, additional_types=['track'], limit=100)
+    except:
+        return []
 
     new_tracks = result['items']
     new_tracks = remove_invalid_tracks(new_tracks)
