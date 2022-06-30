@@ -107,8 +107,8 @@ def find_track_by_artist_and_title(artist: str, title: str, length=None,
 
 
 def find_track_by_query(query: str, length=None, length_tolerance=settings.SPOTY.COMPARE_LENGTH_TOLERANCE_SEC):
-    res = get_sp().search(query)
     try:
+        res = get_sp().search(query)
         tracks = res['tracks']['items']
         if length is not None:
             for track in tracks:
