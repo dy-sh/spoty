@@ -268,6 +268,13 @@ def tags_list_to_dict_by_isrc_and_length(exist_tags_list: list):
             exist_tags_dict[tags['ISRC']].append(tags['SPOTY_LENGTH'])
     return exist_tags_dict
 
+def tags_list_to_dict_by_isrc(exist_tags_list: list):
+    exist_tags_dict = {}
+    for tags in exist_tags_list:
+        if 'ISRC' in tags:
+            exist_tags_dict[tags['ISRC']] = None
+    return exist_tags_dict
+
 
 def remove_exist_tags_by_isrc_and_length_dict(exist_tags_dict: dict, new_tags_list: list, show_progressbar=False):
     new = []

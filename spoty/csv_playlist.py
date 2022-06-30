@@ -256,3 +256,39 @@ def read_tags_from_csv_fast(csv_file_name, cells):
             tags_list.append(tags)
 
     return tags_list
+
+
+def read_tags_from_csv_only_one_param(csv_file_name, param):
+    csv_file_name = os.path.abspath(csv_file_name)
+    tags_list = {}
+
+    with open(csv_file_name, newline='', encoding='utf-8-sig') as file:
+        header = []
+        reader = csv.reader(file)
+
+        for i, row in enumerate(reader):
+            # read header
+
+            if (i == 0):
+                header = row
+                if len(header) == 0:
+                    raise CSVFileInvalidHeader()
+                continue
+
+            # read tags
+
+            if len(row) == 0:  # skip empty lines
+                continue
+
+            if all(item == "" for item in row):  # skip empty lines
+                continue
+
+            for h, key in enumerate(header):
+                if key == param:
+                    if len(row[h]) > 0:
+                        # if row[h] in tags_list: # duplicate
+                        #     val = row[h]
+                        #     click.echo(val)
+                        tags_list[row[h]] = None
+
+    return tags_list
