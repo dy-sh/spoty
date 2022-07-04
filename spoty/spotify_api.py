@@ -58,6 +58,9 @@ def get_tracks_from_playlists(playlist_ids: list, add_spoty_tags=True):
             playlist = get_playlist_with_full_list_of_tracks(playlist_id, add_spoty_tags)
             requested_playlists.append(playlist_id)
 
+            if 'tracks' not in playlist or 'items' not in playlist['tracks']:
+                continue
+
             tracks = playlist['tracks']['items']
 
             tags = read_tags_from_spotify_tracks(tracks)
