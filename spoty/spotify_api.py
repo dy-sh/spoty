@@ -513,8 +513,15 @@ def add_tracks_to_playlist_by_tags(playlist_id: str, tags_list: list, allow_dupl
     while i < len(track_ids):
         next_tracks.append(track_ids[i])
         if len(next_tracks) == 100 or i == len(track_ids) - 1:
-            get_sp().playlist_add_items(playlist_id, next_tracks)
-            log.debug(f'{len(next_tracks)} tracks added to playlist')
+            try:
+                get_sp().playlist_add_items(playlist_id, next_tracks)
+                log.debug(f'{len(next_tracks)} tracks added to playlist')
+            except:
+                for track_id in next_tracks:
+                    try:
+                        get_sp().playlist_add_items(playlist_id, [track_id])
+                    except:
+                        click.echo(f'"\nTrack ID "{track_id}" not found in spotify database.')
             next_tracks = []
         i += 1
 
