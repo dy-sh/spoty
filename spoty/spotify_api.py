@@ -56,6 +56,9 @@ def get_tracks_from_playlists(playlist_ids: list, add_spoty_tags=True):
                 continue
 
             playlist = get_playlist_with_full_list_of_tracks(playlist_id, add_spoty_tags)
+            if playlist is None:
+                # click.echo(f"Playlist id {playlist_id} not found.")
+                continue
             requested_playlists.append(playlist_id)
 
             if 'tracks' not in playlist or 'items' not in playlist['tracks']:
@@ -263,7 +266,7 @@ def get_playlist_with_full_list_of_tracks(playlist_id: str, add_spoty_tags=True,
     try:
         playlist = get_sp().playlist(playlist_id)
     except:
-        click.echo(f"Cant get playlist {playlist_id}", err=True)
+        click.echo(f'Cant get playlist "{playlist_id}" from spotify. Check if such a playlist exists.', err=True)
         return None
 
     if playlist["tracks"] is None or playlist["tracks"]["total"] is None:
