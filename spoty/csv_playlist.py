@@ -24,7 +24,15 @@ class CSVFileInvalidHeader(CSVImportException):
 
 
 def is_csv(file_name):
-    return file_name.upper().endswith('.CSV')
+    return file_name.endswith('.csv') or file_name.endswith('.CSV')
+
+
+def scantree(path):
+    for entry in os.scandir(path):
+        if entry.is_dir(follow_symlinks=False):
+            yield from scantree(entry.path)
+        else:
+            yield entry
 
 
 def create_csvs(tags_list, path, grouping_pattern, overwrite=False, append=False, remove_duplicates=False,
@@ -102,17 +110,26 @@ def find_csvs_in_path(path, recursive=True):
         raise Exception("Path is not valid: " + path)
 
     full_file_names = []
+
     if recursive:
-        full_file_names = [os.path.join(dp, f) for dp, dn, filenames in os.walk(path) for f in filenames if
-                           is_csv(os.path.splitext(f)[1])]
+        # full_file_names = [os.path.join(dp, f) for dp, dn, filenames in os.walk(path) for f in filenames if
+        #                    is_csv(os.path.splitext(f)[1])]
+        for path in scantree(path):
+            if path.is_file():
+                if is_csv(path.name):
+                    full_file_names.append(path.path)
     else:
-        full_file_names = [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
-        full_file_names = list(filter(lambda f: is_csv(f), full_file_names))
+        # full_file_names = [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+        # full_file_names = list(filter(lambda f: is_csv(f), full_file_names))
+        for path in os.scandir(path):
+            if path.is_file():
+                if is_csv(path.name):
+                    full_file_names.append(path.path)
 
     return full_file_names
 
 
-def write_tags_to_csv(tags_list, csv_file_name, append=False):
+def write_tags_to_csv(tags_list, csv_file_name, append=False, write_empty=False):
     tags_list = spoty.utils.clean_tags_list_before_write(tags_list)
 
     for i, tags in enumerate(tags_list):
@@ -124,8 +141,9 @@ def write_tags_to_csv(tags_list, csv_file_name, append=False):
                     log.warning(mess)
                     tags[key] = value[0: 131071]
 
-    if tags_list is None or len(tags_list) == 0:
-        return
+    if not write_empty:
+        if tags_list is None or len(tags_list) == 0:
+            return
 
     if append:
         if os.path.isfile(csv_file_name):
@@ -169,14 +187,17 @@ def read_tags_from_csvs(csv_file_names, add_spoty_tags=True):
     return all_tags_lists
 
 
-def read_tags_from_csv(csv_file_name, add_spoty_tags=True, add_missing_tags=True):
+def read_tags_from_csv(csv_file_name, add_spoty_tags=True, add_missing_tags=True, allow_empty=False):
     csv_file_name = os.path.abspath(csv_file_name)
     tags_list = []
 
-    with open(csv_file_name, newline='', encoding='utf-8-sig') as file:
-        reader = csv.reader(file)
-        if sum(1 for row in reader) == 0:
-            raise CSVFileEmpty()
+    # with open(csv_file_name, newline='', encoding='utf-8-sig') as file:
+    #     reader = csv.reader(file)
+    #     if sum(1 for row in reader) == 0:
+    #         if allow_empty:
+    #             return []
+    #         else:
+    #             raise CSVFileEmpty()
 
     with open(csv_file_name, newline='', encoding='utf-8-sig') as file:
         header = []
@@ -188,7 +209,10 @@ def read_tags_from_csv(csv_file_name, add_spoty_tags=True, add_missing_tags=True
             if (i == 0):
                 header = row
                 if len(header) == 0:
-                    raise CSVFileInvalidHeader()
+                    if allow_empty:
+                        return []
+                    else:
+                        raise CSVFileInvalidHeader()
                 continue
 
             # read tags
@@ -221,7 +245,7 @@ def read_tags_from_csv(csv_file_name, add_spoty_tags=True, add_missing_tags=True
     return tags_list
 
 
-def read_tags_from_csv_fast(csv_file_name, cells):
+def read_tags_from_csv_fast(csv_file_name, cells, allow_empty=False):
     csv_file_name = os.path.abspath(csv_file_name)
     tags_list = []
 
@@ -235,7 +259,10 @@ def read_tags_from_csv_fast(csv_file_name, cells):
             if (i == 0):
                 header = row
                 if len(header) == 0:
-                    raise CSVFileInvalidHeader()
+                    if allow_empty:
+                        return []
+                    else:
+                        raise CSVFileInvalidHeader()
                 continue
 
             # read tags

@@ -41,10 +41,12 @@ def get_sp():
 
 
 def get_tracks_from_playlists(playlist_ids: list, add_spoty_tags=True):
+    if len(playlist_ids) == 0:
+        return [], [], []
+
     all_tracks = []
     all_tags_list = []
     all_received_playlist_ids = []
-
     requested_playlists = []
 
     with click.progressbar(playlist_ids, label=f'Reading tracks in {len(playlist_ids)} Spotify playlists') as bar:
