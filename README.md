@@ -192,6 +192,11 @@ Take audio files, filter out those in which Genre is not specified and make an m
 spoty get --a "./music" filter --leave-no-tags 'Genre' create-m3u8
 ```
 
+Take playlists from csv files, leave only the necessary tags and export playlists to new csv files.
+
+```bash
+spoty get --c "C:\Users\User\Documents\spoty\plugins\collector\cache" export --got 'ARTIST,TITLE'    
+````
 
 # Development
 

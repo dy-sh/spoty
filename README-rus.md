@@ -190,6 +190,11 @@ spoty get --a "./music" filter --leave-no-tags 'Genre' create-m3u8
 ```
 
 
+Взять плейлисты из csv-файлов, оставить в них только нужные тэги и экспортировать в новые csv-файлы. 
+```bash
+spoty get --c "C:\Users\User\Documents\spoty\plugins\collector\cache" export --got 'ARTIST,TITLE'    
+```
+`
 # Development
 
 - Clone repo
