@@ -248,10 +248,8 @@ def read_tags_from_csv(csv_file_name, add_spoty_tags=True, add_missing_tags=True
 
             if add_spoty_tags:
                 playlist_id, playlist_name = get_csv_playlist_id_and_name(csv_file_name)
-                # playlist_name = os.path.basename(csv_file_name)
-                # if playlist_name.upper().endswith('.CSV'):
-                #     playlist_name = playlist_name[:-4]
                 tags['SPOTY_SOURCE'] = 'CSV'
+                tags['SPOTY_PLAYLIST_ID'] = playlist_id
                 tags['SPOTY_PLAYLIST_NAME'] = playlist_name
                 tags['SPOTY_PLAYLIST_INDEX'] = str(i)
 
