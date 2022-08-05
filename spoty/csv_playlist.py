@@ -35,8 +35,22 @@ def scantree(path):
             yield entry
 
 
+def get_csv_playlist_id_and_name(csvs_file_name):
+    base_name = os.path.basename(csvs_file_name)
+    base_name = os.path.splitext(base_name)[0]
+    if len(base_name) == 22:
+        id = base_name[:22]
+        name = ""
+        return id, name
+    if len(base_name) > 21:
+        id = base_name[:22]
+        name = base_name[23:]
+        return id, name
+    return None, None
+
+
 def create_csvs(tags_list, path, grouping_pattern, overwrite=False, append=False, remove_duplicates=False,
-                confirm=False, compare_tags_list=None,get_only_tags=None):
+                confirm=False, compare_tags_list=None, get_only_tags=None):
     path = os.path.abspath(path)
 
     if compare_tags_list is None:
@@ -233,9 +247,10 @@ def read_tags_from_csv(csv_file_name, add_spoty_tags=True, add_missing_tags=True
                     tags[key] = row[h]
 
             if add_spoty_tags:
-                playlist_name = os.path.basename(csv_file_name)
-                if playlist_name.upper().endswith('.CSV'):
-                    playlist_name = playlist_name[:-4]
+                playlist_id, playlist_name = get_csv_playlist_id_and_name(csv_file_name)
+                # playlist_name = os.path.basename(csv_file_name)
+                # if playlist_name.upper().endswith('.CSV'):
+                #     playlist_name = playlist_name[:-4]
                 tags['SPOTY_SOURCE'] = 'CSV'
                 tags['SPOTY_PLAYLIST_NAME'] = playlist_name
                 tags['SPOTY_PLAYLIST_INDEX'] = str(i)
