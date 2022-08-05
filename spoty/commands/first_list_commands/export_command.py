@@ -26,6 +26,8 @@ from datetime import datetime
 @click.option('--duplicates-compare-tags', '--dct', show_default=True, multiple=True,
               default=settings.SPOTY.COMPARE_TAGS_DEFINITELY_DUPLICATE,
               help='Compare duplicates by this tags. It is optional. You can also change the list of tags in the config file.')
+@click.option('--get-only-tags', '--got',
+              help='Get only specified tags. All other tags will be removed. or Example: "SPOTIFY_TRACK_ID,ISRC,ARTIST,TITLE"')
 @click.option('--confirm', '-y', is_flag=True,
               help='Confirm all questions with a positive answer automatically.')
 @click.pass_obj
@@ -37,6 +39,7 @@ def export_tracks(context: SpotyContext,
                   path,
                   no_timestamp,
                   duplicates_compare_tags,
+                  get_only_tags,
                   confirm,
                   ):
     """
@@ -57,9 +60,12 @@ Export a list of tracks to csv files (playlists) on disk.
             date_time_str = now.strftime("%Y_%m_%d-%H_%M_%S")
             path = os.path.join(path, "export-csv-" + date_time_str)
 
+        if get_only_tags:
+            get_only_tags = str.split(get_only_tags, ',')
+
         file_names, names, added_tracks, import_duplicates, already_exist \
-            = spoty.csv_playlist.create_csvs(tags_list, path, grouping_pattern, overwrite, append, no_duplicates, confirm,
-                                             duplicates_compare_tags)
+            = spoty.csv_playlist.create_csvs(tags_list, path, grouping_pattern, overwrite, append, no_duplicates,
+                                             confirm, duplicates_compare_tags, get_only_tags)
 
         # print summery
 

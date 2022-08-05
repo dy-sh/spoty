@@ -137,9 +137,8 @@ def filter_tracks_wrapper(context: SpotyContext,
             tags_list = new_tags_list
 
         if get_only_tags:
-            get_only_tags_list=str.split(get_only_tags,',')
-            new_tags_list = spoty.utils.get_only_tags(tags_list, get_only_tags_list)
-            tags_list = new_tags_list
+            get_only_tags_list = str.split(get_only_tags, ',')
+            tags_list = spoty.utils.get_only_tags(tags_list, get_only_tags_list)
 
         if len(summary) > 1:
             context.summary.extend(summary)

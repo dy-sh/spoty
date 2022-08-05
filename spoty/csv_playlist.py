@@ -36,7 +36,7 @@ def scantree(path):
 
 
 def create_csvs(tags_list, path, grouping_pattern, overwrite=False, append=False, remove_duplicates=False,
-                confirm=False, compare_tags_list=None):
+                confirm=False, compare_tags_list=None,get_only_tags=None):
     path = os.path.abspath(path)
 
     if compare_tags_list is None:
@@ -83,6 +83,9 @@ def create_csvs(tags_list, path, grouping_pattern, overwrite=False, append=False
                         compare_tags = compare_tags_str.split(',')
                         tags_l, exist_tags = spoty.utils.remove_exist_tags(exist_tags_list, tags_l, compare_tags, False)
                         all_already_exist.extend(exist_tags)
+
+            if get_only_tags:
+                tags_l = spoty.utils.get_only_tags(tags_l, get_only_tags)
 
             write_tags_to_csv(tags_l, csv_file_name, not create_new_file)
 
