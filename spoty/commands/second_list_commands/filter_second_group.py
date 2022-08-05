@@ -4,8 +4,8 @@ from spoty.commands.first_list_commands import \
     print_command, \
     filter_group
 from spoty.commands.second_list_commands import \
-    find_duplicates_second_command,\
-    find_deezer_second_group,\
+    find_duplicates_second_command, \
+    find_deezer_second_group, \
     find_spotify_second_group
 from spoty.utils import SpotyContext
 from spoty import settings
@@ -30,6 +30,8 @@ import click
               help='Leave only added to playlist before specified date.')
 @click.option('--leave-added-after', '--laa',
               help='Leave only added to playlist after specified date.')
+@click.option('--get-only-tags', '--got',
+              help='Get only specified tags. All other tags will be removed. or Example: "SPOTIFY_TRACK_ID,ISRC,ARTIST,TITLE"')
 @click.pass_obj
 def filter_second(context: SpotyContext,
                   # playlist_names,
@@ -38,8 +40,9 @@ def filter_second(context: SpotyContext,
                   remove_duplicates,
                   leave_duplicates,
                   duplicates_compare_tags,
-    leave_added_before,
-    leave_added_after,
+                  leave_added_before,
+                  leave_added_after,
+                  get_only_tags
                   ):
     """
 Filter tracks.
@@ -54,6 +57,7 @@ Filter tracks.
                                        duplicates_compare_tags,
                                        leave_added_before,
                                        leave_added_after,
+                                       get_only_tags
                                        )
 
 

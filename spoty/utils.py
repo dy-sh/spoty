@@ -165,7 +165,8 @@ def is_valid_file(path: str):
 
 
 def slugify_file_pah(text: str):
-    valid_chars = "ЯЧСМИТЬБЮФЫВАПРОЛДЖЭЙЦУКЕНГШЩЗХЪячсмитьбюфывапролджэйцукенгшщзхъ!@#$%%^&()_-=+.,[]{}`№ %s%s" % (string.ascii_letters, string.digits)
+    valid_chars = "ЯЧСМИТЬБЮФЫВАПРОЛДЖЭЙЦУКЕНГШЩЗХЪячсмитьбюфывапролджэйцукенгшщзхъ!@#$%%^&()_-=+.,[]{}`№ %s%s" % (
+    string.ascii_letters, string.digits)
     return ''.join(c for c in text if c in valid_chars).strip()
 
     # invalid_chars = '<>:"/\|?*'
@@ -256,7 +257,7 @@ def remove_exist_tags(exist_tags_list: list, new_tags_list: list, tags_to_compar
 
 def remove_exist_tags_by_isrc_and_length(exist_tags_list: list, new_tags_list: list, show_progressbar=False):
     exist_tags_dict = tags_list_to_dict_by_isrc_and_length(exist_tags_list)
-    return remove_exist_tags_by_isrc_and_length_dict(exist_tags_dict,new_tags_list, show_progressbar)
+    return remove_exist_tags_by_isrc_and_length_dict(exist_tags_dict, new_tags_list, show_progressbar)
 
 
 def tags_list_to_dict_by_isrc_and_length(exist_tags_list: list):
@@ -267,6 +268,7 @@ def tags_list_to_dict_by_isrc_and_length(exist_tags_list: list):
                 exist_tags_dict[tags['ISRC']] = []
             exist_tags_dict[tags['ISRC']].append(tags['SPOTY_LENGTH'])
     return exist_tags_dict
+
 
 def tags_list_to_dict_by_isrc(exist_tags_list: list):
     exist_tags_dict = {}
@@ -541,6 +543,17 @@ def filter_added_before_date(tags_list: list, date: str, add_if_date_tag_missing
             if add_if_date_tag_missing:
                 filtered.append(tags)
     return filtered
+
+
+def get_only_tags(tags_list: list, get_tags: list):
+    new_tags_list = []
+    for tags in tags_list:
+        new_tags = {}
+        for tag in get_tags:
+            if tag in tags:
+                new_tags[tag] = tags[tag]
+        new_tags_list.append(new_tags)
+    return new_tags_list
 
 
 def check_all_tags_exist(tags: dict, tags_to_check: list):
