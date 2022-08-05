@@ -46,6 +46,8 @@ import click
               help='Get tracks from m3u8 playlists located at the specified local path. You can specify the m3u8 file name as well.')
 @click.option('--no-recursive', '-r', is_flag=True,
               help='Do not search in subdirectories from the specified path.')
+@click.option('--no-spoty-tags', '-t', is_flag=True,
+              help='Do not add special spoty tags.')
 @click.pass_context
 def get_tracks(
         ctx,
@@ -59,6 +61,7 @@ def get_tracks(
         csv,
         m3u8,
         no_recursive,
+        no_spoty_tags
 ):
     """
 Get tracks from sources for further actions (see next commands).
@@ -81,6 +84,7 @@ Get tracks from sources for further actions (see next commands).
         csv,
         m3u8,
         no_recursive,
+        no_spoty_tags
     )
 
 
@@ -96,6 +100,7 @@ def get_tracks_wrapper(
         csv,
         m3u8,
         no_recursive,
+        no_spoty_tags
 ):
     all_tags_list = []
 
@@ -119,7 +124,7 @@ def get_tracks_wrapper(
         file_names = spoty.m3u8_playlist.find_m3u8s_in_paths(m3u8_paths, not no_recursive)
         m3u8_files.extend(file_names)
 
-        tags_list = spoty.m3u8_playlist.read_tags_from_m3u8s(m3u8_files)
+        tags_list = spoty.m3u8_playlist.read_tags_from_m3u8s(m3u8_files,not no_spoty_tags)
         tags_list_from_m3u8.extend(tags_list)
         all_tags_list.extend(tags_list)
 
@@ -144,7 +149,7 @@ def get_tracks_wrapper(
         file_names = spoty.csv_playlist.find_csvs_in_paths(csv_paths, not no_recursive)
         csv_files.extend(file_names)
 
-        tags_list = spoty.csv_playlist.read_tags_from_csvs(csv_files)
+        tags_list = spoty.csv_playlist.read_tags_from_csvs(csv_files,not no_spoty_tags)
         tags_list_from_csv.extend(tags_list)
         all_tags_list.extend(tags_list)
 
@@ -168,7 +173,7 @@ def get_tracks_wrapper(
         file_names = spoty.audio_files.find_audio_files_in_paths(audio_paths, not no_recursive)
         audio_files.extend(file_names)
 
-        tags_list = spoty.audio_files.read_audio_files_tags(audio_files)
+        tags_list = spoty.audio_files.read_audio_files_tags(audio_files,not no_spoty_tags)
         tags_list = spoty.utils.add_playlist_index_from_playlist_names(tags_list)
         tags_list_from_audio.extend(tags_list)
         all_tags_list.extend(tags_list)

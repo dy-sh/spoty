@@ -33,6 +33,8 @@ import click
               help='Get tracks from m3u8 playlists located at the specified local path. You can specify the m3u8 file name as well.')
 @click.option('--no-recursive', '-r', is_flag=True,
               help='Do not search in subdirectories from the specified path.')
+@click.option('--no-spoty-tags', '-t', is_flag=True,
+              help='Do not add special spoty tags.')
 @click.pass_obj
 def get_second(context: SpotyContext,
                spotify_playlist,
@@ -44,7 +46,8 @@ def get_second(context: SpotyContext,
                audio,
                csv,
                m3u8,
-               no_recursive
+               no_recursive,
+               no_spoty_tags
                ):
     """
 Collect second list of tracks for further actions (see next commands).
@@ -62,6 +65,7 @@ Collect second list of tracks for further actions (see next commands).
                                  csv,
                                  m3u8,
                                  no_recursive,
+                                 no_spoty_tags
                                  )
 
 
