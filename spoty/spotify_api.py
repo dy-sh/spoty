@@ -993,6 +993,14 @@ def get_track_ids_from_tags_list(tags_list):
         return [str(track['SPOTIFY_TRACK_ID']) for track in tags_list]
 
 
+def get_track_ids_dict_from_tags_list(tags_list):
+    res = {}
+    for tags in tags_list:
+        if 'SPOTIFY_TRACK_ID' in tags:
+            res['SPOTIFY_TRACK_ID'] = None
+    return res
+
+
 def get_playlists_ids(playlists: list):
     if len(playlists) == 0:
         return []
