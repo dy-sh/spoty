@@ -305,8 +305,9 @@ def tags_list_to_dict_by_artist_title(exist_tags_list: list):
     exist_tags_dict = {}
     for tags in exist_tags_list:
         if 'ARTIST' in tags and 'TITLE' in tags:
-            exist_tags_dict[tags['ARTIST']] = {}
-            exist_tags_dict[tags['ARTIST']]['TITLE'] = None
+            if tags['ARTIST'] not in exist_tags_dict:
+                exist_tags_dict[tags['ARTIST']] = {}
+            exist_tags_dict[tags['ARTIST']][tags['TITLE']] = None
     return exist_tags_dict
 
 
@@ -329,7 +330,7 @@ def remove_exist_tags_by_isrc_artist_title_dict(exist_tags_by_isrc: dict, exist_
 
         if 'ARTIST' in new_tags and 'TITLE' in new_tags:
             if new_tags['ARTIST'] in exist_tags_by_artist_title:
-                if new_tags['TITLE'] in exist_tags_by_artist_title['ARTIST']:
+                if new_tags['TITLE'] in exist_tags_by_artist_title[new_tags['ARTIST']]:
                     exist.append(new_tags)
                     continue
 
