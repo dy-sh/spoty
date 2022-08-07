@@ -166,7 +166,7 @@ def is_valid_file(path: str):
 
 def slugify_file_pah(text: str):
     valid_chars = "ЯЧСМИТЬБЮФЫВАПРОЛДЖЭЙЦУКЕНГШЩЗХЪячсмитьбюфывапролджэйцукенгшщзхъ!@#$%%^&()_-=+.,[]{}`№ %s%s" % (
-    string.ascii_letters, string.digits)
+        string.ascii_letters, string.digits)
     return ''.join(c for c in text if c in valid_chars).strip()
 
     # invalid_chars = '<>:"/\|?*'
@@ -255,11 +255,6 @@ def remove_exist_tags(exist_tags_list: list, new_tags_list: list, tags_to_compar
     return new, exist
 
 
-def remove_exist_tags_by_isrc_and_length(exist_tags_list: list, new_tags_list: list, show_progressbar=False):
-    exist_tags_dict = tags_list_to_dict_by_isrc_and_length(exist_tags_list)
-    return remove_exist_tags_by_isrc_and_length_dict(exist_tags_dict, new_tags_list, show_progressbar)
-
-
 def tags_list_to_dict_by_isrc_and_length(exist_tags_list: list):
     exist_tags_dict = {}
     for tags in exist_tags_list:
@@ -270,27 +265,18 @@ def tags_list_to_dict_by_isrc_and_length(exist_tags_list: list):
     return exist_tags_dict
 
 
-def tags_list_to_dict_by_isrc(exist_tags_list: list):
-    exist_tags_dict = {}
-    for tags in exist_tags_list:
-        if 'ISRC' in tags:
-            exist_tags_dict[tags['ISRC']] = None
-    return exist_tags_dict
+def remove_exist_tags_by_isrc_and_length(exist_tags_list: list, new_tags_list: list):
+    exist_tags_dict = tags_list_to_dict_by_isrc_and_length(exist_tags_list)
+    return remove_exist_tags_by_isrc_and_length_dict(exist_tags_dict, new_tags_list)
 
 
-def remove_exist_tags_by_isrc_and_length_dict(exist_tags_dict: dict, new_tags_list: list, show_progressbar=False):
+def remove_exist_tags_by_isrc_and_length_dict(exist_tags_dict: dict, new_tags_list: list):
     new = []
     exist = []
-    if show_progressbar:
-        bar = click.progressbar(new_tags_list,
-                                label=f'Searching for tags matching in {len(exist_tags_list)} and {len(new_tags_list)} tracks')
 
     COMPARE_LENGTH_TOLERANCE_SEC = int(settings.SPOTY.COMPARE_LENGTH_TOLERANCE_SEC)
 
     for new_tags in new_tags_list:
-        if show_progressbar:
-            bar.update(1)
-
         found = False
 
         if 'ISRC' in new_tags and 'SPOTY_LENGTH' in new_tags:
@@ -304,9 +290,50 @@ def remove_exist_tags_by_isrc_and_length_dict(exist_tags_dict: dict, new_tags_li
         else:
             new.append(new_tags)
 
-    if show_progressbar:
-        bar.finish()
-        click.echo()
+    return new, exist
+
+
+def tags_list_to_dict_by_isrc(exist_tags_list: list):
+    exist_tags_dict = {}
+    for tags in exist_tags_list:
+        if 'ISRC' in tags:
+            exist_tags_dict[tags['ISRC']] = None
+    return exist_tags_dict
+
+
+def tags_list_to_dict_by_artist_title(exist_tags_list: list):
+    exist_tags_dict = {}
+    for tags in exist_tags_list:
+        if 'ARTIST' in tags and 'TITLE' in tags:
+            exist_tags_dict[tags['ARTIST']] = {}
+            exist_tags_dict[tags['ARTIST']]['TITLE'] = None
+    return exist_tags_dict
+
+
+def remove_exist_tags_by_isrc_artist_title(exist_tags_list: list, new_tags_list: list):
+    exist_tags_by_isrc = tags_list_to_dict_by_isrc(exist_tags_list)
+    exist_tags_by_artist_title = tags_list_to_dict_by_artist_title(exist_tags_list)
+    return remove_exist_tags_by_isrc_artist_title_dict(exist_tags_by_isrc, exist_tags_by_artist_title, new_tags_list)
+
+
+def remove_exist_tags_by_isrc_artist_title_dict(exist_tags_by_isrc: dict, exist_tags_by_artist_title: dict,
+                                                new_tags_list: list):
+    new = []
+    exist = []
+
+    for new_tags in new_tags_list:
+        if 'ISRC' in new_tags:
+            if new_tags['ISRC'] in exist_tags_by_isrc:
+                exist.append(new_tags)
+                continue
+
+        if 'ARTIST' in new_tags and 'TITLE' in new_tags:
+            if new_tags['ARTIST'] in exist_tags_by_artist_title:
+                if new_tags['TITLE'] in exist_tags_by_artist_title['ARTIST']:
+                    exist.append(new_tags)
+                    continue
+
+        new.append(new_tags)
 
     return new, exist
 

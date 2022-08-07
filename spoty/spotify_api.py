@@ -404,7 +404,7 @@ def get_list_of_user_playlists(user_id: str):
         return playlists
 
 
-def create_playlist(name: str):
+def create_playlist(name: str)->str:
     log.info(f'Creating new playlist')
 
     user_id = get_current_user_id()
