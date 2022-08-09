@@ -5,7 +5,7 @@ from loguru import logger as log
 
 
 log.remove() # remove default handler to prevent printing to console
-log.add('logs/logs.log', level='DEBUG', encoding="utf8")
+# log.add('logs/logs.log', level='DEBUG', encoding="utf8")
 
 current_directory = os.path.dirname(os.path.realpath(__file__))
 config_path = os.path.abspath(os.path.join(current_directory, 'config'))

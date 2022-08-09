@@ -324,7 +324,7 @@ def delete_playlist(playlist_id: str, confirm=False):
         return False
 
     if not confirm:
-        if not click.confirm(f'Do you want to delete playlist "{playlist["name"]}" ({playlist["id"]})'):
+        if not click.confirm(f'\nDo you want to delete playlist "{playlist["name"]}" ({playlist["id"]})'):
             click.echo("\nCanceled")
             return False
         click.echo()  # for new line
