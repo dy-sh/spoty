@@ -168,7 +168,10 @@ def find_playlist_by_query(query: str, count=100, skip_owned_by_user=True):
                 return all_playlists[:count]
     except:
         pass
-    return all_playlists
+
+    used = set()
+    unique = [x for x in all_playlists if 'id' in x and x['id'] not in used and (used.add(x['id']) or True)]
+    return unique
 
 
 def find_missing_track_ids(tags_list: list, ignore_duration=False):
@@ -404,7 +407,7 @@ def get_list_of_user_playlists(user_id: str):
         return playlists
 
 
-def create_playlist(name: str)->str:
+def create_playlist(name: str) -> str:
     log.info(f'Creating new playlist')
 
     user_id = get_current_user_id()
