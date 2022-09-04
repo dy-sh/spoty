@@ -148,6 +148,7 @@ def find_track_id_by_artist_and_title(artist: str, title: str, length=None,
 
 
 def find_playlist_by_query(query: str, count=100, skip_owned_by_user=True):
+    used = set()
     user_id = get_current_user_id()
     all_playlists = []
     res = get_sp().search(query, type='playlist', limit=50)
@@ -156,6 +157,8 @@ def find_playlist_by_query(query: str, count=100, skip_owned_by_user=True):
         if skip_owned_by_user:
             all_playlists = list(filter(lambda pl: pl['owner']['id'] != user_id, all_playlists))
         if len(all_playlists) >= count:
+            all_playlists = [x for x in all_playlists if
+                             'id' in x and x['id'] not in used and (used.add(x['id']) or True)]  # get unique
             return all_playlists[:count]
 
         while res['playlists']['next']:
@@ -165,13 +168,14 @@ def find_playlist_by_query(query: str, count=100, skip_owned_by_user=True):
                 playlists = list(filter(lambda pl: pl['owner']['id'] != user_id, playlists))
             all_playlists.extend(playlists)
             if len(all_playlists) >= count:
+                all_playlists = [x for x in all_playlists if
+                                 'id' in x and x['id'] not in used and (used.add(x['id']) or True)]  # get unique
                 return all_playlists[:count]
     except:
         pass
 
-    used = set()
-    unique = [x for x in all_playlists if 'id' in x and x['id'] not in used and (used.add(x['id']) or True)]
-    return unique
+    all_playlists = [x for x in all_playlists if 'id' in x and x['id'] not in used and (used.add(x['id']) or True)] # get unique
+    return all_playlists
 
 
 def find_missing_track_ids(tags_list: list, ignore_duration=False):
