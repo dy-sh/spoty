@@ -300,10 +300,15 @@ def get_playlist_with_full_list_of_tracks(playlist_id: str, add_spoty_tags=True,
                                 label=f'Reading {total_tracks} tracks from playlist ' + playlist_id)
 
     while len(tracks) < total_tracks:
-        if 'next' in result:
-            result = get_sp().next(result)
-        else:
-            result = get_sp().next(result["tracks"])
+        try:
+            if 'next' in result:
+                result = get_sp().next(result)
+            else:
+                result = get_sp().next(result["tracks"])
+        except Exception as e:
+            click.echo(f'Cant get tracks from playlist: {playlist_id}')
+            # click.echo(e)
+            break
         if result is None:
             break
         result['items'] = remove_invalid_tracks(result['items'])
