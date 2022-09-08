@@ -54,12 +54,12 @@ def get_tracks_from_playlists(playlist_ids: list, add_spoty_tags=True):
 
             # remove already requested playlists
             if playlist_id in requested_playlists:
-                click.echo(f'Spotify playlist {playlist_id} requested twice. In will be skipped.')
+                click.echo(f'\nSpotify playlist {playlist_id} requested twice. In will be skipped.')
                 continue
 
             playlist = get_playlist_with_full_list_of_tracks(playlist_id, add_spoty_tags)
             if playlist is None:
-                # click.echo(f"Playlist id {playlist_id} not found.")
+                # click.echo(f"\nPlaylist id {playlist_id} not found.")
                 continue
             requested_playlists.append(playlist_id)
 
@@ -81,10 +81,10 @@ def get_tracks_of_spotify_user(user_id: str, playlists_names_regex: str = None):
     user_id = parse_user_id(user_id)
     if user_id == 'me':
         playlists = get_list_of_playlists()
-        click.echo(f'You have {len(playlists)} playlists in Spotify library')
+        click.echo(f'\nYou have {len(playlists)} playlists in Spotify library')
     else:
         playlists = get_list_of_user_playlists(user_id)
-        click.echo(f'User {user_id} has {len(playlists)} playlists in Spotify library')
+        click.echo(f'\nUser {user_id} has {len(playlists)} playlists in Spotify library')
 
     if playlists_names_regex is not None:
         playlists = list(filter(lambda pl: re.findall(playlists_names_regex, pl['name']), playlists))
@@ -275,11 +275,11 @@ def get_playlist_with_full_list_of_tracks(playlist_id: str, add_spoty_tags=True,
     try:
         playlist = get_sp().playlist(playlist_id)
     except:
-        click.echo(f'Cant get playlist "{playlist_id}" from spotify. Check if such a playlist exists.', err=True)
+        click.echo(f'\nCant get playlist "{playlist_id}" from spotify. Check if such a playlist exists.', err=True)
         return None
 
     if playlist["tracks"] is None or playlist["tracks"]["total"] is None:
-        click.echo(f"Playlist {playlist_id} has no tracks", err=True)
+        click.echo(f"\nPlaylist {playlist_id} has no tracks", err=True)
         return None
 
     total_tracks = playlist["tracks"]["total"]
@@ -306,7 +306,7 @@ def get_playlist_with_full_list_of_tracks(playlist_id: str, add_spoty_tags=True,
             else:
                 result = get_sp().next(result["tracks"])
         except Exception as e:
-            click.echo(f'Cant get tracks from playlist: {playlist_id}')
+            click.echo(f'\nCant get tracks from playlist: {playlist_id}')
             # click.echo(e)
             break
         if result is None:
@@ -608,7 +608,7 @@ def remove_all_tracks_from_playlist(playlist_id: str, confirm=False):
         return False
 
     if not confirm:
-        if not click.confirm(f'Do you want to remove all tracks from playlist {playlist_id}?'):
+        if not click.confirm(f'\nDo you want to remove all tracks from playlist {playlist_id}?'):
             click.echo("\nCanceled")
             return False
         click.echo()  # for new line
