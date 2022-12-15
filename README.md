@@ -50,6 +50,7 @@ The only thing you need to set up is access to your music service.
 - On the Spotify [applications](https://developer.spotify.com/dashboard/applications) page, click `Create new app`, create a new application. 
 - Click `Edit Settings`, in `Redirect URIs` enter `http://localhost:8888/callback`.
 - Copy `Client ID` and `Client Secret` into the configuration file `spoty\settings\.secrets.toml` (parameters `SPOTIFY_CLIENT_ID` and `SPOTIFY_CLIENT_SECRET`).
+- Delete `spoty\settings\.cache` file if exist.
 - Run any command for Spotify (for example, `spoty spotify me`) and agree to grant access in the opened browser page.
 - Everything is ready. When you run the command `spoty spotify me`, you should see your Spotify username. 
 
